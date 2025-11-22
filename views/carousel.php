@@ -36,31 +36,31 @@
             </div>
         </div>
     </div>
-<!-- Modal Login -->
-<div class="modal fade" id="modalLogin" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content" style="background: #1a1a1a; border-radius: 20px; border: 1px solid #333; color: #ffffff;">
-            <div class="modal-header" style="background: #1E40AF; border-radius: 20px 20px 0 0; padding: 25px; border-bottom: 3px solid #FFD700;">
-                <h5 class="modal-title" style="color: #FFD700; font-weight: 700;">
-                    <i class="bi bi-box-arrow-in-right me-2"></i>Login Diperlukan
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1) grayscale(100%) brightness(200%);"></button>
-            </div>
-            <div class="modal-body" style="padding: 30px;">
-                <div id="loginAlertContainer"></div>
-                <p class="text-center mb-4" style="color: #e0e0e0;">
-                    Silakan login terlebih dahulu untuk melakukan pengaduan.
-                </p>
-                <div class="d-grid gap-3">
-                    <a href="login.php" class="btn" style="background: #FFD700; color: #1E40AF; font-weight: 700; border-radius: 12px; padding: 15px;">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>Login Sekarang
-                    </a>
-                    
+    <!-- Modal Login -->
+    <div class="modal fade" id="modalLogin" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="background: #1a1a1a; border-radius: 20px; border: 1px solid #333; color: #ffffff;">
+                <div class="modal-header" style="background: #1E40AF; border-radius: 20px 20px 0 0; padding: 25px; border-bottom: 3px solid #FFD700;">
+                    <h5 class="modal-title" style="color: #FFD700; font-weight: 700;">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login Diperlukan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" style="filter: invert(1) grayscale(100%) brightness(200%);"></button>
+                </div>
+                <div class="modal-body" style="padding: 30px;">
+                    <div id="loginAlertContainer"></div>
+                    <p class="text-center mb-4" style="color: #e0e0e0;">
+                        Silakan login terlebih dahulu untuk melakukan pengaduan.
+                    </p>
+                    <div class="d-grid gap-3">
+                        <a href="login.php" class="btn" style="background: #FFD700; color: #1E40AF; font-weight: 700; border-radius: 12px; padding: 15px;">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login Sekarang
+                        </a>
+
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
     <style>
         /* Hero Section Styling - Single Video */
         .hero-section {
