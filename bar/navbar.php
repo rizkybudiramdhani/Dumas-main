@@ -1,3 +1,7 @@
+<?php
+// Include database connection
+require_once __DIR__ . '/../config/koneksi.php';
+?>
 <div class="container-fluid p-0">
     <nav class="navbar navbar-expand-lg navbar-dark px-lg-5 fixed-top">
         <a href="index.php" class="navbar-brand d-flex align-items-center ms-4 ms-lg-0">
@@ -36,13 +40,12 @@
                                 $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
                                 $unread_count = 0;
 
-                                // Untuk user biasa - notifikasi balasan
+                                // Untuk user biasa - notifikasi balasan dari tabel lapmas
                                 if (strpos($user_role, 'ditsamapta') === false && strpos($user_role, 'ditbinmas') === false && strpos($user_role, 'ditresnarkoba') === false):
                                     $user_id = $_SESSION['user_id'];
-                                    $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
-                                                  WHERE user_id = ? AND status IN ('Diproses', 'Selesai')
-                                                  AND balasan IS NOT NULL AND balasan != ''
-                                                  AND is_read = 0";
+                                    $query_count = "SELECT COUNT(*) as total FROM lapmas
+                                                  WHERE Id_akun = ?
+                                                  AND balasan IS NOT NULL AND balasan != ''";
                                     $stmt_count = mysqli_prepare($db, $query_count);
                                     mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                     mysqli_stmt_execute($stmt_count);
@@ -153,7 +156,7 @@
                             else:
                             ?>
                                 <li class="dropdown-header">
-                                    <strong>Notifikasi Balasan</strong>
+                                    <strong><i class="bi bi-chat-dots-fill me-2"></i>Pesan dan Balasan</strong>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
@@ -162,11 +165,12 @@
                                 <?php
                                 if (isset($db) && $db):
                                     $user_id = $_SESSION['user_id'];
-                                    $query_notif = "SELECT id_laporan, judul_laporan, balasan, status, tanggal_balasan
-                                                  FROM tabel_laporan
-                                                  WHERE user_id = ? AND status IN ('Diproses', 'Selesai')
-                                                  AND balasan IS NOT NULL AND balasan != ''
-                                                  ORDER BY tanggal_balasan DESC LIMIT 5";
+
+                                    // Ambil semua laporan user (dengan status)
+                                    $query_notif = "SELECT id_lapmas, judul, desk, lokasi, balasan, status, tanggal_lapor, tanggal_balasan
+                                                FROM lapmas
+                                                WHERE Id_akun = ?
+                                                ORDER BY tanggal_lapor DESC LIMIT 5";
                                     $stmt_notif = mysqli_prepare($db, $query_notif);
                                     mysqli_stmt_bind_param($stmt_notif, "i", $user_id);
                                     mysqli_stmt_execute($stmt_notif);
@@ -174,37 +178,88 @@
 
                                     if (mysqli_num_rows($result_notif) > 0):
                                         while ($notif = mysqli_fetch_assoc($result_notif)):
+                                            // Tentukan icon dan warna berdasarkan status
+                                            $status = $notif['status'] ?? 'Baru';
+
+                                            switch($status) {
+                                                case 'Baru':
+                                                    $icon_class = 'bi-file-earmark-plus';
+                                                    $icon_bg = 'background: #6c757d;'; // Abu-abu
+                                                    $status_text = 'Laporan Baru';
+                                                    break;
+                                                case 'Diproses Ditresnarkoba':
+                                                    $icon_class = 'bi-gear-fill';
+                                                    $icon_bg = 'background: #0d6efd;'; // Biru
+                                                    $status_text = 'Diproses Ditresnarkoba';
+                                                    break;
+                                                case 'Diproses Ditsamapta':
+                                                    $icon_class = 'bi-gear-fill';
+                                                    $icon_bg = 'background: #0dcaf0;'; // Cyan
+                                                    $status_text = 'Diproses Ditsamapta';
+                                                    break;
+                                                case 'Diproses Ditbinmas':
+                                                    $icon_class = 'bi-gear-fill';
+                                                    $icon_bg = 'background: #fd7e14;'; // Orange
+                                                    $status_text = 'Diproses Ditbinmas';
+                                                    break;
+                                                case 'Selesai':
+                                                    $icon_class = 'bi-check-circle-fill';
+                                                    $icon_bg = 'background: #28a745;'; // Hijau
+                                                    $status_text = 'Selesai';
+                                                    break;
+                                                default:
+                                                    $icon_class = 'bi-hourglass-split';
+                                                    $icon_bg = 'background: #ffc107;'; // Kuning
+                                                    $status_text = 'Menunggu';
+                                            }
                                 ?>
                                             <li>
-                                                <a class="dropdown-item notification-item" href="dash-user.php?page=detail-laporan&id=<?php echo $notif['id_laporan']; ?>">
-                                                    <div class="d-flex align-items-start">
-                                                        <div class="notification-icon">
-                                                            <i class="bi bi-chat-left-text-fill"></i>
-                                                        </div>
-                                                        <div class="notification-content">
-                                                            <div class="notification-title"><?php echo htmlspecialchars(substr($notif['judul_laporan'], 0, 40)); ?>...</div>
-                                                            <div class="notification-text"><?php echo htmlspecialchars(substr($notif['balasan'], 0, 60)); ?>...</div>
-                                                            <div class="notification-time">
-                                                                <i class="bi bi-clock"></i>
-                                                                <?php
-                                                                if ($notif['tanggal_balasan']) {
-                                                                    echo date('d M Y, H:i', strtotime($notif['tanggal_balasan']));
-                                                                } else {
-                                                                    echo 'Baru saja';
-                                                                }
-                                                                ?>
+                                                <div class="dropdown-item notification-item-custom">
+                                                    <div class="d-flex align-items-start justify-content-between">
+                                                        <div class="d-flex align-items-start flex-grow-1">
+                                                            <div class="notification-icon" style="<?php echo $icon_bg; ?>">
+                                                                <i class="bi <?php echo $icon_class; ?>"></i>
+                                                            </div>
+                                                            <div class="notification-content">
+                                                                <div class="notification-title">
+                                                                    <?php echo htmlspecialchars(substr($notif['judul'], 0, 30)); ?>
+                                                                    <?php if (strlen($notif['judul']) > 30) echo '...'; ?>
+                                                                </div>
+                                                                <div class="notification-text">
+                                                                    <span class="badge" style="background-color: <?php echo str_replace('background: ', '', $icon_bg); ?>; font-size: 0.65rem;">
+                                                                        <?php echo $status_text; ?>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="notification-time">
+                                                                    <i class="bi bi-calendar3"></i>
+                                                                    <?php
+                                                                    $display_date = !empty($notif['tanggal_balasan']) ? $notif['tanggal_balasan'] : $notif['tanggal_lapor'];
+                                                                    echo date('d M Y', strtotime($display_date));
+                                                                    ?>
+                                                                </div>
                                                             </div>
                                                         </div>
+                                                        <button type="button" class="btn btn-sm btn-detail-lapmas"
+                                                                data-id="<?php echo $notif['id_lapmas']; ?>"
+                                                                data-judul="<?php echo htmlspecialchars($notif['judul'] ?? '', ENT_QUOTES); ?>"
+                                                                data-desk="<?php echo htmlspecialchars($notif['desk'] ?? '', ENT_QUOTES); ?>"
+                                                                data-lokasi="<?php echo htmlspecialchars($notif['lokasi'] ?? '-', ENT_QUOTES); ?>"
+                                                                data-balasan="<?php echo htmlspecialchars($notif['balasan'] ?? '', ENT_QUOTES); ?>"
+                                                                data-status="<?php echo htmlspecialchars($status_text ?? 'Baru', ENT_QUOTES); ?>"
+                                                                data-warna="<?php echo str_replace('background: ', '', $icon_bg ?? 'background: #6c757d'); ?>"
+                                                                data-tanggal="<?php echo date('d M Y, H:i', strtotime($display_date)); ?>">
+                                                            <i class="bi bi-eye"></i> Detail
+                                                        </button>
                                                     </div>
-                                                </a>
+                                                </div>
                                             </li>
                                         <?php
                                         endwhile;
                                     else:
                                         ?>
                                         <li class="dropdown-item text-center text-muted py-3">
-                                            <i class="bi bi-inbox"></i><br>
-                                            Belum ada balasan
+                                            <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+                                            Belum ada laporan
                                         </li>
                                 <?php
                                     endif;
@@ -399,6 +454,76 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Event listener untuk semua tombol detail lapmas
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.btn-detail-lapmas')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const btn = e.target.closest('.btn-detail-lapmas');
+
+                // Ambil data dari button
+                const judul = btn.getAttribute('data-judul') || '';
+                const desk = btn.getAttribute('data-desk') || '';
+                const lokasi = btn.getAttribute('data-lokasi') || '';
+                const balasan = btn.getAttribute('data-balasan') || '';
+                const status = btn.getAttribute('data-status') || 'Baru';
+                const warna = btn.getAttribute('data-warna') || '#6c757d';
+                const tanggal = btn.getAttribute('data-tanggal') || '';
+
+                // Debug - cek data yang diambil
+                console.log('Data yang diambil:', {
+                    judul,
+                    desk,
+                    lokasi,
+                    balasan,
+                    status,
+                    warna,
+                    tanggal
+                });
+
+                // Set data ke modal (htmlspecialchars sudah di-decode otomatis oleh browser)
+                const elJudul = document.getElementById('detailJudul');
+                const elDesk = document.getElementById('detailDesk');
+                const elLokasi = document.getElementById('detailLokasi');
+                const elTanggal = document.getElementById('detailTanggal');
+                const elStatus = document.getElementById('detailStatus');
+
+                console.log('Elements found:', {
+                    elJudul: elJudul ? 'OK' : 'NOT FOUND',
+                    elDesk: elDesk ? 'OK' : 'NOT FOUND',
+                    elLokasi: elLokasi ? 'OK' : 'NOT FOUND',
+                    elTanggal: elTanggal ? 'OK' : 'NOT FOUND',
+                    elStatus: elStatus ? 'OK' : 'NOT FOUND'
+                });
+
+                if (elJudul) elJudul.textContent = judul || '-';
+                if (elDesk) elDesk.textContent = desk || '-';
+                if (elLokasi) elLokasi.textContent = lokasi || '-';
+                if (elTanggal) elTanggal.textContent = tanggal || '-';
+                if (elStatus) elStatus.textContent = status || 'Baru';
+
+                // Set warna status badge (remove semicolon if exists)
+                const statusBadge = document.getElementById('detailStatusBadge');
+                const cleanWarna = (warna || '#6c757d').replace(';', '');
+                console.log('Setting color:', cleanWarna);
+                if (statusBadge) statusBadge.style.backgroundColor = cleanWarna;
+
+                // Tampilkan balasan jika ada
+                const sectionBalasan = document.getElementById('sectionBalasan');
+                const detailBalasan = document.getElementById('detailBalasan');
+                if (balasan && balasan.trim() !== '' && balasan !== 'null' && balasan !== 'NULL') {
+                    sectionBalasan.style.display = 'block';
+                    detailBalasan.textContent = balasan;
+                } else {
+                    sectionBalasan.style.display = 'none';
+                }
+
+                // Tampilkan modal
+                const modal = new bootstrap.Modal(document.getElementById('modalDetailLapmas'));
+                modal.show();
+            }
+        });
 
         const btnLapor = document.querySelector('.btn-lapor-nav');
         if (btnLapor) {
@@ -459,8 +584,8 @@
 
         modal.show();
 
-        // Fetch data laporan
-        fetch('get_all_laporan.php')
+        // Fetch data lapmas
+        fetch('get_all_lapmas.php')
             .then(response => response.json())
             .then(data => {
                 displayLaporanData(data);
@@ -499,10 +624,10 @@
                 <div class="laporan-card" style="animation-delay: ${index * 0.05}s">
                     <div class="laporan-header">
                         <div>
-                            <h5 class="laporan-title">${escapeHtml(laporan.judul_laporan)}</h5>
+                            <h5 class="laporan-title">${escapeHtml(laporan.judul)}</h5>
                             <p class="laporan-date">
                                 <i class="bi bi-calendar3"></i>
-                                ${formatDate(laporan.tanggal_laporan)}
+                                ${formatDate(laporan.tanggal_lapor)}
                             </p>
                         </div>
                         <div>
@@ -513,7 +638,13 @@
                         </div>
                     </div>
                     <div class="laporan-body">
-                        <p class="laporan-isi">${escapeHtml(laporan.isi_laporan.substring(0, 150))}${laporan.isi_laporan.length > 150 ? '...' : ''}</p>
+                        <p class="laporan-isi">${escapeHtml(laporan.desk ? laporan.desk.substring(0, 150) : '')}${laporan.desk && laporan.desk.length > 150 ? '...' : ''}</p>
+                        ${laporan.lokasi ? `
+                            <p class="laporan-lokasi">
+                                <i class="bi bi-geo-alt-fill text-primary"></i>
+                                <strong>Lokasi:</strong> ${escapeHtml(laporan.lokasi)}
+                            </p>
+                        ` : ''}
                         ${laporan.balasan ? `
                             <div class="laporan-balasan">
                                 <div class="balasan-header">
@@ -529,7 +660,7 @@
                         ` : ''}
                     </div>
                     <div class="laporan-footer">
-                        <a href="dash-user.php?page=detail-laporan&id=${laporan.id_laporan}" class="btn-detail">
+                        <a href="dash-user.php?page=detail-lapmas&id=${laporan.id_lapmas}" class="btn-detail">
                             <i class="bi bi-eye-fill"></i>
                             Lihat Detail
                         </a>
@@ -605,6 +736,75 @@
             </div>
             <div class="modal-body" id="laporanContent">
                 <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detail Lapmas -->
+<div class="modal fade" id="modalDetailLapmas" tabindex="-1" aria-labelledby="modalDetailLapmasLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetailLapmasLabel">
+                    <i class="bi bi-file-text-fill me-2"></i>
+                    Detail Laporan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <!-- Status Badge -->
+                <div class="detail-section text-center">
+                    <span class="status-badge-large" id="detailStatusBadge">
+                        <i class="bi bi-circle-fill"></i>
+                        <span id="detailStatus">Status</span>
+                    </span>
+                </div>
+
+                <!-- Judul -->
+                <div class="detail-section">
+                    <div class="detail-label">
+                        <i class="bi bi-card-heading"></i>
+                        Judul Laporan
+                    </div>
+                    <div class="detail-value" id="detailJudul">-</div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="detail-section">
+                    <div class="detail-label">
+                        <i class="bi bi-file-text"></i>
+                        Deskripsi
+                    </div>
+                    <div class="detail-value" id="detailDesk">-</div>
+                </div>
+
+                <!-- Lokasi -->
+                <div class="detail-section">
+                    <div class="detail-label">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        Lokasi
+                    </div>
+                    <div class="detail-value" id="detailLokasi">-</div>
+                </div>
+
+                <!-- Tanggal -->
+                <div class="detail-section">
+                    <div class="detail-label">
+                        <i class="bi bi-calendar-event"></i>
+                        Tanggal Lapor
+                    </div>
+                    <div class="detail-value" id="detailTanggal">-</div>
+                </div>
+
+                <!-- Balasan (jika ada) -->
+                <div class="detail-section" id="sectionBalasan" style="display: none;">
+                    <div class="detail-label">
+                        <i class="bi bi-reply-fill text-success"></i>
+                        Balasan dari Tim
+                    </div>
+                    <div class="detail-value has-balasan" id="detailBalasan">-</div>
+                </div>
             </div>
         </div>
     </div>
@@ -745,6 +945,19 @@
         margin-bottom: 1rem;
     }
 
+    .laporan-lokasi {
+        color: #495057;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+        padding: 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+    }
+
+    .laporan-lokasi i {
+        margin-right: 5px;
+    }
+
     .laporan-balasan {
         background-color: #e7f3ff;
         border-left: 4px solid #0d6efd;
@@ -836,5 +1049,100 @@
         .laporan-title {
             font-size: 1rem;
         }
+    }
+
+    /* Style untuk notifikasi dengan button detail */
+    .notification-item-custom {
+        padding: 10px 15px;
+        border-bottom: 1px solid #e9ecef;
+        cursor: default;
+    }
+
+    .notification-item-custom:hover {
+        background: rgba(13, 110, 253, 0.03);
+    }
+
+    .btn-detail-lapmas {
+        background: #0d6efd;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .btn-detail-lapmas:hover {
+        background: #0b5ed7;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+    }
+
+    .btn-detail-lapmas i {
+        font-size: 0.85rem;
+    }
+
+    /* Modal Detail Lapmas */
+    #modalDetailLapmas .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    #modalDetailLapmas .modal-header {
+        background: #1a1f3a;
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 1.5rem;
+        border-bottom: 3px solid #FFD700;
+    }
+
+    #modalDetailLapmas .modal-title {
+        font-weight: 700;
+        font-size: 1.3rem;
+    }
+
+    #modalDetailLapmas .btn-close {
+        filter: brightness(0) invert(1);
+    }
+
+    #modalDetailLapmas .detail-section {
+        margin-bottom: 1.5rem;
+    }
+
+    #modalDetailLapmas .detail-label {
+        font-weight: 700;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #modalDetailLapmas .detail-value {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+        line-height: 1.6;
+        color: #000000;
+    }
+
+    #modalDetailLapmas .detail-value.has-balasan {
+        background: #e7f3ff;
+        border-left-color: #28a745;
+    }
+
+    #modalDetailLapmas .status-badge-large {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.6rem 1.2rem;
+        border-radius: 25px;
+        font-weight: 700;
+        color: white;
+        font-size: 0.95rem;
     }
 </style>

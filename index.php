@@ -57,8 +57,8 @@ include 'link/header.php';
             });
         });
 
-        // Tombol LAPOR SEKARANG
-        $('#btnLaporHero').click(function() {
+        // Tombol LAPOR SEKARANG dan Layanan Pengaduan
+        $('#btnLaporHero, .btn-lapor-hero').click(function() {
             var isLoggedIn = $(this).data('logged-in') == '1';
             if (isLoggedIn) {
                 $('#modalLaporan').modal('show');

@@ -1,39 +1,39 @@
 <?php
-// Get statistics from database (disesuaikan dengan struktur database asli)
+// Get statistics from database
 
-// Total laporan dari tabel_laporan (belum punya kategori direktorat, jadi ambil semua)
-$query_total_pengaduan = "SELECT COUNT(*) as total FROM tabel_laporan";
+// Total laporan dari tabel lapmas
+$query_total_pengaduan = "SELECT COUNT(*) as total FROM lapmas";
 $result = mysqli_query($db, $query_total_pengaduan);
 $total_pengaduan = mysqli_fetch_assoc($result)['total'];
 
-// Total users dari tabel_users
-$query_total_users = "SELECT COUNT(*) as total FROM tabel_users WHERE telepon = true";
+// Total users dari tabel akun (hanya yang role Masyarakat)
+$query_total_users = "SELECT COUNT(*) as total FROM akun WHERE Role = 'Masyarakat'";
 $result_users = mysqli_query($db, $query_total_users);
 $total_users = mysqli_fetch_assoc($result_users)['total'];
 
-// Laporan by status (menggunakan status_laporan dari tabel_laporan)
-$query_baru = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan = 'baru'";
+// Laporan by status (menggunakan kolom status dari tabel lapmas)
+$query_baru = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
 $result_baru = mysqli_query($db, $query_baru);
 $total_baru = mysqli_fetch_assoc($result_baru)['total'];
 
-// Diproses (gabungan dari semua status 'diproses')
-$query_diproses = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan LIKE '%diproses%'";
+// Diproses (gabungan dari semua status 'Diproses')
+$query_diproses = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Diproses%'";
 $result_diproses = mysqli_query($db, $query_diproses);
 $total_diproses = mysqli_fetch_assoc($result_diproses)['total'];
 
 // Selesai
-$query_selesai = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan LIKE '%selesai%' OR status_laporan = 'selesai'";
+$query_selesai = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Selesai'";
 $result_selesai = mysqli_query($db, $query_selesai);
 $total_selesai = mysqli_fetch_assoc($result_selesai)['total'];
 
 // Data untuk grafik - Laporan per bulan (last 6 months)
-$query_chart = "SELECT 
-    DATE_FORMAT(tanggal_lapor, '%Y-%m') as bulan,
-    DATE_FORMAT(tanggal_lapor, '%b %Y') as bulan_text,
+$query_chart = "SELECT
+    DATE_FORMAT(STR_TO_DATE(tanggal_lapor, '%Y-%m-%d %H:%i:%s'), '%Y-%m') as bulan,
+    DATE_FORMAT(STR_TO_DATE(tanggal_lapor, '%Y-%m-%d %H:%i:%s'), '%b %Y') as bulan_text,
     COUNT(*) as jumlah
-FROM tabel_laporan
-WHERE tanggal_lapor >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
-GROUP BY DATE_FORMAT(tanggal_lapor, '%Y-%m')
+FROM lapmas
+WHERE STR_TO_DATE(tanggal_lapor, '%Y-%m-%d %H:%i:%s') >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+GROUP BY DATE_FORMAT(STR_TO_DATE(tanggal_lapor, '%Y-%m-%d %H:%i:%s'), '%Y-%m')
 ORDER BY bulan ASC";
 
 $result_chart = mysqli_query($db, $query_chart);
@@ -46,7 +46,7 @@ while ($row = mysqli_fetch_assoc($result_chart)) {
 }
 
 // Laporan hari ini
-$query_today = "SELECT COUNT(*) as total FROM tabel_laporan WHERE DATE(tanggal_lapor) = CURDATE()";
+$query_today = "SELECT COUNT(*) as total FROM lapmas WHERE DATE(STR_TO_DATE(tanggal_lapor, '%Y-%m-%d %H:%i:%s')) = CURDATE()";
 $result_today = mysqli_query($db, $query_today);
 $total_today = mysqli_fetch_assoc($result_today)['total'];
 
@@ -68,10 +68,7 @@ if ($hour < 12) {
     $greeting = "Selamat Malam";
 }
 
-// Get statistik from tabel_statistik
-$query_stats = "SELECT * FROM tabel_statistik WHERE id = 2";
-$result_stats = mysqli_query($db, $query_stats);
-$stats = mysqli_fetch_assoc($result_stats);
+
 ?>
 
 <!-- Custom Styles for Dashboard -->
@@ -432,11 +429,11 @@ $stats = mysqli_fetch_assoc($result_stats);
                 </thead>
                 <tbody>
                     <?php
-                    // Get recent laporan (disesuaikan dengan struktur tabel_laporan)
-                    $query_recent = "SELECT l.*, u.nama as nama_pelapor 
-                                    FROM tabel_laporan l 
-                                    LEFT JOIN tabel_users u ON l.id_user = u.id_users
-                                    ORDER BY l.tanggal_lapor DESC 
+                    // Get recent laporan dari tabel lapmas
+                    $query_recent = "SELECT l.*, a.Nama as nama_pelapor
+                                    FROM lapmas l
+                                    LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                    ORDER BY l.tanggal_lapor DESC
                                     LIMIT 10";
                     $result_recent = mysqli_query($db, $query_recent);
 
@@ -445,27 +442,27 @@ $stats = mysqli_fetch_assoc($result_stats);
                         while ($row = mysqli_fetch_assoc($result_recent)):
                             // Status badge
                             $status_class = 'secondary';
-                            $status_text = $row['status_laporan'];
+                            $status_text = $row['status'];
 
-                            if ($row['status_laporan'] == 'baru') {
+                            if ($row['status'] == 'Baru') {
                                 $status_class = 'warning';
                                 $status_text = 'Baru';
-                            } elseif (strpos($row['status_laporan'], 'diproses') !== false) {
+                            } elseif (strpos($row['status'], 'Diproses') !== false) {
                                 $status_class = 'info';
                                 $status_text = 'Diproses';
-                            } elseif (strpos($row['status_laporan'], 'selesai') !== false) {
+                            } elseif ($row['status'] == 'Selesai') {
                                 $status_class = 'success';
                                 $status_text = 'Selesai';
                             }
 
                             // Nama pelapor
-                            $nama_pelapor = $row['nama_pelapor'] ? $row['nama_pelapor'] : ($row['nama'] ? $row['nama'] : 'Anonim');
+                            $nama_pelapor = $row['nama_pelapor'] ? $row['nama_pelapor'] : 'Anonim';
                     ?>
                             <tr>
                                 <td class="text-center"><?php echo $no++; ?></td>
                                 <td>
-                                    <div class="font-14 weight-600"><?php echo htmlspecialchars($row['judul_laporan']); ?></div>
-                                    <div class="text-muted small"><?php echo substr(htmlspecialchars($row['laporan']), 0, 50); ?>...</div>
+                                    <div class="font-14 weight-600"><?php echo htmlspecialchars($row['judul']); ?></div>
+                                    <div class="text-muted small"><?php echo substr(htmlspecialchars($row['desk']), 0, 50); ?>...</div>
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
@@ -477,7 +474,7 @@ $stats = mysqli_fetch_assoc($result_stats);
                                         </div>
                                     </div>
                                 </td>
-                                <td><?php echo htmlspecialchars($row['lokasi']); ?></td>
+                                <td><?php echo htmlspecialchars($row['lokasi'] ? $row['lokasi'] : '-'); ?></td>
                                 <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
                                 <td class="text-center">
                                     <span class="badge badge-<?php echo $status_class; ?> badge-custom">
@@ -490,7 +487,7 @@ $stats = mysqli_fetch_assoc($result_stats);
                                             <i class="dw dw-more"></i>
                                         </a>
                                         <div class="dropdown-menu dropdown-menu-right">
-                                            <a class="dropdown-item" href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_laporan']; ?>">
+                                            <a class="dropdown-item" href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>">
                                                 <i class="dw dw-eye"></i> View Detail
                                             </a>
                                             <a class="dropdown-item" href="#"><i class="dw dw-edit2"></i> Edit</a>

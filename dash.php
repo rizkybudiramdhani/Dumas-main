@@ -37,7 +37,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     // DASHBOARD
                     // ============================================
                 case 'dashboard':
-                    include 'content/dashboard_content.php';
+                    include 'content_a/dashboard.php';
                     break;
 
                     // ============================================
@@ -63,7 +63,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     break;
 
                 case 'detail-pengaduan':
-                    include 'content/detail_pengaduan.php';
+                    include 'content_a/detail_aduan.php';
                     break;
 
                     // ============================================

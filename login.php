@@ -8,26 +8,19 @@ include 'config/koneksi.php';
 $login_error = null;
 $register_error = null;
 
-// Handle Login
+// Handle Login (Khusus Masyarakat)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'login') {
     $identifier = mysqli_real_escape_string($db, trim($_POST['identifier']));
     $password = $_POST['password'];
 
-    // Cek apakah input adalah email atau nomor HP
-    $query = "SELECT * FROM akun WHERE Email = ? OR Nomor_hp = ?";
+    // Cek apakah input adalah email atau nomor HP, pastikan role adalah Masyarakat
+    $query = "SELECT * FROM akun WHERE (Email = ? OR Nomor_hp = ?) AND Role = 'Masyarakat'";
     $stmt = mysqli_prepare($db, $query);
     mysqli_stmt_bind_param($stmt, "ss", $identifier, $identifier);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);
 
     if ($user = mysqli_fetch_assoc($result)) {
-
-        // DEBUG OFF
-        // echo "Input: " . $password . "<br>";
-        // echo "DB Hash: " . $user['Password'] . "<br>";
-        // echo "Hash Length: " . strlen($user['Password']) . "<br>";
-        // echo "Verify: " . (password_verify($password, $user['Password']) ? 'true' : 'false'); exit;
-
         // Cek password
         if (password_verify($password, $user['Password'])) {
             $_SESSION['user_id'] = $user['Id_akun'];
@@ -36,12 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             $_SESSION['role'] = $user['Role'];
             $_SESSION['nomor_hp'] = $user['Nomor_hp'];
 
-            // Redirect berdasarkan role
-            if (in_array($user['Role'], ['Ditresnarkoba', 'Ditsamapta', 'Ditbinmas'])) {
-                header("Location: dash.php");
-            } else {
-                header("Location: index.php");
-            }
+            header("Location: index.php");
             exit;
         } else {
             // Jika hash tidak valid, coba plain text dan update
@@ -57,17 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 $_SESSION['role'] = $user['Role'];
                 $_SESSION['nomor_hp'] = $user['Nomor_hp'];
 
-                if (in_array($user['Role'], ['Ditresnarkoba', 'Ditsamapta', 'Ditbinmas'])) {
-                    header("Location: dash.php");
-                } else {
-                    header("Location: index.php");
-                }
+                header("Location: index.php");
                 exit;
             }
             $login_error = "Password salah!";
         }
     } else {
-        $login_error = "Email atau nomor HP tidak ditemukan!";
+        $login_error = "Akun tidak ditemukan! Jika Anda admin, silakan login di halaman admin.";
     }
 }
 
@@ -259,6 +243,30 @@ $active_tab = isset($_POST['action']) && $_POST['action'] == 'register' ? 'regis
         }
         .back-link a:hover { color: #FFD700; }
         .back-link a i { margin-right: 5px; }
+        .admin-link-container {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+        }
+        .admin-link {
+            color: #1E40AF;
+            background-color: #FFD700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        .admin-link:hover {
+            background-color: #e6c200;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
+        }
+        .admin-link i { font-size: 1rem; }
         .alert {
             padding: 12px 16px;
             border-radius: 10px;
@@ -329,6 +337,12 @@ $active_tab = isset($_POST['action']) && $_POST['action'] == 'register' ? 'regis
 
                 <div class="back-link">
                     <a href="index.php"><i class="bi bi-arrow-left"></i>Kembali ke Beranda</a>
+                </div>
+
+                <div class="admin-link-container">
+                    <a href="admin-login.php" class="admin-link">
+                        <i class="bi bi-shield-lock me-2"></i>Login sebagai Admin
+                    </a>
                 </div>
             </form>
 
