@@ -10,13 +10,13 @@ $nama = isset($_SESSION['nama']) ? $_SESSION['nama'] : 'User';
 $role_display = ucfirst($role);
 $brand_text = 'POLRI SUMUT'; // Default brand text
 
-if ($role == 'ditresnarkoba') {
+if ($role == 'Ditresnarkoba') {
     $role_display = 'Ditresnarkoba';
-    $brand_text = 'DITRESNARKOBA';
+    $brand_text = 'Ditresnarkoba';
 }
-if ($role == 'ditsamapta') {
+if ($role == 'Ditsamapta') {
     $role_display = 'Ditsamapta';
-    $brand_text = 'DITSAMAPTA';
+    $brand_text = 'Ditsamapta';
 }
 if ($role == 'ditbinmas') {
     $role_display = 'Ditbinmas';
@@ -212,7 +212,7 @@ if ($role == 'ditbinmas') {
                 </li>
 
                 <!-- Menu untuk Ditresnarkoba -->
-                <?php if($role == 'ditresnarkoba'): ?>
+                <?php if($role == 'Ditresnarkoba'): ?>
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>
@@ -223,7 +223,7 @@ if ($role == 'ditbinmas') {
                     </a>
                     <ul class="submenu collapse" id="laporan-tim-menu">
                         <li>
-                            <a href="dash.php?page=laporan-ditsamapta">Laporan Ditsamapta</a>
+                            <a href="dash.php?page=laporan-Ditsamapta">Laporan Ditsamapta</a>
                         </li>
                         <li>
                             <a href="dash.php?page=laporan-ditbinmas">Laporan Ditbinmas</a>
@@ -231,23 +231,23 @@ if ($role == 'ditbinmas') {
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#ditresnarkoba-menu">
+                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#Ditresnarkoba-menu">
                         <span class="micon dw dw-file"></span>
                         <span class="mtext">Ditresnarkoba</span>
                     </a>
-                    <ul class="submenu collapse" id="ditresnarkoba-menu">
+                    <ul class="submenu collapse" id="Ditresnarkoba-menu">
                         <li>
                             <a href="dash.php?page=input-pengungkapan" class="<?php echo $current_page == 'input-pengungkapan' ? 'active' : ''; ?>">Input Pengungkapan</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=input-laporan-ditresnarkoba" class="<?php echo $current_page == 'input-laporan-ditresnarkoba' ? 'active' : ''; ?>">Input Laporan Kegiatan</a>
+                            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Laporan Kegiatan</a>
                         </li>
                     </ul>
                 </li>
                 <?php endif; ?>
 
                 <!-- Menu untuk Ditsamapta -->
-                <?php if($role == 'ditsamapta'): ?>
+                <?php if($role == 'Ditsamapta'): ?>
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>
@@ -261,21 +261,21 @@ if ($role == 'ditbinmas') {
                             <a href="dash.php?page=laporan-ditbinmas">Laporan Ditbinmas</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=laporan-ditresnarkoba">Laporan Ditresnarkoba</a>
+                            <a href="dash.php?page=laporan-Ditresnarkoba">Laporan Ditresnarkoba</a>
                         </li>
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#ditsamapta-menu">
+                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#Ditsamapta-menu">
                         <span class="micon dw dw-file"></span>
                         <span class="mtext">Ditsamapta</span>
                     </a>
-                    <ul class="submenu collapse" id="ditsamapta-menu">
+                    <ul class="submenu collapse" id="Ditsamapta-menu">
                         <li>
-                            <a href="dash.php?page=laporan-ditsamapta" class="<?php echo $current_page == 'laporan-ditsamapta' ? 'active' : ''; ?>">Laporan Ditsamapta</a>
+                            <a href="dash.php?page=laporan-Ditsamapta" class="<?php echo $current_page == 'laporan-Ditsamapta' ? 'active' : ''; ?>">Laporan Ditsamapta</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=input-laporan-ditsamapta" class="<?php echo $current_page == 'input-laporan-ditsamapta' ? 'active' : ''; ?>">Input Laporan</a>
+                            <a href="dash.php?page=input-laporan-Ditsamapta" class="<?php echo $current_page == 'input-laporan-Ditsamapta' ? 'active' : ''; ?>">Input Laporan</a>
                         </li>
                     </ul>
                 </li>
@@ -293,10 +293,10 @@ if ($role == 'ditbinmas') {
                     </a>
                     <ul class="submenu collapse" id="laporan-tim-binmas">
                         <li>
-                            <a href="dash.php?page=laporan-ditsamapta">Laporan Ditsamapta</a>
+                            <a href="dash.php?page=laporan-Ditsamapta">Laporan Ditsamapta</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=laporan-ditresnarkoba">Laporan Ditresnarkoba</a>
+                            <a href="dash.php?page=laporan-Ditresnarkoba">Laporan Ditresnarkoba</a>
                         </li>
                     </ul>
                 </li>
@@ -375,11 +375,8 @@ if ($role == 'ditbinmas') {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Sidebar dropdown script loaded');
-
     // Handle dropdown toggle
     const dropdownToggles = document.querySelectorAll('.dropdown-toggle:not(.no-arrow)');
-    console.log('Found dropdown toggles:', dropdownToggles.length);
 
     dropdownToggles.forEach(toggle => {
         toggle.addEventListener('click', function(e) {
@@ -387,12 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
 
             const targetId = this.getAttribute('data-target');
-            console.log('Clicked menu:', targetId);
             const submenu = document.querySelector(targetId);
 
             if (submenu) {
-                console.log('Submenu found:', submenu);
-
                 // Check if submenu is currently open
                 const isOpen = submenu.classList.contains('show');
 
@@ -411,12 +405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     submenu.classList.add('show');
                     submenu.style.maxHeight = submenu.scrollHeight + 'px';
                     this.classList.remove('collapsed');
-                    console.log('Opened submenu');
-                } else {
-                    console.log('Closed submenu');
                 }
-            } else {
-                console.log('Submenu not found for:', targetId);
             }
         });
     });
@@ -424,7 +413,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Auto-expand active submenu on page load
     setTimeout(function() {
         const activeSubmenuLinks = document.querySelectorAll('.submenu li a.active');
-        console.log('Found active links:', activeSubmenuLinks.length);
 
         activeSubmenuLinks.forEach(link => {
             const submenu = link.closest('.submenu');
@@ -436,7 +424,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (toggle) {
                     toggle.classList.remove('collapsed');
                 }
-                console.log('Auto-expanded active submenu:', submenu.id);
             }
         });
     }, 100);

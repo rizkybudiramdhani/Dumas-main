@@ -146,7 +146,7 @@ if (mysqli_stmt_execute($stmt)) {
     
     // Optional: Send notification (uncomment if needed)
     /*
-    $to = "admin@ditresnarkoba.com";
+    $to = "admin@Ditresnarkoba.com";
     $subject = "Laporan Baru: " . $judul_laporan;
     $message = "Laporan baru dari masyarakat:\n\n";
     $message .= "Nama: " . $nama . "\n";

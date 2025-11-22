@@ -131,8 +131,8 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
             </nav>
         </div>
         <div class="col-md-6 col-sm-12 text-right">
-            <?php if($role == 'ditresnarkoba'): ?>
-            <a href="dash.php?page=input-laporan-ditresnarkoba" class="btn btn-primary">
+            <?php if($role == 'Ditresnarkoba'): ?>
+            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-primary">
                 <i class="icon-copy dw dw-add"></i> Input Laporan
             </a>
             <?php endif; ?>
@@ -200,7 +200,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 <!-- Filter Section -->
 <div class="filter-card">
     <form method="GET" action="dash.php">
-        <input type="hidden" name="page" value="laporan-ditresnarkoba">
+        <input type="hidden" name="page" value="laporan-Ditresnarkoba">
         <div class="row align-items-end">
             <div class="col-md-3">
                 <label class="font-weight-600">📅 Dari:</label>
@@ -330,7 +330,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
     // View Detail
     function viewDetail(id) {
         $.ajax({
-            url: 'ajax/get_laporan_ditresnarkoba_detail.php',
+            url: 'ajax/get_laporan_Ditresnarkoba_detail.php',
             type: 'GET',
             data: { id: id },
             success: function(response) {

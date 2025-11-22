@@ -1,4 +1,40 @@
 <?php
+// Handle delete action
+if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
+    $id_laporan = (int)$_GET['id'];
+
+    // Get file path to delete
+    $query_file = "SELECT upload FROM lapmas WHERE id_lapmas = ?";
+    $stmt_file = mysqli_prepare($db, $query_file);
+    mysqli_stmt_bind_param($stmt_file, "i", $id_laporan);
+    mysqli_stmt_execute($stmt_file);
+    $result_file = mysqli_stmt_get_result($stmt_file);
+    $file_data = mysqli_fetch_assoc($result_file);
+
+    // Delete record
+    $query_delete = "DELETE FROM lapmas WHERE id_lapmas = ?";
+    $stmt_delete = mysqli_prepare($db, $query_delete);
+    mysqli_stmt_bind_param($stmt_delete, "i", $id_laporan);
+
+    if (mysqli_stmt_execute($stmt_delete)) {
+        // Delete file if exists
+        if ($file_data && !empty($file_data['upload'])) {
+            $files = explode(',', $file_data['upload']);
+            foreach ($files as $file) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+        }
+
+        echo '<script>alert("Pengaduan berhasil dihapus!"); window.location.href="dash.php?page=dashboard";</script>';
+        exit;
+    } else {
+        echo '<script>alert("Gagal menghapus pengaduan: ' . mysqli_error($db) . '"); window.location.href="dash.php?page=dashboard";</script>';
+        exit;
+    }
+}
+
 // Get statistics from database
 
 // Total laporan dari tabel lapmas
@@ -52,9 +88,9 @@ $total_today = mysqli_fetch_assoc($result_today)['total'];
 
 // Role display name
 $role_display = ucfirst($role);
-if ($role == 'ditresnarkoba') $role_display = 'Ditresnarkoba';
-if ($role == 'ditsamapta') $role_display = 'Ditsamapta';
-if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
+if ($role == 'Ditresnarkoba') $role_display = 'Ditresnarkoba';
+if ($role == 'Ditsamapta') $role_display = 'Ditsamapta';
+if ($role == 'Ditbinmas') $role_display = 'Ditbinmas';
 
 // Welcome message based on time
 $hour = date('H');
@@ -215,6 +251,22 @@ if ($hour < 12) {
     .progress-custom .progress-bar {
         border-radius: 10px;
     }
+
+    /* Clickable Row Styling */
+    .clickable-row {
+        transition: all 0.2s ease;
+    }
+
+    .clickable-row:hover {
+        background-color: #f8f9fa !important;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .delete-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
 </style>
 
 <!-- Welcome Card -->
@@ -338,27 +390,6 @@ if ($hour < 12) {
                 </div>
                 <h2 class="weight-700 mb-2" style="color: #FFD700; font-size: 3rem;"><?php echo $total_users; ?></h2>
                 <p class="font-16 mb-3" style="color: #ffffff; font-weight: 600;">Total Masyarakat Terdaftar</p>
-
-                <?php if ($stats): ?>
-                    <div class="row text-center pt-2">
-                        <div class="col-6">
-                            <div style="background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 10px; border: 2px solid #FFD700;">
-                                <div class="font-24 weight-700" style="color: #FFD700;">
-                                    <?php echo $stats['jumlah_penangkapan']; ?>
-                                </div>
-                                <div class="font-12" style="color: #ffffff;">Penangkapan</div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div style="background: rgba(255, 215, 0, 0.2); padding: 15px; border-radius: 10px; border: 2px solid #FFD700;">
-                                <div class="font-24 weight-700" style="color: #FFD700;">
-                                    <?php echo $stats['jumlah_tim']; ?>
-                                </div>
-                                <div class="font-12" style="color: #ffffff;">Tim Aktif</div>
-                            </div>
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -424,7 +455,7 @@ if ($hour < 12) {
                         <th>Lokasi</th>
                         <th width="120">Tanggal</th>
                         <th width="120" class="text-center">Status</th>
-                        <th width="100" class="text-center">Action</th>
+                        <th width="60" class="text-center">Hapus</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -458,7 +489,7 @@ if ($hour < 12) {
                             // Nama pelapor
                             $nama_pelapor = $row['nama_pelapor'] ? $row['nama_pelapor'] : 'Anonim';
                     ?>
-                            <tr>
+                            <tr class="clickable-row" data-href="content_a/detail_pengaduan.php?id=<?php echo $row['id_lapmas']; ?>" style="cursor: pointer;">
                                 <td class="text-center"><?php echo $no++; ?></td>
                                 <td>
                                     <div class="font-14 weight-600"><?php echo htmlspecialchars($row['judul']); ?></div>
@@ -482,18 +513,9 @@ if ($hour < 12) {
                                     </span>
                                 </td>
                                 <td class="text-center">
-                                    <div class="dropdown">
-                                        <a class="btn btn-sm btn-outline-primary dropdown-toggle" href="#" role="button" data-toggle="dropdown" style="border-radius: 8px;">
-                                            <i class="dw dw-more"></i>
-                                        </a>
-                                        <div class="dropdown-menu dropdown-menu-right">
-                                            <a class="dropdown-item" href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>">
-                                                <i class="dw dw-eye"></i> View Detail
-                                            </a>
-                                            <a class="dropdown-item" href="#"><i class="dw dw-edit2"></i> Edit</a>
-                                            <a class="dropdown-item text-danger" href="#"><i class="dw dw-delete-3"></i> Delete</a>
-                                        </div>
-                                    </div>
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="<?php echo $row['id_lapmas']; ?>" style="border-radius: 8px;">
+                                        <i class="dw dw-delete-3"></i>
+                                    </button>
                                 </td>
                             </tr>
                         <?php
@@ -518,6 +540,12 @@ if ($hour < 12) {
 <!-- ApexCharts Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Check if ApexCharts is loaded
+        if (typeof ApexCharts === 'undefined') {
+            console.warn('ApexCharts library not loaded - chart will not render');
+            return;
+        }
+
         // Data dari PHP
         var chartLabels = <?php echo json_encode($chart_labels); ?>;
         var chartData = <?php echo json_encode($chart_data); ?>;
@@ -587,39 +615,68 @@ if ($hour < 12) {
 </script>
 
 <!-- DataTable Script -->
-<link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/responsive.bootstrap4.min.css">
-<script src="src/plugins/datatables/js/jquery.dataTables.min.js"></script>
-<script src="src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-<script src="src/plugins/datatables/js/dataTables.responsive.min.js"></script>
-<script src="src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
 <script>
-    $('#pengaduan-table').DataTable({
-        scrollCollapse: true,
-        autoWidth: false,
-        responsive: true,
-        columnDefs: [{
-            targets: [0, 6],
-            orderable: false,
-        }],
-        "lengthMenu": [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
-        ],
-        "language": {
-            "info": "Menampilkan _START_ - _END_ dari _TOTAL_ laporan",
-            "infoEmpty": "Tidak ada data",
-            "infoFiltered": "(filtered from _MAX_ total entries)",
-            "lengthMenu": "Tampilkan _MENU_ data",
-            "search": "Cari:",
-            "zeroRecords": "Tidak ada data yang cocok",
-            "paginate": {
-                "first": "Pertama",
-                "last": "Terakhir",
-                "next": '<i class="ion-chevron-right"></i>',
-                "previous": '<i class="ion-chevron-left"></i>'
+    // Wait for jQuery to be loaded
+    (function checkjQuery() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(checkjQuery, 50);
+            return;
+        }
+        initDashboardTable();
+    })();
+
+    function initDashboardTable() {
+    $(document).ready(function() {
+        // Initialize DataTable
+        var table = $('#pengaduan-table').DataTable({
+            scrollCollapse: true,
+            autoWidth: false,
+            responsive: true,
+            columnDefs: [{
+                targets: [0, 6],
+                orderable: false,
+            }],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
+            "language": {
+                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ laporan",
+                "infoEmpty": "Tidak ada data",
+                "infoFiltered": "(filtered from _MAX_ total entries)",
+                "lengthMenu": "Tampilkan _MENU_ data",
+                "search": "Cari:",
+                "zeroRecords": "Tidak ada data yang cocok",
+                "paginate": {
+                    "first": "Pertama",
+                    "last": "Terakhir",
+                    "next": '<i class="ion-chevron-right"></i>',
+                    "previous": '<i class="ion-chevron-left"></i>'
+                }
+            },
+            "pageLength": 10
+        });
+
+        // Make table rows clickable - menggunakan event delegation pada tbody
+        $('#pengaduan-table tbody').on('click', 'tr.clickable-row', function() {
+            var href = $(this).data('href');
+            if (href) {
+                window.location.href = href;
             }
-        },
-        "pageLength": 10
+        });
+
+        // Handle delete button click
+        $('#pengaduan-table tbody').on('click', '.delete-btn', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const id = $(this).data('id');
+            console.log('Delete button clicked, ID:', id);
+
+            if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
+                window.location.href = 'dash.php?page=dashboard&action=delete&id=' + id;
+            }
+        });
     });
+    } // End of initDashboardTable()
 </script>

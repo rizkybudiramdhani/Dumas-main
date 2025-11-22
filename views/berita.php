@@ -111,7 +111,7 @@ if ($result_berita) {
 
                 <?php if (!empty($berita_data)): ?>
                     <div class="text-end mt-3">
-                        <a href="https://www.kompas.id/label/ditresnarkoba" class="text-primary fw-semibold text-decoration-none">
+                        <a href="https://www.kompas.id/label/Ditresnarkoba" class="text-primary fw-semibold text-decoration-none">
                             Lihat Semua Berita <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                     </div>

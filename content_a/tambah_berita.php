@@ -50,12 +50,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Insert ke database
     if (empty($error_message)) {
-        $query = "INSERT INTO tabel_berita 
-                  (judul_berita, link_berita, deskripsi_berita, gambar_berita, tanggal_upload) 
-                  VALUES (?, ?, ?, ?, NOW())";
-        
+        // Format tanggal untuk kolom tanggal (format: Y-m-d H:i:s)
+        $tanggal = date('Y-m-d H:i:s');
+
+        $query = "INSERT INTO berita
+                  (judul, link, desk, gambar, tanggal)
+                  VALUES (?, ?, ?, ?, ?)";
+
         $stmt = mysqli_prepare($db, $query);
-        mysqli_stmt_bind_param($stmt, "ssss", $judul_berita, $link_berita, $deskripsi_berita, $gambar_berita);
+        mysqli_stmt_bind_param($stmt, "sssss", $judul_berita, $link_berita, $deskripsi_berita, $gambar_berita, $tanggal);
         
         if (mysqli_stmt_execute($stmt)) {
             $success_message = 'Berita berhasil dipublikasikan!';
@@ -397,53 +400,7 @@ if (isset($_GET['success'])) {
 
 </form>
 
-<!-- Recent News -->
-<div class="card mt-4" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(26, 31, 58, 0.15); border: 2px solid #FFD700;">
-    <div class="card-header" style="background: #1a1f3a; color: white; border-radius: 13px 13px 0 0; border-bottom: 3px solid #FFD700;">
-        <h5 class="mb-0" style="color: #FFD700;">📰 Berita Terbaru</h5>
-    </div>
-    <div class="card-body" style="background: #fff;">
-        <div class="row">
-            <?php
-            // Get recent news
-            $query_recent = "SELECT * FROM tabel_berita ORDER BY tanggal_upload DESC LIMIT 3";
-            $result_recent = mysqli_query($db, $query_recent);
-            
-            if (mysqli_num_rows($result_recent) > 0):
-                while ($row = mysqli_fetch_assoc($result_recent)):
-            ?>
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100 news-card">
-                        <?php if ($row['gambar_berita']): ?>
-                            <img src="uploads/berita/<?php echo htmlspecialchars($row['gambar_berita']); ?>"
-                                 class="card-img-top"
-                                 style="height: 200px; object-fit: cover;"
-                                 alt="<?php echo htmlspecialchars($row['judul_berita']); ?>">
-                        <?php endif; ?>
-                        <div class="card-body" style="background: #fff;">
-                            <h6 class="card-title" style="color: #1a1f3a; font-weight: 700;"><?php echo htmlspecialchars(substr($row['judul_berita'], 0, 60)); ?>...</h6>
-                            <p class="card-text small text-muted">
-                                <?php echo htmlspecialchars(substr($row['deskripsi_berita'], 0, 100)); ?>...
-                            </p>
-                            <small style="color: #FFD700; font-weight: 600;">
-                                <i class="icon-copy dw dw-calendar1"></i>
-                                <?php echo date('d M Y', strtotime($row['tanggal_upload'])); ?>
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            <?php 
-                endwhile;
-            else: 
-            ?>
-                <div class="col-12 text-center py-5">
-                    <i class="icon-copy dw dw-newspaper" style="font-size: 3rem; color: #FFD700; opacity: 0.5;"></i>
-                    <p class="mb-0 mt-2" style="color: #1a1f3a;">Belum ada berita</p>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
+
 
 <script>
     // Character counter

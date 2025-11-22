@@ -16,6 +16,15 @@
     <link rel="stylesheet" type="text/css" href="src/plugins/jvectormap/jquery-jvectormap-2.0.3.css">
     <link rel="stylesheet" type="text/css" href="vendors/styles/style.css">
 
+    <!-- DataTables CSS (dari CDN) -->
+    <?php
+    $page = isset($_GET['page']) ? $_GET['page'] : 'dashboard';
+    if (in_array($page, ['dashboard', 'lihat-pengaduan', 'lihat-berita', 'laporan-Ditsamapta', 'laporan-Ditbinmas', 'laporan-Ditresnarkoba'])):
+    ?>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap4.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
+    <?php endif; ?>
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
     <script>

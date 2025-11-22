@@ -58,7 +58,7 @@
             </div>
 
             <div class="col-lg-5 wow fadeInUp" data-wow-delay="0.5s">
-                <img class="img-fluid mb-3" src="imgg/ditresnarkoba.png" alt="Ditresnarkoba" style="max-width: 450px; height: auto;">
+                <img class="img-fluid mb-3" src="imgg/Ditresnarkoba.png" alt="Ditresnarkoba" style="max-width: 450px; height: auto;">
                 <img class="img-fluid mb-3" src="imgg/ditsam.jpg" alt="Ditsamapta" style="max-width: 450px; height: auto;">
                 <img class="img-fluid" src="imgg/ditbin.webp" alt="Ditbinmas" style="max-width: 450px; height: auto;">
             </div>

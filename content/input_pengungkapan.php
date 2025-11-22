@@ -1,6 +1,6 @@
 <?php
-// Cek apakah user punya akses (hanya ditresnarkoba)
-if ($role != 'ditresnarkoba') {
+// Cek apakah user punya akses (hanya Ditresnarkoba)
+if ($role != 'Ditresnarkoba') {
     echo '<div class="alert alert-danger">Akses ditolak! Hanya Ditresnarkoba yang dapat mengakses halaman ini.</div>';
     exit;
 }

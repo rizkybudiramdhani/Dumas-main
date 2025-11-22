@@ -55,16 +55,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gambar_string = !empty($gambar_paths) ? implode(',', $gambar_paths) : '';
     
     // Ambil id_user dari session (jika user login) atau NULL jika anonim
-    $id_user = isset($_SESSION['id_users']) ? $_SESSION['id_users'] : NULL;
-    
+    $id_user = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : NULL;
+
     // Insert ke database
     if (empty($error_message)) {
-        $query = "INSERT INTO tabel_laporan 
-                  (id_user, judul_laporan, laporan, lokasi, gambar, video, tanggal_lapor, status_laporan, nama, no_hp) 
-                  VALUES (?, ?, ?, ?, ?, '', NOW(), 'baru', ?, ?)";
-        
+        // Format tanggal untuk kolom tanggal_lapor (format: Y-m-d H:i:s)
+        $tanggal_lapor = date('Y-m-d H:i:s');
+
+        $query = "INSERT INTO lapmas
+                  (Id_akun, judul, desk, lokasi, upload, tanggal_lapor, status)
+                  VALUES (?, ?, ?, ?, ?, ?, 'Baru')";
+
         $stmt = mysqli_prepare($db, $query);
-        mysqli_stmt_bind_param($stmt, "isssssi", $id_user, $judul_laporan, $laporan, $lokasi, $gambar_string, $nama, $no_hp);
+        mysqli_stmt_bind_param($stmt, "isssss", $id_user, $judul_laporan, $laporan, $lokasi, $gambar_string, $tanggal_lapor);
         
         if (mysqli_stmt_execute($stmt)) {
             $success_message = 'Pengaduan berhasil dikirim! Tim kami akan segera menindaklanjuti laporan Anda.';
@@ -290,7 +293,7 @@ if (isset($_GET['success'])) {
 <?php endif; ?>
 
 <!-- Info Box -->
-<div class="info-box">
+<!-- <div class="info-box">
     <h4>📢 Informasi Penting</h4>
     <p>Laporkan segala bentuk kejahatan narkoba yang Anda ketahui. Identitas Anda akan kami jaga kerahasiaannya.</p>
     <ul>
@@ -299,7 +302,7 @@ if (isset($_GET['success'])) {
         <li>✅ Lampirkan bukti foto jika ada (maksimal 5 foto)</li>
         <li>✅ Tim kami akan menghubungi Anda untuk informasi lebih lanjut</li>
     </ul>
-</div>
+</div> -->
 
 <!-- Form Input -->
 <form method="POST" enctype="multipart/form-data" id="form-pengaduan">
@@ -408,7 +411,7 @@ if (isset($_GET['success'])) {
 </form>
 
 <!-- Success Info -->
-<div class="card mt-4" style="border-radius: 15px; border: 2px solid #e9ecef;">
+<!-- <div class="card mt-4" style="border-radius: 15px; border: 2px solid #e9ecef;">
     <div class="card-body text-center py-4">
         <h5 class="text-primary mb-3">💡 Apa yang terjadi setelah Anda melaporkan?</h5>
         <div class="row">
@@ -442,7 +445,7 @@ if (isset($_GET['success'])) {
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <script>
     // Character counter for textarea
@@ -531,9 +534,9 @@ if (isset($_GET['success'])) {
             return false;
         }
         
-        if (laporan.length < 50) {
+        if (laporan.length < 10) {
             e.preventDefault();
-            alert('Isi laporan terlalu singkat! Minimal 50 karakter.');
+            alert('Isi laporan terlalu singkat! Minimal 10 karakter.');
             return false;
         }
         
@@ -545,6 +548,16 @@ if (isset($_GET['success'])) {
 
     // Auto dismiss alert after 5 seconds
     setTimeout(function() {
-        $('.alert').fadeOut('slow');
+        if (typeof jQuery !== 'undefined') {
+            $('.alert').fadeOut('slow');
+        } else {
+            // Fallback for vanilla JS
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(function() { alert.style.display = 'none'; }, 500);
+            });
+        }
     }, 5000);
 </script>

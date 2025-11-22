@@ -8,10 +8,20 @@ if ($id_laporan == 0) {
 }
 
 // Get laporan detail
-$query = "SELECT l.*, u.nama as nama_pelapor, u.email as email_pelapor
-          FROM tabel_laporan l 
-          LEFT JOIN tabel_users u ON l.id_user = u.id_users
-          WHERE l.id_laporan = ?";
+$query = "SELECT 
+            l.*, 
+            a.Nama AS nama_pelapor, 
+            a.Email AS email_pelapor, 
+            a.Nomor_hp AS nomor_hp,
+            r.id_respon,
+            r.respon,
+            r.a_respon,
+            r.tanggal_respon
+          FROM lapmas l
+          LEFT JOIN akun a ON l.Id_akun = a.Id_Akun
+          LEFT JOIN respon r ON r.id_lapmas = l.id_lapmas
+          WHERE l.id_lapmas = ?";
+
 $stmt = mysqli_prepare($db, $query);
 mysqli_stmt_bind_param($stmt, "i", $id_laporan);
 mysqli_stmt_execute($stmt);
@@ -25,39 +35,33 @@ if (mysqli_num_rows($result) == 0) {
 $laporan = mysqli_fetch_assoc($result);
 
 // Get telepon from laporan table (no_hp column)
-$telp_pelapor = $laporan['no_hp'];
+$telp_pelapor = $laporan['nomor_hp'];
 
 // Handle update status
 $success_message = '';
 $error_message = '';
 
 if (isset($_POST['update_status'])) {
-    $status_baru = mysqli_real_escape_string($db, $_POST['status_baru']);
-    $tanggapan = mysqli_real_escape_string($db, $_POST['tanggapan']);
-    $petugas = isset($_SESSION['nama']) ? $_SESSION['nama'] : 'Admin';
-    $role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
+    $status_baru = mysqli_real_escape_string($db, $_POST['status']);
+    $tanggapan = mysqli_real_escape_string($db, $_POST['respon']);
+    $petugas = isset($_SESSION['Nama']) ? $_SESSION['Nama'] : 'Admin';
+    $role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
 
     // Tentukan siapa yang memproses berdasarkan role
     $sedang_diproses_oleh = '';
-    if (strpos($role, 'ditresnarkoba') !== false) {
-        $sedang_diproses_oleh = 'ditresnarkoba';
-    } elseif (strpos($role, 'ditsamapta') !== false) {
-        $sedang_diproses_oleh = 'ditsamapta';
-    } elseif (strpos($role, 'ditbinmas') !== false) {
-        $sedang_diproses_oleh = 'ditbinmas';
+    if (strpos($role, 'Ditresnarkoba') !== false) {
+        $sedang_diproses_oleh = 'Ditresnarkoba';
+    } elseif (strpos($role, 'Ditsamapta') !== false) {
+        $sedang_diproses_oleh = 'Ditsamapta';
+    } elseif (strpos($role, 'Ditbinmas') !== false) {
+        $sedang_diproses_oleh = 'Ditbinmas';
     }
 
-    // Ambil timeline yang sudah ada
-    $existing_timeline = $laporan['timeline_json'] ?? '[]';
-    $timeline_array = json_decode($existing_timeline, true);
-    if (!is_array($timeline_array)) {
-        $timeline_array = [];
-    }
 
     // Tambahkan entry baru ke timeline
     $new_entry = [
         'timestamp' => date('Y-m-d H:i:s'),
-        'status_dari' => $laporan['status_laporan'],
+        'status_dari' => $laporan['status'],
         'status_ke' => $status_baru,
         'diproses_oleh' => $sedang_diproses_oleh,
         'nama_petugas' => $petugas,
@@ -78,24 +82,24 @@ if (isset($_POST['update_status'])) {
     mysqli_stmt_bind_param($stmt_update, "ssssi", $status_baru, $tanggapan, $sedang_diproses_oleh, $timeline_json, $id_laporan);
 
     if (mysqli_stmt_execute($stmt_update)) {
-        // Jika status = diproses_ditresnarkoba, set notifikasi untuk ditsamapta dan ditbinmas
-        if ($status_baru == 'diproses_ditresnarkoba') {
+        // Jika status = diproses_Ditresnarkoba, set notifikasi untuk Ditsamapta dan Ditbinmas
+        if ($status_baru == 'diproses_Ditresnarkoba') {
             $query_notif = "UPDATE tabel_laporan
-                           SET is_notif_ditsamapta = 1, is_notif_ditbinmas = 1
+                           SET is_notif_Ditsamapta = 1, is_notif_Ditbinmas = 1
                            WHERE id_laporan = ?";
             $stmt_notif = mysqli_prepare($db, $query_notif);
             mysqli_stmt_bind_param($stmt_notif, "i", $id_laporan);
             mysqli_stmt_execute($stmt_notif);
         }
 
-        // Jika ditsamapta atau ditbinmas mengambil, clear notifikasi mereka
-        if ($status_baru == 'diproses_ditsamapta') {
-            $query_clear = "UPDATE tabel_laporan SET is_notif_ditsamapta = 0 WHERE id_laporan = ?";
+        // Jika Ditsamapta atau Ditbinmas mengambil, clear notifikasi mereka
+        if ($status_baru == 'diproses_Ditsamapta') {
+            $query_clear = "UPDATE tabel_laporan SET is_notif_Ditsamapta = 0 WHERE id_laporan = ?";
             $stmt_clear = mysqli_prepare($db, $query_clear);
             mysqli_stmt_bind_param($stmt_clear, "i", $id_laporan);
             mysqli_stmt_execute($stmt_clear);
-        } elseif ($status_baru == 'diproses_ditbinmas') {
-            $query_clear = "UPDATE tabel_laporan SET is_notif_ditbinmas = 0 WHERE id_laporan = ?";
+        } elseif ($status_baru == 'diproses_Ditbinmas') {
+            $query_clear = "UPDATE tabel_laporan SET is_notif_Ditbinmas = 0 WHERE id_laporan = ?";
             $stmt_clear = mysqli_prepare($db, $query_clear);
             mysqli_stmt_bind_param($stmt_clear, "i", $id_laporan);
             mysqli_stmt_execute($stmt_clear);
@@ -115,13 +119,13 @@ if (isset($_POST['update_status'])) {
 // Status badge class
 $status_class = 'secondary';
 $status_icon = 'dw-file';
-if ($laporan['status_laporan'] == 'baru') {
+if ($laporan['status'] == 'baru') {
     $status_class = 'warning';
     $status_icon = 'dw-inbox';
-} elseif (strpos($laporan['status_laporan'], 'diproses') !== false) {
+} elseif (strpos($laporan['status'], 'diproses') !== false) {
     $status_class = 'info';
     $status_icon = 'dw-loading';
-} elseif (strpos($laporan['status_laporan'], 'selesai') !== false) {
+} elseif (strpos($laporan['status'], 'selesai') !== false) {
     $status_class = 'success';
     $status_icon = 'dw-checked';
 }
@@ -511,7 +515,7 @@ if (!empty($laporan['nama_pelapor'])) {
 <div class="detail-header">
     <div class="row align-items-center">
         <div class="col-md-8">
-            <div class="detail-title"><?php echo htmlspecialchars($laporan['judul_laporan']); ?></div>
+            <div class="detail-title"><?php echo htmlspecialchars($laporan['judul']); ?></div>
             <div class="detail-meta">
                 <div class="meta-item">
                     <i class="dw dw-calendar1"></i>
@@ -530,7 +534,7 @@ if (!empty($laporan['nama_pelapor'])) {
         <div class="col-md-4 text-right">
             <span class="status-badge-large badge-<?php echo $status_class; ?>">
                 <i class="dw <?php echo $status_icon; ?>"></i>
-                <?php echo ucfirst($laporan['status_laporan']); ?>
+                <?php echo ucfirst($laporan['status']); ?>
             </span>
         </div>
     </div>
@@ -545,7 +549,7 @@ if (!empty($laporan['nama_pelapor'])) {
             <div class="info-section">
                 <h5>📝 Isi Laporan</h5>
                 <div class="content-box">
-                    <?php echo nl2br(htmlspecialchars($laporan['laporan'])); ?>
+                    <?php echo nl2br(htmlspecialchars($laporan['desk'])); ?>
                 </div>
             </div>
         </div>
@@ -576,7 +580,7 @@ if (!empty($laporan['nama_pelapor'])) {
         <div class="detail-card">
             <div class="info-section">
                 <h5>💬 Tanggapan Petugas</h5>
-                <?php if (!empty($laporan['tanggapan_admin'])): ?>
+                <?php if (!empty($laporan['respon'])): ?>
                     <div class="tanggapan-box">
                         <div class="d-flex justify-content-between mb-2">
                             <strong>Tanggapan:</strong>
@@ -616,7 +620,7 @@ if (!empty($laporan['nama_pelapor'])) {
 
                 <div class="info-item mb-3">
                     <div class="info-label">No. HP/Telepon</div>
-                    <div class="info-value"><?php echo htmlspecialchars($laporan['no_hp']); ?></div>
+                    <div class="info-value"><?php echo htmlspecialchars($laporan['nomor_hp']); ?></div>
                 </div>
 
                 <?php if (!empty($laporan['email_pelapor'])): ?>
@@ -685,13 +689,13 @@ if (!empty($laporan['nama_pelapor'])) {
                             $status_display = str_replace('_', ' ', $timeline['status_ke']);
                             $status_display = ucwords($status_display);
 
-                            // Role badge
+                            // role badge
                             $role_badge = '';
-                            if ($timeline['diproses_oleh'] == 'ditresnarkoba') {
+                            if ($timeline['diproses_oleh'] == 'Ditresnarkoba') {
                                 $role_badge = '<span class="badge badge-dark ml-2">Ditresnarkoba</span>';
-                            } elseif ($timeline['diproses_oleh'] == 'ditsamapta') {
+                            } elseif ($timeline['diproses_oleh'] == 'Ditsamapta') {
                                 $role_badge = '<span class="badge badge-primary ml-2">Ditsamapta</span>';
-                            } elseif ($timeline['diproses_oleh'] == 'ditbinmas') {
+                            } elseif ($timeline['diproses_oleh'] == 'Ditbinmas') {
                                 $role_badge = '<span class="badge badge-success ml-2">Ditbinmas</span>';
                             }
                     ?>
@@ -731,63 +735,64 @@ if (!empty($laporan['nama_pelapor'])) {
                         <label class="font-weight-600">Status Baru</label>
                         <select class="form-control" name="status_baru" required>
                             <?php
-                            $session_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
-                            $current_status = $laporan['status_laporan'];
+                            $session_role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+                            echo "<script>console.log('session_role: " . addslashes($session_role) . "');</script>";
+                            $current_status = $laporan['status'];
 
-                            // DITRESNARKOBA - Aktor pertama
-                            if (strpos($session_role, 'ditresnarkoba') !== false) {
-                                echo '<option value="baru" ' . ($current_status == 'baru' ? 'selected' : '') . '>Baru</option>';
-                                echo '<option value="diproses_ditresnarkoba" ' . ($current_status == 'diproses_ditresnarkoba' ? 'selected' : '') . '>Diproses Ditresnarkoba</option>';
-                                echo '<option value="selesai" ' . ($current_status == 'selesai' ? 'selected' : '') . '>Selesai</option>';
-                                echo '<option value="ditolak" ' . ($current_status == 'ditolak' ? 'selected' : '') . '>Ditolak</option>';
+                            // Ditresnarkoba - Aktor pertama
+                            if (strpos($session_role, 'Ditresnarkoba') !== false) {
+                                echo '<option value="Baru" ' . ($current_status == 'Baru' ? 'selected' : '') . '>Baru</option>';
+                                echo '<option value="Diproses Ditresnarkoba" ' . ($current_status == 'Diproses Ditresnarkoba' ? 'selected' : '') . '>Diproses Ditresnarkoba</option>';
+                                echo '<option value="Selesai" ' . ($current_status == 'selesai' ? 'selected' : '') . '>Selesai</option>';
+                                echo '<option value="Ditolak" ' . ($current_status == 'ditolak' ? 'selected' : '') . '>Ditolak</option>';
                             }
 
-                            // DITSAMAPTA - Aktor kedua (bisa akses jika sudah diproses_ditresnarkoba)
-                            if (strpos($session_role, 'ditsamapta') !== false) {
+                            // Ditsamapta - Aktor kedua (bisa akses jika sudah diproses_Ditresnarkoba)
+                            if (strpos($session_role, 'Ditsamapta') !== false) {
                                 // Cek apakah sudah diproses Ditresnarkoba
-                                $bisa_akses = ($current_status == 'diproses_ditresnarkoba' ||
-                                              $current_status == 'diproses_ditsamapta' ||
-                                              $current_status == 'diproses_ditbinmas' ||
-                                              $current_status == 'selesai_ditsamapta' ||
-                                              $current_status == 'selesai_ditbinmas');
+                                $bisa_akses = ($current_status == 'Diproses Ditresnarkoba' ||
+                                              $current_status == 'Diproses Ditsamapta' ||
+                                              $current_status == 'Diproses Ditbinmas' ||
+                                              $current_status == 'Selesai Ditsamapta' ||
+                                              $current_status == 'Selesai Ditbinmas');
 
                                 if ($bisa_akses) {
                                     // Hanya tampilkan "diproses" jika belum selesai Ditsamapta
-                                    if ($current_status != 'selesai_ditsamapta') {
-                                        echo '<option value="diproses_ditsamapta" ' . ($current_status == 'diproses_ditsamapta' ? 'selected' : '') . '>Diproses Ditsamapta</option>';
+                                    if ($current_status != 'Selesai Ditsamapta') {
+                                        echo '<option value="Diproses Ditsamapta" ' . ($current_status == 'Diproses Ditsamapta' ? 'selected' : '') . '>Diproses Ditsamapta</option>';
                                     }
                                     // Hanya bisa selesai jika sudah diproses Ditsamapta
-                                    if ($current_status == 'diproses_ditsamapta') {
-                                        echo '<option value="selesai_ditsamapta" ' . ($current_status == 'selesai_ditsamapta' ? 'selected' : '') . '>Selesai Ditsamapta</option>';
+                                    if ($current_status == 'Diproses Ditsamapta') {
+                                        echo '<option value="Selesai Ditsamapta" ' . ($current_status == 'Selesai Ditsamapta' ? 'selected' : '') . '>Selesai Ditsamapta</option>';
                                     }
-                                    if ($current_status == 'selesai_ditsamapta') {
-                                        echo '<option value="selesai_ditsamapta" selected disabled>Selesai Ditsamapta</option>';
+                                    if ($current_status == 'Selesai Ditsamapta') {
+                                        echo '<option value="Selesai Ditsamapta" selected disabled>Selesai Ditsamapta</option>';
                                     }
                                 } else {
                                     echo '<option value="" disabled selected>Belum dapat diproses (tunggu Ditresnarkoba)</option>';
                                 }
                             }
 
-                            // DITBINMAS - Aktor kedua (bisa akses jika sudah diproses_ditresnarkoba)
-                            if (strpos($session_role, 'ditbinmas') !== false) {
+                            // Ditbinmas - Aktor kedua (bisa akses jika sudah diproses_Ditresnarkoba)
+                            if (strpos($session_role, 'Ditbinmas') !== false) {
                                 // Cek apakah sudah diproses Ditresnarkoba
-                                $bisa_akses = ($current_status == 'diproses_ditresnarkoba' ||
-                                              $current_status == 'diproses_ditsamapta' ||
-                                              $current_status == 'diproses_ditbinmas' ||
-                                              $current_status == 'selesai_ditsamapta' ||
-                                              $current_status == 'selesai_ditbinmas');
+                                $bisa_akses = ($current_status == 'Diproses Ditresnarkoba' ||
+                                              $current_status == 'Diproses Ditsamapta' ||
+                                              $current_status == 'Diproses Ditbinmas' ||
+                                              $current_status == 'Selesai Ditsamapta' ||
+                                              $current_status == 'Selesai Ditbinmas');
 
                                 if ($bisa_akses) {
                                     // Hanya tampilkan "diproses" jika belum selesai Ditbinmas
-                                    if ($current_status != 'selesai_ditbinmas') {
-                                        echo '<option value="diproses_ditbinmas" ' . ($current_status == 'diproses_ditbinmas' ? 'selected' : '') . '>Diproses Ditbinmas</option>';
+                                    if ($current_status != 'Selesai Ditbinmas') {
+                                        echo '<option value="diproses_Ditbinmas" ' . ($current_status == 'diproses_Ditbinmas' ? 'selected' : '') . '>Diproses Ditbinmas</option>';
                                     }
                                     // Hanya bisa selesai jika sudah diproses Ditbinmas
-                                    if ($current_status == 'diproses_ditbinmas') {
-                                        echo '<option value="selesai_ditbinmas" ' . ($current_status == 'selesai_ditbinmas' ? 'selected' : '') . '>Selesai Ditbinmas</option>';
+                                    if ($current_status == 'diproses_Ditbinmas') {
+                                        echo '<option value="Selesai Ditbinmas" ' . ($current_status == 'Selesai Ditbinmas' ? 'selected' : '') . '>Selesai Ditbinmas</option>';
                                     }
-                                    if ($current_status == 'selesai_ditbinmas') {
-                                        echo '<option value="selesai_ditbinmas" selected disabled>Selesai Ditbinmas</option>';
+                                    if ($current_status == 'Selesai Ditbinmas') {
+                                        echo '<option value="Selesai Ditbinmas" selected disabled>Selesai Ditbinmas</option>';
                                     }
                                 } else {
                                     echo '<option value="" disabled selected>Belum dapat diproses (tunggu Ditresnarkoba)</option>';
@@ -796,7 +801,7 @@ if (!empty($laporan['nama_pelapor'])) {
                             ?>
                         </select>
                         <small class="form-text text-muted">
-                            <?php if (strpos($session_role, 'ditsamapta') !== false || strpos($session_role, 'ditbinmas') !== false): ?>
+                            <?php if (strpos($session_role, 'Ditsamapta') !== false || strpos($session_role, 'Ditbinmas') !== false): ?>
                                 <i class="bi bi-info-circle"></i> Anda dapat mengambil laporan ini setelah Ditresnarkoba memproses terlebih dahulu
                             <?php endif; ?>
                         </small>
@@ -806,7 +811,7 @@ if (!empty($laporan['nama_pelapor'])) {
                         <label class="font-weight-600">Tanggapan/Keterangan</label>
                         <textarea class="form-control" name="tanggapan" rows="4"
                             placeholder="Berikan tanggapan atau keterangan..."
-                            required><?php echo htmlspecialchars($laporan['tanggapan_admin']); ?></textarea>
+                            required><?php echo htmlspecialchars($laporan['respon']); ?></textarea>
                     </div>
 
                     <button type="submit" name="update_status" class="btn btn-primary btn-block">

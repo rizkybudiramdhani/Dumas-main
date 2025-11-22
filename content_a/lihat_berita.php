@@ -4,7 +4,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     $id_berita = (int)$_GET['id'];
 
     // Get file to delete
-    $query_file = "SELECT gambar_berita FROM tabel_berita WHERE id_berita = ?";
+    $query_file = "SELECT gambar FROM berita WHERE id_berita = ?";
     $stmt_file = mysqli_prepare($db, $query_file);
     mysqli_stmt_bind_param($stmt_file, "i", $id_berita);
     mysqli_stmt_execute($stmt_file);
@@ -12,14 +12,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     $file_data = mysqli_fetch_assoc($result_file);
 
     // Delete record
-    $query_delete = "DELETE FROM tabel_berita WHERE id_berita = ?";
+    $query_delete = "DELETE FROM berita WHERE id_berita = ?";
     $stmt_delete = mysqli_prepare($db, $query_delete);
     mysqli_stmt_bind_param($stmt_delete, "i", $id_berita);
 
     if (mysqli_stmt_execute($stmt_delete)) {
         // Delete file
-        if ($file_data && !empty($file_data['gambar_berita'])) {
-            $file_path = 'uploads/berita/' . $file_data['gambar_berita'];
+        if ($file_data && !empty($file_data['gambar'])) {
+            $file_path = 'uploads/berita/' . $file_data['gambar'];
             if (file_exists($file_path)) {
                 unlink($file_path);
             }
@@ -298,7 +298,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
                 <div class="col-md-8">
                     <h2>
                         <?php
-                        $query_total = "SELECT COUNT(*) as total FROM tabel_berita";
+                        $query_total = "SELECT COUNT(*) as total FROM berita";
                         $result_total = mysqli_query($db, $query_total);
                         echo mysqli_fetch_assoc($result_total)['total'];
                         ?>
@@ -339,21 +339,21 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
 <!-- News Grid -->
 <div class="row" id="news-container">
     <?php
-    $query = "SELECT * FROM tabel_berita ORDER BY tanggal_upload DESC";
+    $query = "SELECT * FROM berita ORDER BY tanggal DESC";
     $result = mysqli_query($db, $query);
 
     if (mysqli_num_rows($result) > 0):
         while ($row = mysqli_fetch_assoc($result)):
     ?>
             <div class="col-md-4 mb-30 news-item"
-                data-title="<?php echo strtolower($row['judul_berita']); ?>"
-                data-date="<?php echo date('Y-m-d', strtotime($row['tanggal_upload'])); ?>">
+                data-title="<?php echo strtolower($row['judul']); ?>"
+                data-date="<?php echo date('Y-m-d', strtotime($row['tanggal'])); ?>">
                 <div class="card news-card">
                     <div class="position-relative">
-                        <?php if ($row['gambar_berita']): ?>
-                            <img src="uploads/berita/<?php echo htmlspecialchars($row['gambar_berita']); ?>"
+                        <?php if ($row['gambar']): ?>
+                            <img src="uploads/berita/<?php echo htmlspecialchars($row['gambar']); ?>"
                                 class="card-img-top"
-                                alt="<?php echo htmlspecialchars($row['judul_berita']); ?>"
+                                alt="<?php echo htmlspecialchars($row['judul']); ?>"
                                 onerror="this.src='vendors/images/photo1.jpg'; this.classList.add('error');">
                         <?php else: ?>
                             <img src="vendors/images/photo1.jpg"
@@ -370,7 +370,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
                                     <a class="dropdown-item" href="#" onclick="event.preventDefault(); viewDetail(<?php echo $row['id_berita']; ?>)">
                                         <i class="dw dw-eye"></i> Lihat Detail
                                     </a>
-                                    <a class="dropdown-item" href="<?php echo htmlspecialchars($row['link_berita']); ?>" target="_blank">
+                                    <a class="dropdown-item" href="<?php echo htmlspecialchars($row['link']); ?>" target="_blank">
                                         <i class="dw dw-share"></i> Buka Link
                                     </a>
                                     <div class="dropdown-divider"></div>
@@ -383,12 +383,12 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
                     </div>
 
                     <div class="card-body">
-                        <h5 class="card-title"><?php echo htmlspecialchars($row['judul_berita']); ?></h5>
-                        <p class="card-text"><?php echo htmlspecialchars($row['deskripsi_berita']); ?></p>
+                        <h5 class="card-title"><?php echo htmlspecialchars($row['judul']); ?></h5>
+                        <p class="card-text"><?php echo htmlspecialchars($row['desk']); ?></p>
 
                         <div class="news-meta">
                             <i class="icon-copy dw dw-calendar1"></i>
-                            <?php echo date('d M Y', strtotime($row['tanggal_upload'])); ?>
+                            <?php echo date('d M Y', strtotime($row['tanggal'])); ?>
                         </div>
                     </div>
 
@@ -450,35 +450,23 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
 </div>
 
 <script>
-    // Berita data from PHP
+    // Berita data for modal
     const beritaData = {
         <?php
-        $result2 = mysqli_query($db, "SELECT * FROM tabel_berita ORDER BY tanggal_upload DESC");
-        if ($result2) {
-            $items = [];
-            while ($row2 = mysqli_fetch_assoc($result2)):
-                $items[] = sprintf(
-                    '%d: {
-                        gambar: %s,
-                        judul: %s,
-                        tanggal: %s,
-                        deskripsi: %s,
-                        link: %s
-                    }',
-                    $row2['id_berita'],
-                    json_encode($row2['gambar_berita']),
-                    json_encode($row2['judul_berita']),
-                    json_encode(date('d M Y, H:i', strtotime($row2['tanggal_upload']))),
-                    json_encode(nl2br($row2['deskripsi_berita'])),
-                    json_encode($row2['link_berita'])
-                );
-            endwhile;
-
-            if (!empty($items)) {
-                echo implode(',', $items);
-            }
-        }
+        mysqli_data_seek($result, 0); // Reset pointer to beginning
+        $first = true;
+        while ($row = mysqli_fetch_assoc($result)):
+            if (!$first) echo ",\n        ";
+            $first = false;
         ?>
+        <?php echo $row['id_berita']; ?>: {
+            gambar: '<?php echo addslashes($row['gambar']); ?>',
+            judul: '<?php echo addslashes($row['judul']); ?>',
+            tanggal: '<?php echo date('d M Y H:i', strtotime($row['tanggal'])); ?>',
+            deskripsi: '<?php echo addslashes(nl2br($row['desk'])); ?>',
+            link: '<?php echo addslashes($row['link']); ?>'
+        }
+        <?php endwhile; ?>
     };
 
     // Search functionality

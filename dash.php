@@ -44,7 +44,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     // PENGUNGKAPAN (Ditresnarkoba only)
                     // ============================================
                 case 'input-pengungkapan':
-                    if ($role == 'ditresnarkoba') {
+                    if ($role == 'Ditresnarkoba') {
                         include 'content/input_pengungkapan.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman ini.</div>';
@@ -55,11 +55,11 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     // PENGADUAN MASYARAKAT (Semua Role)
                     // ============================================
                 case 'input-pengaduan':
-                    include 'content/input_pengaduan.php';
+                    include 'content_a/tambah_aduan.php';
                     break;
 
                 case 'lihat-pengaduan':
-                    include 'content/lihat_pengaduan.php';
+                    include 'content_a/lihat_aduan.php';
                     break;
 
                 case 'detail-pengaduan':
@@ -70,50 +70,50 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     // BERITA (Semua Role)
                     // ============================================
                 case 'input-berita':
-                    include 'content/input_berita.php';
+                    include 'content_a/tambah_berita.php';
                     break;
 
                 case 'lihat-berita':
-                    include 'content/lihat_berita.php';
+                    include 'content_a/lihat_berita.php';
                     break;
 
                     // ============================================
-                    // LAPORAN DITSAMAPTA (Semua Role Bisa Akses)
+                    // LAPORAN Ditsamapta (Semua Role Bisa Akses)
                     // ============================================
-                case 'laporan-ditsamapta':
-                    // Semua role bisa lihat laporan ditsamapta
-                    if (in_array($role, ['ditsamapta', 'ditbinmas', 'ditresnarkoba'])) {
-                        include 'content/laporan_ditsamapta.php';
+                case 'laporan-Ditsamapta':
+                    // Semua role bisa lihat laporan Ditsamapta
+                    if (in_array($role, ['Ditsamapta', 'Ditbinmas', 'Ditresnarkoba'])) {
+                        include 'content/laporan_Ditsamapta.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman ini.</div>';
                     }
                     break;
 
-                case 'input-laporan-ditsamapta':
-                    if ($role == 'ditsamapta') {
-                        include 'content/input_laporan_ditsamapta.php';
+                case 'input-laporan-Ditsamapta':
+                    if ($role == 'Ditsamapta') {
+                        include 'content/input_laporan_Ditsamapta.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Hanya Ditsamapta yang dapat menginput laporan.</div>';
                     }
                     break;
 
                     // ============================================
-                    // LAPORAN DITBINMAS (Semua Role Bisa Akses)
+                    // LAPORAN Ditbinmas (Semua Role Bisa Akses)
                     // ============================================
-                case 'laporan-ditbinmas':
-                    // Semua role bisa lihat laporan ditbinmas
-                    if (in_array($role, ['ditbinmas', 'ditsamapta', 'ditresnarkoba'])) {
-                        include 'content/laporan_ditbinmas.php';
+                case 'laporan-Ditbinmas':
+                    // Semua role bisa lihat laporan Ditbinmas
+                    if (in_array($role, ['Ditbinmas', 'Ditsamapta', 'Ditresnarkoba'])) {
+                        include 'content/laporan_Ditbinmas.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman ini.</div>';
                     }
                     break;
 
                     // ============================================
-                    // INPUT KEGIATAN DITBINMAS
+                    // INPUT KEGIATAN Ditbinmas
                     // ============================================
                 case 'input-kegiatan':
-                    if ($role == 'ditbinmas') {
+                    if ($role == 'Ditbinmas') {
                         include 'content/input_kegiatan.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Hanya Ditbinmas yang dapat menginput kegiatan.</div>';
@@ -121,20 +121,20 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     break;
 
                     // ============================================
-                    // LAPORAN DITRESNARKOBA (Semua Role Bisa Akses)
+                    // LAPORAN Ditresnarkoba (Semua Role Bisa Akses)
                     // ============================================
-                case 'laporan-ditresnarkoba':
-                    // Semua role bisa lihat laporan ditresnarkoba
-                    if (in_array($role, ['ditresnarkoba', 'ditsamapta', 'ditbinmas'])) {
-                        include 'content/laporan_ditresnarkoba.php';
+                case 'laporan-Ditresnarkoba':
+                    // Semua role bisa lihat laporan Ditresnarkoba
+                    if (in_array($role, ['Ditresnarkoba', 'Ditsamapta', 'Ditbinmas'])) {
+                        include 'content/laporan_Ditresnarkoba.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman ini.</div>';
                     }
                     break;
 
-                case 'input-laporan-ditresnarkoba':
-                    if ($role == 'ditresnarkoba') {
-                        include 'content/input_laporan_ditresnarkoba.php';
+                case 'input-laporan-Ditresnarkoba':
+                    if ($role == 'Ditresnarkoba') {
+                        include 'content/input_laporan_Ditresnarkoba.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Hanya Ditresnarkoba yang dapat menginput laporan.</div>';
                     }
@@ -185,10 +185,12 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
         <script src="src/plugins/apexcharts/apexcharts.min.js"></script>
     <?php endif; ?>
 
-    <!-- DataTables CSS & JS (untuk tabel) -->
-    <?php if (in_array($page, ['dashboard', 'lihat-pengaduan', 'lihat-berita', 'laporan-ditsamapta', 'laporan-ditbinmas', 'laporan-ditresnarkoba'])): ?>
-        <link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-        <link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/responsive.bootstrap4.min.css">
+    <!-- DataTables JS (untuk tabel) -->
+    <?php if (in_array($page, ['dashboard', 'lihat-pengaduan', 'lihat-berita', 'laporan-Ditsamapta', 'laporan-Ditbinmas', 'laporan-Ditresnarkoba'])): ?>
+        <script src="src/plugins/datatables/js/jquery.dataTables.min.js"></script>
+        <script src="src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
+        <script src="src/plugins/datatables/js/dataTables.responsive.min.js"></script>
+        <script src="src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
     <?php endif; ?>
 
 </body>

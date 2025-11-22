@@ -113,10 +113,10 @@ elseif ($row['status_verifikasi'] == 'selesai') $status_bg = '#16a34a';
         $file_ext = pathinfo($row['file_bukti'], PATHINFO_EXTENSION);
         if (in_array(strtolower($file_ext), ['jpg', 'jpeg', 'png', 'gif'])):
         ?>
-            <img src="uploads/bukti_ditsamapta/<?php echo htmlspecialchars($row['file_bukti']); ?>"
+            <img src="uploads/bukti_Ditsamapta/<?php echo htmlspecialchars($row['file_bukti']); ?>"
                  class="img-fluid" style="max-height: 300px; border-radius: 10px; border: 3px solid #1a1f3a;">
         <?php else: ?>
-            <a href="uploads/bukti_ditsamapta/<?php echo htmlspecialchars($row['file_bukti']); ?>"
+            <a href="uploads/bukti_Ditsamapta/<?php echo htmlspecialchars($row['file_bukti']); ?>"
                target="_blank" class="btn btn-sm" style="background: #1a1f3a; color: white; font-weight: 600;">
                 <i class="fa fa-download"></i> Download File
             </a>

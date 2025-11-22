@@ -39,25 +39,15 @@ require_once __DIR__ . '/../config/koneksi.php';
                             if (isset($db) && $db):
                                 $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
                                 $unread_count = 0;
-
-<<<<<<< HEAD
-                                // Untuk user biasa - notifikasi balasan dari tabel lapmas
-                                if (strpos($user_role, 'ditsamapta') === false && strpos($user_role, 'ditbinmas') === false && strpos($user_role, 'ditresnarkoba') === false):
-                                    $user_id = $_SESSION['user_id'];
-                                    $query_count = "SELECT COUNT(*) as total FROM lapmas
-                                                  WHERE Id_akun = ?
-                                                  AND balasan IS NOT NULL AND balasan != ''";
-=======
                                 // Untuk user biasa - notifikasi laporan dengan status update
-                                if (strpos($user_role, 'ditsamapta') === false && strpos($user_role, 'ditbinmas') === false && strpos($user_role, 'ditresnarkoba') === false):
+                                if (strpos($user_role, 'Ditsamapta') === false && strpos($user_role, 'Ditbinmas') === false && strpos($user_role, 'Ditresnarkoba') === false):
                                     $user_id = $_SESSION['user_id'];
                                     $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
-                                                  WHERE user_id = ?
-                                                  AND (
-                                                      (status IN ('Diproses Ditsamapta', 'Diproses Ditbinmas', 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak') AND is_read = 0)
-                                                      OR (balasan IS NOT NULL AND balasan != '' AND is_read = 0)
-                                                  )";
->>>>>>> b1f7a23b2d62c130a84bba6661f3e85899bb1417
+                                                WHERE user_id = ?
+                                                AND (
+                                                    (status IN ('Diproses Ditsamapta', 'Diproses Ditbinmas', 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak') AND is_read = 0)
+                                                    OR (balasan IS NOT NULL AND balasan != '' AND is_read = 0)
+                                                )";
                                     $stmt_count = mysqli_prepare($db, $query_count);
                                     mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                     mysqli_stmt_execute($stmt_count);
@@ -65,18 +55,18 @@ require_once __DIR__ . '/../config/koneksi.php';
                                     $unread_count = mysqli_fetch_assoc($result_count)['total'];
 
                                 // Untuk Ditsamapta - notifikasi laporan yang sudah diproses Ditresnarkoba
-                                elseif (strpos($user_role, 'ditsamapta') !== false):
+                                elseif (strpos($user_role, 'Ditsamapta') !== false):
                                     $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
-                                                  WHERE status_laporan = 'diproses_ditresnarkoba'
-                                                  AND is_notif_ditsamapta = 1";
+                                                WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                AND is_notif_Ditsamapta = 1";
                                     $result_count = mysqli_query($db, $query_count);
                                     $unread_count = mysqli_fetch_assoc($result_count)['total'];
 
                                 // Untuk Ditbinmas - notifikasi laporan yang sudah diproses Ditresnarkoba
-                                elseif (strpos($user_role, 'ditbinmas') !== false):
+                                elseif (strpos($user_role, 'Ditbinmas') !== false):
                                     $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
-                                                  WHERE status_laporan = 'diproses_ditresnarkoba'
-                                                  AND is_notif_ditbinmas = 1";
+                                                WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                AND is_notif_Ditbinmas = 1";
                                     $result_count = mysqli_query($db, $query_count);
                                     $unread_count = mysqli_fetch_assoc($result_count)['total'];
                                 endif;
@@ -95,7 +85,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                             $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
 
                             // Notifikasi untuk Ditsamapta atau Ditbinmas
-                            if (strpos($user_role, 'ditsamapta') !== false || strpos($user_role, 'ditbinmas') !== false):
+                            if (strpos($user_role, 'Ditsamapta') !== false || strpos($user_role, 'Ditbinmas') !== false):
                             ?>
                                 <li class="dropdown-header">
                                     <strong><i class="bi bi-exclamation-circle-fill me-1"></i> Laporan Baru untuk Ditindaklanjuti</strong>
@@ -107,17 +97,17 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 <?php
                                 if (isset($db) && $db):
                                     // Query berdasarkan role
-                                    if (strpos($user_role, 'ditsamapta') !== false):
+                                    if (strpos($user_role, 'Ditsamapta') !== false):
                                         $query_notif = "SELECT id_laporan, judul_laporan, lokasi, tanggal_lapor, tanggal_mulai_diproses
                                                       FROM tabel_laporan
-                                                      WHERE status_laporan = 'diproses_ditresnarkoba'
-                                                      AND is_notif_ditsamapta = 1
+                                                      WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                      AND is_notif_Ditsamapta = 1
                                                       ORDER BY tanggal_mulai_diproses DESC LIMIT 5";
                                     else:
                                         $query_notif = "SELECT id_laporan, judul_laporan, lokasi, tanggal_lapor, tanggal_mulai_diproses
                                                       FROM tabel_laporan
-                                                      WHERE status_laporan = 'diproses_ditresnarkoba'
-                                                      AND is_notif_ditbinmas = 1
+                                                      WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                      AND is_notif_Ditbinmas = 1
                                                       ORDER BY tanggal_mulai_diproses DESC LIMIT 5";
                                     endif;
 
@@ -168,11 +158,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                             else:
                             ?>
                                 <li class="dropdown-header">
-<<<<<<< HEAD
                                     <strong><i class="bi bi-chat-dots-fill me-2"></i>Pesan dan Balasan</strong>
-=======
-                                    <strong><i class="bi bi-envelope-fill me-1"></i> Pesan & Status Laporan</strong>
->>>>>>> b1f7a23b2d62c130a84bba6661f3e85899bb1417
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
@@ -181,19 +167,12 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 <?php
                                 if (isset($db) && $db):
                                     $user_id = $_SESSION['user_id'];
-<<<<<<< HEAD
 
                                     // Ambil semua laporan user (dengan status)
                                     $query_notif = "SELECT id_lapmas, judul, desk, lokasi, balasan, status, tanggal_lapor, tanggal_balasan
                                                 FROM lapmas
                                                 WHERE Id_akun = ?
                                                 ORDER BY tanggal_lapor DESC LIMIT 5";
-=======
-                                    $query_notif = "SELECT id_laporan, judul_laporan, balasan, status, tanggal_balasan, tanggal_laporan
-                                                  FROM tabel_laporan
-                                                  WHERE user_id = ?
-                                                  ORDER BY tanggal_laporan DESC LIMIT 5";
->>>>>>> b1f7a23b2d62c130a84bba6661f3e85899bb1417
                                     $stmt_notif = mysqli_prepare($db, $query_notif);
                                     mysqli_stmt_bind_param($stmt_notif, "i", $user_id);
                                     mysqli_stmt_execute($stmt_notif);
@@ -201,7 +180,6 @@ require_once __DIR__ . '/../config/koneksi.php';
 
                                     if (mysqli_num_rows($result_notif) > 0):
                                         while ($notif = mysqli_fetch_assoc($result_notif)):
-<<<<<<< HEAD
                                             // Tentukan icon dan warna berdasarkan status
                                             $status = $notif['status'] ?? 'Baru';
 
@@ -261,67 +239,6 @@ require_once __DIR__ . '/../config/koneksi.php';
                                                                     echo date('d M Y', strtotime($display_date));
                                                                     ?>
                                                                 </div>
-=======
-                                            // Set warna dan icon berdasarkan status
-                                            $statusColor = '';
-                                            $statusIcon = '';
-                                            switch($notif['status']) {
-                                                case 'Baru':
-                                                    $statusColor = '#FFD700';
-                                                    $statusIcon = 'bi-hourglass-split';
-                                                    break;
-                                                case 'Diproses Ditsamapta':
-                                                    $statusColor = '#0d6efd';
-                                                    $statusIcon = 'bi-gear-fill';
-                                                    break;
-                                                case 'Diproses Ditbinmas':
-                                                    $statusColor = '#17a2b8';
-                                                    $statusIcon = 'bi-gear-fill';
-                                                    break;
-                                                case 'Diproses Ditresnarkoba':
-                                                    $statusColor = '#6f42c1';
-                                                    $statusIcon = 'bi-gear-fill';
-                                                    break;
-                                                case 'Selesai':
-                                                    $statusColor = '#28a745';
-                                                    $statusIcon = 'bi-check-circle-fill';
-                                                    break;
-                                                case 'Ditolak':
-                                                    $statusColor = '#dc3545';
-                                                    $statusIcon = 'bi-x-circle-fill';
-                                                    break;
-                                                default:
-                                                    $statusColor = '#6c757d';
-                                                    $statusIcon = 'bi-circle-fill';
-                                            }
-                                ?>
-                                            <li>
-                                                <a class="dropdown-item notification-item" href="dash-user.php?page=detail-laporan&id=<?php echo $notif['id_laporan']; ?>">
-                                                    <div class="d-flex align-items-start">
-                                                        <div class="notification-icon" style="background: <?php echo $statusColor; ?>;">
-                                                            <i class="bi <?php echo $statusIcon; ?>"></i>
-                                                        </div>
-                                                        <div class="notification-content">
-                                                            <div class="notification-title"><?php echo htmlspecialchars(substr($notif['judul_laporan'], 0, 40)); ?><?php echo strlen($notif['judul_laporan']) > 40 ? '...' : ''; ?></div>
-                                                            <div class="notification-status-badge" style="background: <?php echo $statusColor; ?>;">
-                                                                <i class="bi <?php echo $statusIcon; ?>"></i>
-                                                                <?php echo htmlspecialchars($notif['status']); ?>
-                                                            </div>
-                                                            <?php if ($notif['balasan']): ?>
-                                                                <div class="notification-text">
-                                                                    <i class="bi bi-chat-dots-fill"></i> <?php echo htmlspecialchars(substr($notif['balasan'], 0, 50)); ?><?php echo strlen($notif['balasan']) > 50 ? '...' : ''; ?>
-                                                                </div>
-                                                            <?php endif; ?>
-                                                            <div class="notification-time">
-                                                                <i class="bi bi-clock"></i>
-                                                                <?php
-                                                                if ($notif['tanggal_balasan']) {
-                                                                    echo date('d M Y, H:i', strtotime($notif['tanggal_balasan']));
-                                                                } else {
-                                                                    echo date('d M Y, H:i', strtotime($notif['tanggal_laporan']));
-                                                                }
-                                                                ?>
->>>>>>> b1f7a23b2d62c130a84bba6661f3e85899bb1417
                                                             </div>
                                                         </div>
                                                         <button type="button" class="btn btn-sm btn-detail-lapmas"
@@ -343,11 +260,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                     else:
                                         ?>
                                         <li class="dropdown-item text-center text-muted py-3">
-<<<<<<< HEAD
                                             <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
-=======
-                                            <i class="bi bi-inbox"></i><br>
->>>>>>> b1f7a23b2d62c130a84bba6661f3e85899bb1417
                                             Belum ada laporan
                                         </li>
                                 <?php
@@ -576,31 +489,12 @@ require_once __DIR__ . '/../config/koneksi.php';
                 const warna = btn.getAttribute('data-warna') || '#6c757d';
                 const tanggal = btn.getAttribute('data-tanggal') || '';
 
-                // Debug - cek data yang diambil
-                console.log('Data yang diambil:', {
-                    judul,
-                    desk,
-                    lokasi,
-                    balasan,
-                    status,
-                    warna,
-                    tanggal
-                });
-
                 // Set data ke modal (htmlspecialchars sudah di-decode otomatis oleh browser)
                 const elJudul = document.getElementById('detailJudul');
                 const elDesk = document.getElementById('detailDesk');
                 const elLokasi = document.getElementById('detailLokasi');
                 const elTanggal = document.getElementById('detailTanggal');
                 const elStatus = document.getElementById('detailStatus');
-
-                console.log('Elements found:', {
-                    elJudul: elJudul ? 'OK' : 'NOT FOUND',
-                    elDesk: elDesk ? 'OK' : 'NOT FOUND',
-                    elLokasi: elLokasi ? 'OK' : 'NOT FOUND',
-                    elTanggal: elTanggal ? 'OK' : 'NOT FOUND',
-                    elStatus: elStatus ? 'OK' : 'NOT FOUND'
-                });
 
                 if (elJudul) elJudul.textContent = judul || '-';
                 if (elDesk) elDesk.textContent = desk || '-';
@@ -611,7 +505,6 @@ require_once __DIR__ . '/../config/koneksi.php';
                 // Set warna status badge (remove semicolon if exists)
                 const statusBadge = document.getElementById('detailStatusBadge');
                 const cleanWarna = (warna || '#6c757d').replace(';', '');
-                console.log('Setting color:', cleanWarna);
                 if (statusBadge) statusBadge.style.backgroundColor = cleanWarna;
 
                 // Tampilkan balasan jika ada

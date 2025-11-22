@@ -22,7 +22,7 @@ if (isset($_POST['submit_laporan'])) {
     // Handle file upload
     $file_bukti = '';
     if (isset($_FILES['file_bukti']) && $_FILES['file_bukti']['error'] == 0) {
-        $target_dir = "uploads/bukti_ditsamapta/";
+        $target_dir = "uploads/bukti_Ditsamapta/";
         if (!file_exists($target_dir)) {
             mkdir($target_dir, 0777, true);
         }
@@ -129,13 +129,13 @@ if (isset($_POST['submit_laporan'])) {
             <nav aria-label="breadcrumb" role="navigation">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dash.php">Home</a></li>
-                    <li class="breadcrumb-item"><a href="dash.php?page=laporan-ditsamapta">Laporan Ditsamapta</a></li>
+                    <li class="breadcrumb-item"><a href="dash.php?page=laporan-Ditsamapta">Laporan Ditsamapta</a></li>
                     <li class="breadcrumb-item active" aria-current="page">Input</li>
                 </ol>
             </nav>
         </div>
         <div class="col-md-6 col-sm-12 text-right">
-            <a href="dash.php?page=laporan-ditsamapta" class="btn btn-secondary">
+            <a href="dash.php?page=laporan-Ditsamapta" class="btn btn-secondary">
                 <i class="dw dw-left-arrow"></i> Kembali ke Daftar
             </a>
         </div>

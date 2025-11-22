@@ -88,8 +88,8 @@ $total_laporan = mysqli_fetch_assoc($result_stats)['total'];
 
 // Role display
 $role_display = ucfirst($role);
-if ($role == 'ditresnarkoba') $role_display = 'Ditresnarkoba';
-if ($role == 'ditsamapta') $role_display = 'Ditsamapta';
+if ($role == 'Ditresnarkoba') $role_display = 'Ditresnarkoba';
+if ($role == 'Ditsamapta') $role_display = 'Ditsamapta';
 if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
 ?>
 

@@ -4,7 +4,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     $id_laporan = (int)$_GET['id'];
 
     // Get file path to delete
-    $query_file = "SELECT gambar FROM tabel_laporan WHERE id_laporan = ?";
+    $query_file = "SELECT upload FROM lapmas WHERE id_lapmas = ?";
     $stmt_file = mysqli_prepare($db, $query_file);
     mysqli_stmt_bind_param($stmt_file, "i", $id_laporan);
     mysqli_stmt_execute($stmt_file);
@@ -12,14 +12,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     $file_data = mysqli_fetch_assoc($result_file);
 
     // Delete record
-    $query_delete = "DELETE FROM tabel_laporan WHERE id_laporan = ?";
+    $query_delete = "DELETE FROM lapmas WHERE id_lapmas = ?";
     $stmt_delete = mysqli_prepare($db, $query_delete);
     mysqli_stmt_bind_param($stmt_delete, "i", $id_laporan);
 
     if (mysqli_stmt_execute($stmt_delete)) {
         // Delete file if exists
-        if ($file_data && !empty($file_data['gambar'])) {
-            $files = explode(',', $file_data['gambar']);
+        if ($file_data && !empty($file_data['upload'])) {
+            $files = explode(',', $file_data['upload']);
             foreach ($files as $file) {
                 if (file_exists($file)) {
                     unlink($file);
@@ -28,6 +28,10 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
         }
 
         echo '<script>alert("Pengaduan berhasil dihapus!"); window.location.href="dash.php?page=lihat-pengaduan";</script>';
+        exit;
+    } else {
+        echo '<script>alert("Gagal menghapus pengaduan: ' . mysqli_error($db) . '"); window.location.href="dash.php?page=lihat-pengaduan";</script>';
+        exit;
     }
 }
 
@@ -119,6 +123,22 @@ if (isset($_POST['update_status'])) {
         color: #FFD700;
         font-weight: 700;
     }
+
+    /* Clickable Row Styling */
+    .clickable-row {
+        transition: all 0.2s ease;
+    }
+
+    .clickable-row:hover {
+        background-color: #f8f9fa !important;
+        transform: scale(1.01);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .delete-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+    }
 </style>
 
 <!-- Page Header -->
@@ -147,10 +167,10 @@ if (isset($_POST['update_status'])) {
 <div class="row pb-10">
     <?php
     // Get statistics
-    $query_total = "SELECT COUNT(*) as total FROM tabel_laporan";
-    $query_baru = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan = 'baru'";
-    $query_diproses = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan LIKE '%diproses%'";
-    $query_selesai = "SELECT COUNT(*) as total FROM tabel_laporan WHERE status_laporan LIKE '%selesai%'";
+    $query_total = "SELECT COUNT(*) as total FROM lapmas";
+    $query_baru = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
+    $query_diproses = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Diproses%'";
+    $query_selesai = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Selesai%'";
 
     $total = mysqli_fetch_assoc(mysqli_query($db, $query_total))['total'];
     $baru = mysqli_fetch_assoc(mysqli_query($db, $query_baru))['total'];
@@ -247,19 +267,19 @@ if (isset($_POST['update_status'])) {
                     <tr>
                         <th width="50">No</th>
                         <th>Judul</th>
-                        <th>Pelapor</th>
+                        
                         <th>Kontak</th>
                         <th>Lokasi</th>
                         <th width="110">Tanggal</th>
                         <th width="100">Status</th>
-                        <th width="150">Action</th>
+                        <th width="60">Hapus</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $query = "SELECT l.*, u.nama as nama_user 
-                             FROM tabel_laporan l 
-                             LEFT JOIN tabel_users u ON l.id_user = u.id_users
+                    $query = "SELECT l.*, a.Nama as nama_user, a.Nomor_hp as nomor_hp
+                             FROM lapmas l 
+                             LEFT JOIN akun a ON l.Id_akun = a.Id_akun
                              ORDER BY l.tanggal_lapor DESC";
                     $result = mysqli_query($db, $query);
 
@@ -267,35 +287,29 @@ if (isset($_POST['update_status'])) {
                     while ($row = mysqli_fetch_assoc($result)):
                         // Determine status class
                         $status_class = 'secondary';
-                        if ($row['status_laporan'] == 'baru') $status_class = 'warning';
-                        elseif (strpos($row['status_laporan'], 'diproses') !== false) $status_class = 'info';
-                        elseif (strpos($row['status_laporan'], 'selesai') !== false) $status_class = 'success';
+                        if ($row['status'] == 'Baru') $status_class = 'warning';
+                        elseif (strpos($row['status'], 'Diproses') !== false) $status_class = 'info';
+                        elseif (strpos($row['status'], 'Selesai') !== false) $status_class = 'success';
 
                         $nama_pelapor = $row['nama_user'] ? $row['nama_user'] : ($row['nama'] ? $row['nama'] : 'Anonim');
                     ?>
-                        <tr>
+                        <tr class="clickable-row" data-href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>" style="cursor: pointer;">
                             <td><?php echo $no++; ?></td>
                             <td>
-                                <strong><?php echo htmlspecialchars($row['judul_laporan']); ?></strong>
-                                <br><small class="text-muted"><?php echo substr(htmlspecialchars($row['laporan']), 0, 50); ?>...</small>
+                                <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
+                                <br><small class="text-muted"><?php echo substr(htmlspecialchars($row['desk']), 0, 50); ?>...</small>
                             </td>
-                            <td><?php echo htmlspecialchars($nama_pelapor); ?></td>
-                            <td><?php echo htmlspecialchars($row['no_hp']); ?></td>
+                            
+                            <td><?php echo htmlspecialchars($row['nomor_hp']); ?></td>
                             <td><?php echo htmlspecialchars($row['lokasi']); ?></td>
                             <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
                             <td>
                                 <span class="badge badge-<?php echo $status_class; ?> status-badge">
-                                    <?php echo ucfirst($row['status_laporan']); ?>
+                                    <?php echo ucfirst($row['status']); ?>
                                 </span>
                             </td>
-                            <td>
-                                <button class="btn btn-sm btn-info action-btn" onclick="viewDetail(<?php echo $row['id_laporan']; ?>)">
-                                    <i class="dw dw-eye"></i>
-                                </button>
-                                <button class="btn btn-sm btn-primary action-btn" onclick="updateStatus(<?php echo $row['id_laporan']; ?>, '<?php echo htmlspecialchars($row['judul_laporan']); ?>')">
-                                    <i class="dw dw-edit2"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger action-btn" onclick="deleteData(<?php echo $row['id_laporan']; ?>)">
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-danger delete-btn" data-id="<?php echo $row['id_lapmas']; ?>" style="border-radius: 8px;">
                                     <i class="dw dw-delete-3"></i>
                                 </button>
                             </td>
@@ -328,11 +342,11 @@ if (isset($_POST['update_status'])) {
                         <label class="font-weight-600">Status Baru:</label>
                         <select class="form-control" name="status_baru" required>
                             <option value="baru">Baru</option>
-                            <option value="diproses ditsamapta">Diproses Ditsamapta</option>
-                            <option value="selesai ditsamapta">Selesai Ditsamapta</option>
+                            <option value="diproses Ditsamapta">Diproses Ditsamapta</option>
+                            <option value="selesai Ditsamapta">Selesai Ditsamapta</option>
                             <option value="diproses ditbinmas">Diproses Ditbinmas</option>
                             <option value="selesai ditbinmas">Selesai Ditbinmas</option>
-                            <option value="diproses ditresnarkoba">Diproses Ditresnarkoba</option>
+                            <option value="diproses Ditresnarkoba">Diproses Ditresnarkoba</option>
                             <option value="selesai">Selesai</option>
                         </select>
                     </div>
@@ -355,45 +369,80 @@ if (isset($_POST['update_status'])) {
 </div>
 
 <!-- DataTables Scripts -->
-<link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/dataTables.bootstrap4.min.css">
-<link rel="stylesheet" type="text/css" href="src/plugins/datatables/css/responsive.bootstrap4.min.css">
-<script src="src/plugins/datatables/js/jquery.dataTables.min.js"></script>
-<script src="src/plugins/datatables/js/dataTables.bootstrap4.min.js"></script>
-<script src="src/plugins/datatables/js/dataTables.responsive.min.js"></script>
-<script src="src/plugins/datatables/js/responsive.bootstrap4.min.js"></script>
-
 <script>
-    // Initialize DataTable
-    var table = $('#pengaduan-table').DataTable({
-        scrollCollapse: true,
-        autoWidth: false,
-        responsive: true,
-        columnDefs: [{
-            targets: [0, 7],
-            orderable: false,
-        }],
-        "lengthMenu": [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
-        ],
-        "language": {
-            "info": "Menampilkan _START_ - _END_ dari _TOTAL_ pengaduan",
-            "infoEmpty": "Tidak ada data",
-            "lengthMenu": "Tampilkan _MENU_ data",
-            "search": "Cari:",
-            "zeroRecords": "Tidak ada data yang cocok",
-            "paginate": {
-                "first": "Pertama",
-                "last": "Terakhir",
-                "next": '<i class="ion-chevron-right"></i>',
-                "previous": '<i class="ion-chevron-left"></i>'
-            }
-        },
-        "pageLength": 10
-    });
+    var table; // Global variable untuk table
 
-    // Filter functions
+    // Wait for jQuery to be loaded
+    (function checkjQuery() {
+        if (typeof jQuery === 'undefined') {
+            setTimeout(checkjQuery, 50);
+            return;
+        }
+
+        initDataTable();
+    })();
+
+    function initDataTable() {
+    $(document).ready(function() {
+        // Initialize DataTable
+        table = $('#pengaduan-table').DataTable({
+            scrollCollapse: true,
+            autoWidth: false,
+            responsive: true,
+            columnDefs: [{
+                targets: [0, 6],
+                orderable: false,
+            }],
+            "lengthMenu": [
+                [10, 25, 50, -1],
+                [10, 25, 50, "All"]
+            ],
+            "language": {
+                "info": "Menampilkan _START_ - _END_ dari _TOTAL_ pengaduan",
+                "infoEmpty": "Tidak ada data",
+                "lengthMenu": "Tampilkan _MENU_ data",
+                "search": "Cari:",
+                "zeroRecords": "Tidak ada data yang cocok",
+                "paginate": {
+                    "first": "Pertama",
+                    "last": "Terakhir",
+                    "next": '<i class="ion-chevron-right"></i>',
+                    "previous": '<i class="ion-chevron-left"></i>'
+                }
+            },
+            "pageLength": 10
+        });
+
+        // Make table rows clickable
+        $('#pengaduan-table tbody').on('click', 'tr.clickable-row', function() {
+            var href = $(this).data('href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+
+        // Handle delete button click
+        $('#pengaduan-table tbody').on('click', '.delete-btn', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+            const id = $(this).data('id');
+            console.log('Delete button clicked, ID:', id);
+
+            if (confirm('Apakah Anda yakin ingin menghapus pengaduan ini?')) {
+                window.location.href = 'dash.php?page=lihat-pengaduan&action=delete&id=' + id;
+            }
+        });
+    });
+    } // End of initDataTable()
+
+    // Global functions (dapat dipanggil dari inline onclick)
     function filterData() {
+        if (typeof jQuery === 'undefined' || !table) {
+            console.warn('jQuery or DataTable not loaded yet');
+            return;
+        }
+
         var status = $('#filter-status').val();
         var dari = $('#filter-dari').val();
         var sampai = $('#filter-sampai').val();
@@ -419,19 +468,21 @@ if (isset($_POST['update_status'])) {
         table.draw();
     }
 
-    // View detail
     function viewDetail(id) {
         window.location.href = 'dash.php?page=detail-pengaduan&id=' + id;
     }
 
-    // Update status
     function updateStatus(id, judul) {
+        if (typeof jQuery === 'undefined') {
+            console.warn('jQuery not loaded yet');
+            return;
+        }
+
         $('#modal-id').val(id);
         $('#modal-judul').text(judul);
         $('#modalUpdateStatus').modal('show');
     }
 
-    // Delete data
     function deleteData(id) {
         if (confirm('Apakah Anda yakin ingin menghapus pengaduan ini?')) {
             window.location.href = 'dash.php?page=lihat-pengaduan&action=delete&id=' + id;

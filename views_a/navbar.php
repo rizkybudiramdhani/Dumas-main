@@ -24,9 +24,9 @@ if ($user_data) {
 
 // Format role untuk display
 $role_display = ucfirst($role);
-if ($role == 'ditresnarkoba') $role_display = 'Ditresnarkoba';
-if ($role == 'ditsamapta') $role_display = 'Ditsamapta';
-if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
+if ($role == 'Ditresnarkoba') $role_display = 'Ditresnarkoba';
+if ($role == 'Ditsamapta') $role_display = 'Ditsamapta';
+if ($role == 'Ditbinmas') $role_display = 'Ditbinmas';
 
 // Get notification count - Laporan Baru
 $query_notif_count = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";

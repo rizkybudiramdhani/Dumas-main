@@ -1,6 +1,6 @@
 <?php
-// Cek apakah user punya akses (hanya ditresnarkoba)
-if ($role != 'ditresnarkoba') {
+// Cek apakah user punya akses (hanya Ditresnarkoba)
+if ($role != 'Ditresnarkoba') {
     echo '<div class="alert alert-danger">Akses ditolak! Hanya Ditresnarkoba yang dapat mengakses halaman ini.</div>';
     exit;
 }
@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Handle file upload
     $file_bukti = '';
     if (isset($_FILES['file_bukti']) && $_FILES['file_bukti']['error'] == 0) {
-        $upload_dir = 'uploads/laporan_ditresnarkoba/';
+        $upload_dir = 'uploads/laporan_Ditresnarkoba/';
 
         // Create directory if not exists
         if (!is_dir($upload_dir)) {
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Insert ke database (menggunakan tabel laporan_samapta karena strukturnya mirip)
-    // Tapi bisa dibuat tabel baru laporan_ditresnarkoba jika diperlukan
+    // Tapi bisa dibuat tabel baru laporan_Ditresnarkoba jika diperlukan
     if (empty($error_message)) {
         $query = "INSERT INTO laporan_samapta 
                   (tanggal_lapor, nama_petugas, nrp_petugas, pangkat_petugas, jenis_kegiatan, kronologi, lokasi, jumlah_tersangka, rincian_barang_bukti, file_bukti, status_verifikasi, asal_laporan) 
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $success_message = 'Laporan kegiatan berhasil disimpan!';
 
             // Redirect to prevent resubmit
-            echo '<script>setTimeout(function(){ window.location.href = "dash.php?page=input-laporan-ditresnarkoba&success=1"; }, 2000);</script>';
+            echo '<script>setTimeout(function(){ window.location.href = "dash.php?page=input-laporan-Ditresnarkoba&success=1"; }, 2000);</script>';
         } else {
             $error_message = 'Gagal menyimpan laporan: ' . mysqli_error($db);
         }

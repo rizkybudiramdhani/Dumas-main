@@ -25,7 +25,7 @@ if (isset($_POST['submit_kegiatan'])) {
         move_uploaded_file($_FILES['file_laporan']['tmp_name'], $target_dir . $file_laporan);
     }
     
-    $query = "INSERT INTO kegiatan_ditbinmas (tanggal, no_surat, kegiatan, lokasi, materi, file_laporan, created_at) 
+    $query = "INSERT INTO kegiatan_Ditbinmas (tanggal, no_surat, kegiatan, lokasi, materi, file_laporan, created_at) 
               VALUES (?, ?, ?, ?, ?, ?, NOW())";
     
     $stmt = mysqli_prepare($db, $query);
@@ -240,7 +240,7 @@ if (isset($_POST['submit_kegiatan'])) {
                 </thead>
                 <tbody>
                     <?php
-                    $query_recent = "SELECT * FROM kegiatan_ditbinmas 
+                    $query_recent = "SELECT * FROM kegiatan_Ditbinmas 
                                      ORDER BY created_at DESC 
                                      LIMIT 5";
                     $result_recent = mysqli_query($db, $query_recent);

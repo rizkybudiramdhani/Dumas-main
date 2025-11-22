@@ -1,7 +1,7 @@
 <?php
 // ============================================
 // Notifikasi Laporan untuk Ditsamapta dan Ditbinmas
-// Ketika Ditresnarkoba sudah set status menjadi "diproses_ditresnarkoba"
+// Ketika Ditresnarkoba sudah set status menjadi "diproses_Ditresnarkoba"
 // ============================================
 
 require_once 'config/koneksi.php';
@@ -24,8 +24,8 @@ $response = [
 
 try {
     // Query berdasarkan role
-    if ($role === 'ditsamapta') {
-        // Get laporan yang sudah diproses ditresnarkoba dan belum diambil oleh ditsamapta
+    if ($role === 'Ditsamapta') {
+        // Get laporan yang sudah diproses Ditresnarkoba dan belum diambil oleh Ditsamapta
         $query = "SELECT
                     l.id_laporan,
                     l.judul_laporan,
@@ -35,13 +35,13 @@ try {
                     l.sedang_diproses_oleh,
                     l.tanggal_mulai_diproses
                   FROM tabel_laporan l
-                  WHERE l.status_laporan = 'diproses_ditresnarkoba'
-                    AND l.is_notif_ditsamapta = 1
+                  WHERE l.status_laporan = 'diproses_Ditresnarkoba'
+                    AND l.is_notif_Ditsamapta = 1
                     AND (l.sedang_diproses_oleh IS NULL OR l.sedang_diproses_oleh = '')
                   ORDER BY l.tanggal_mulai_diproses DESC";
 
     } elseif ($role === 'ditbinmas') {
-        // Get laporan yang sudah diproses ditresnarkoba dan belum diambil oleh ditbinmas
+        // Get laporan yang sudah diproses Ditresnarkoba dan belum diambil oleh ditbinmas
         $query = "SELECT
                     l.id_laporan,
                     l.judul_laporan,
@@ -51,13 +51,13 @@ try {
                     l.sedang_diproses_oleh,
                     l.tanggal_mulai_diproses
                   FROM tabel_laporan l
-                  WHERE l.status_laporan = 'diproses_ditresnarkoba'
+                  WHERE l.status_laporan = 'diproses_Ditresnarkoba'
                     AND l.is_notif_ditbinmas = 1
                     AND (l.sedang_diproses_oleh IS NULL OR l.sedang_diproses_oleh = '')
                   ORDER BY l.tanggal_mulai_diproses DESC";
 
     } else {
-        // Bukan ditsamapta atau ditbinmas
+        // Bukan Ditsamapta atau ditbinmas
         echo json_encode($response);
         exit;
     }

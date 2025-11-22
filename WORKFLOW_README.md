@@ -18,7 +18,7 @@ Status: BARU
 
 ### Tahap 2: Diproses Ditresnarkoba
 ```
-Status: DIPROSES_DITRESNARKOBA
+Status: DIPROSES_Ditresnarkoba
 - Ditresnarkoba mengubah status menjadi "Diproses Ditresnarkoba"
 - Sistem otomatis mengirim notifikasi ke Ditsamapta DAN Ditbinmas
 - Kedua unit (Ditsamapta & Ditbinmas) dapat melihat notifikasi
@@ -26,7 +26,7 @@ Status: DIPROSES_DITRESNARKOBA
 
 ### Tahap 3: Pemrosesan oleh Ditsamapta DAN/ATAU Ditbinmas
 ```
-Status: DIPROSES_DITSAMAPTA atau DIPROSES_DITBINMAS (atau KEDUANYA)
+Status: DIPROSES_Ditsamapta atau DIPROSES_Ditbinmas (atau KEDUANYA)
 - Setelah Ditresnarkoba set status "Diproses Ditresnarkoba"
 - KEDUA unit (Ditsamapta & Ditbinmas) dapat melihat dan memproses laporan yang sama
 - Ditsamapta dapat mengubah status → "Diproses Ditsamapta"
@@ -40,11 +40,11 @@ Status: DIPROSES_DITSAMAPTA atau DIPROSES_DITBINMAS (atau KEDUANYA)
 ```
 Ditsamapta menyelesaikan:
 - Harus sudah berstatus "Diproses Ditsamapta" terlebih dahulu
-- Baru bisa ubah ke → Status: SELESAI_DITSAMAPTA
+- Baru bisa ubah ke → Status: SELESAI_Ditsamapta
 
 Ditbinmas menyelesaikan:
 - Harus sudah berstatus "Diproses Ditbinmas" terlebih dahulu
-- Baru bisa ubah ke → Status: SELESAI_DITBINMAS
+- Baru bisa ubah ke → Status: SELESAI_Ditbinmas
 
 Ditresnarkoba menyelesaikan langsung:
 - Status: SELESAI (tanpa perlu unit lain)
@@ -83,16 +83,16 @@ Setiap perubahan status dicatat dalam kolom `timeline_json` dengan informasi:
 
 ### 1. Jalankan SQL untuk update tabel_laporan:
 ```bash
-mysql -u root -p ditresnarkoba < database/update_tabel_laporan_simple.sql
+mysql -u root -p Ditresnarkoba < database/update_tabel_laporan_simple.sql
 ```
 
 **ATAU** jalankan manual di phpMyAdmin:
 ```sql
 ALTER TABLE `tabel_laporan`
-ADD COLUMN `sedang_diproses_oleh` enum('','ditresnarkoba','ditsamapta','ditbinmas') DEFAULT '',
+ADD COLUMN `sedang_diproses_oleh` enum('','Ditresnarkoba','Ditsamapta','Ditbinmas') DEFAULT '',
 ADD COLUMN `timeline_json` TEXT DEFAULT NULL,
-ADD COLUMN `is_notif_ditsamapta` tinyint(1) DEFAULT 0,
-ADD COLUMN `is_notif_ditbinmas` tinyint(1) DEFAULT 0;
+ADD COLUMN `is_notif_Ditsamapta` tinyint(1) DEFAULT 0,
+ADD COLUMN `is_notif_Ditbinmas` tinyint(1) DEFAULT 0;
 ```
 
 ### 2. Kolom Baru di `tabel_laporan`:
@@ -100,16 +100,16 @@ ADD COLUMN `is_notif_ditbinmas` tinyint(1) DEFAULT 0;
 **HANYA 4 KOLOM BARU!** Tidak ada tabel baru!
 
 ```sql
-- sedang_diproses_oleh: enum('','ditresnarkoba','ditsamapta','ditbinmas')
+- sedang_diproses_oleh: enum('','Ditresnarkoba','Ditsamapta','Ditbinmas')
   → Tracking unit mana yang sedang handle laporan
 
 - timeline_json: TEXT
   → Menyimpan SEMUA history perubahan status dalam format JSON
 
-- is_notif_ditsamapta: tinyint(1) [0 atau 1]
+- is_notif_Ditsamapta: tinyint(1) [0 atau 1]
   → Flag notifikasi untuk Ditsamapta
 
-- is_notif_ditbinmas: tinyint(1) [0 atau 1]
+- is_notif_Ditbinmas: tinyint(1) [0 atau 1]
   → Flag notifikasi untuk Ditbinmas
 ```
 
@@ -119,16 +119,16 @@ ADD COLUMN `is_notif_ditbinmas` tinyint(1) DEFAULT 0;
   {
     "timestamp": "2025-11-19 10:00:00",
     "status_dari": "baru",
-    "status_ke": "diproses_ditresnarkoba",
-    "diproses_oleh": "ditresnarkoba",
+    "status_ke": "diproses_Ditresnarkoba",
+    "diproses_oleh": "Ditresnarkoba",
     "nama_petugas": "AKBP Aziz",
     "tanggapan": "Kami akan tindaklanjuti"
   },
   {
     "timestamp": "2025-11-19 12:00:00",
-    "status_dari": "diproses_ditresnarkoba",
-    "status_ke": "diproses_ditsamapta",
-    "diproses_oleh": "ditsamapta",
+    "status_dari": "diproses_Ditresnarkoba",
+    "status_ke": "diproses_Ditsamapta",
+    "diproses_oleh": "Ditsamapta",
     "nama_petugas": "Aiptu Rahmat",
     "tanggapan": "Sedang dilakukan penyelidikan"
   }
@@ -138,11 +138,11 @@ ADD COLUMN `is_notif_ditbinmas` tinyint(1) DEFAULT 0;
 Status laporan yang tersedia:
 ```sql
 - baru
-- diproses_ditresnarkoba
-- diproses_ditsamapta
-- diproses_ditbinmas
-- selesai_ditsamapta
-- selesai_ditbinmas
+- diproses_Ditresnarkoba
+- diproses_Ditsamapta
+- diproses_Ditbinmas
+- selesai_Ditsamapta
+- selesai_Ditbinmas
 - selesai
 - ditolak
 ```
@@ -169,7 +169,7 @@ GET get_notifikasi_laporan.php
       "judul_laporan": "Peredaran narkoba di Medan",
       "lokasi": "Jl. Sei Blumai",
       "tanggal_lapor": "2025-11-09 10:00:00",
-      "status_laporan": "diproses_ditresnarkoba",
+      "status_laporan": "diproses_Ditresnarkoba",
       "tanggal_mulai_diproses": "2025-11-09 11:00:00"
     }
   ]
@@ -187,7 +187,7 @@ GET get_notifikasi_laporan.php
 
 2. **Update Status Form**
    - Dropdown status dinamis berdasarkan role user
-   - Validasi: Ditsamapta/Ditbinmas hanya bisa mengambil jika sudah "diproses_ditresnarkoba"
+   - Validasi: Ditsamapta/Ditbinmas hanya bisa mengambil jika sudah "diproses_Ditresnarkoba"
    - Konfirmasi sebelum submit
 
 3. **Color Scheme**
@@ -200,20 +200,20 @@ GET get_notifikasi_laporan.php
 
 ### Ditresnarkoba
 - Melihat semua laporan
-- Mengubah status dari: baru → diproses_ditresnarkoba → selesai/ditolak
+- Mengubah status dari: baru → diproses_Ditresnarkoba → selesai/ditolak
 - Memulai workflow
 
 ### Ditsamapta
-- Melihat laporan dengan status >= diproses_ditresnarkoba
+- Melihat laporan dengan status >= diproses_Ditresnarkoba
 - Memproses laporan yang sudah di-broadcast Ditresnarkoba
-- Mengubah status: diproses_ditsamapta → selesai_ditsamapta
+- Mengubah status: diproses_Ditsamapta → selesai_Ditsamapta
 - **DAPAT** memproses laporan yang sama dengan Ditbinmas secara paralel
 - **HARUS** melalui tahap "diproses" sebelum bisa "selesai"
 
 ### Ditbinmas
-- Melihat laporan dengan status >= diproses_ditresnarkoba
+- Melihat laporan dengan status >= diproses_Ditresnarkoba
 - Memproses laporan yang sudah di-broadcast Ditresnarkoba
-- Mengubah status: diproses_ditbinmas → selesai_ditbinmas
+- Mengubah status: diproses_Ditbinmas → selesai_Ditbinmas
 - **DAPAT** memproses laporan yang sama dengan Ditsamapta secara paralel
 - **HARUS** melalui tahap "diproses" sebelum bisa "selesai"
 
@@ -271,9 +271,9 @@ CATATAN: Tidak bisa langsung "selesai" tanpa melalui "diproses" terlebih dahulu
 ## 🐛 Troubleshooting
 
 ### Notifikasi tidak muncul
-- Pastikan kolom `is_notif_ditsamapta` dan `is_notif_ditbinmas` sudah ada di `tabel_laporan`
+- Pastikan kolom `is_notif_Ditsamapta` dan `is_notif_Ditbinmas` sudah ada di `tabel_laporan`
 - Check role user di session
-- Pastikan status laporan sudah "diproses_ditresnarkoba"
+- Pastikan status laporan sudah "diproses_Ditresnarkoba"
 
 ### Timeline tidak tampil
 - Pastikan kolom `timeline_json` ada di `tabel_laporan`
