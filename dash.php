@@ -103,7 +103,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                 case 'laporan-Ditbinmas':
                     // Semua role bisa lihat laporan Ditbinmas
                     if (in_array($role, ['Ditbinmas', 'Ditsamapta', 'Ditresnarkoba'])) {
-                        include 'content/laporan_Ditbinmas.php';
+                        include 'content_a/lapbinmas.php';
                     } else {
                         echo '<div class="alert alert-danger">Akses ditolak! Anda tidak memiliki izin untuk mengakses halaman ini.</div>';
                     }
@@ -144,7 +144,7 @@ $username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
                     // PROFILE (Semua Role)
                     // ============================================
                 case 'profile':
-                    include 'content/profile.php';
+                    include 'content_a/profile.php';
                     break;
 
                     // ============================================

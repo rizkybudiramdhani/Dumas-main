@@ -18,9 +18,9 @@ if ($role == 'Ditsamapta') {
     $role_display = 'Ditsamapta';
     $brand_text = 'Ditsamapta';
 }
-if ($role == 'ditbinmas') {
+if ($role == 'Ditbinmas') {
     $role_display = 'Ditbinmas';
-    $brand_text = 'DITBINMAS';
+    $brand_text = 'Ditbinmas';
 }
 ?>
 
@@ -226,7 +226,7 @@ if ($role == 'ditbinmas') {
                             <a href="dash.php?page=laporan-Ditsamapta">Laporan Ditsamapta</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=laporan-ditbinmas">Laporan Ditbinmas</a>
+                            <a href="dash.php?page=laporan-Ditbinmas">Laporan Ditbinmas</a>
                         </li>
                     </ul>
                 </li>
@@ -258,7 +258,7 @@ if ($role == 'ditbinmas') {
                     </a>
                     <ul class="submenu collapse" id="laporan-tim-samapta">
                         <li>
-                            <a href="dash.php?page=laporan-ditbinmas">Laporan Ditbinmas</a>
+                            <a href="dash.php?page=laporan-Ditbinmas">Laporan Ditbinmas</a>
                         </li>
                         <li>
                             <a href="dash.php?page=laporan-Ditresnarkoba">Laporan Ditresnarkoba</a>
@@ -282,7 +282,7 @@ if ($role == 'ditbinmas') {
                 <?php endif; ?>
 
                 <!-- Menu untuk Ditbinmas -->
-                <?php if($role == 'ditbinmas'): ?>
+                <?php if($role == 'Ditbinmas'): ?>
                 <li>
                     <div class="dropdown-divider"></div>
                 </li>
@@ -301,13 +301,13 @@ if ($role == 'ditbinmas') {
                     </ul>
                 </li>
                 <li>
-                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#ditbinmas-menu">
+                    <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#Ditbinmas-menu">
                         <span class="micon dw dw-file"></span>
                         <span class="mtext">Ditbinmas</span>
                     </a>
-                    <ul class="submenu collapse" id="ditbinmas-menu">
+                    <ul class="submenu collapse" id="Ditbinmas-menu">
                         <li>
-                            <a href="dash.php?page=laporan-ditbinmas" class="<?php echo $current_page == 'laporan-ditbinmas' ? 'active' : ''; ?>">Laporan Ditbinmas</a>
+                            <a href="dash.php?page=laporan-Ditbinmas" class="<?php echo $current_page == 'laporan-Ditbinmas' ? 'active' : ''; ?>">Laporan Ditbinmas</a>
                         </li>
                         <li>
                             <a href="dash.php?page=input-kegiatan" class="<?php echo $current_page == 'input-kegiatan' ? 'active' : ''; ?>">Input Kegiatan</a>

@@ -6,18 +6,18 @@ $filter_status = isset($_GET['status']) ? $_GET['status'] : '';
 $filter_jenis = isset($_GET['jenis']) ? $_GET['jenis'] : '';
 
 // Build query with filters
-$query = "SELECT * FROM lapsam WHERE 1=1";
+$query = "SELECT * FROM lapbin WHERE 1=1";
 $params = [];
 $types = '';
 
 if (!empty($filter_dari)) {
-    $query .= " AND DATE(FROM_UNIXTIME(tanggal)) >= ?";
+    $query .= " AND DATE(tanggal) >= ?";
     $params[] = $filter_dari;
     $types .= 's';
 }
 
 if (!empty($filter_sampai)) {
-    $query .= " AND DATE(FROM_UNIXTIME(tanggal)) <= ?";
+    $query .= " AND DATE(tanggal) <= ?";
     $params[] = $filter_sampai;
     $types .= 's';
 }
@@ -50,8 +50,8 @@ $query_stats = "SELECT
     SUM(CASE WHEN status = 'baru' THEN 1 ELSE 0 END) as baru,
     SUM(CASE WHEN status = 'diproses' THEN 1 ELSE 0 END) as diproses,
     SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as selesai
-FROM lapsam
-WHERE DATE(FROM_UNIXTIME(tanggal)) BETWEEN ? AND ?";
+FROM lapbin
+WHERE DATE(tanggal) BETWEEN ? AND ?";
 
 $stmt_stats = mysqli_prepare($db, $query_stats);
 mysqli_stmt_bind_param($stmt_stats, "ss", $filter_dari, $filter_sampai);
@@ -88,29 +88,14 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
         font-size: 2.5rem;
         font-weight: 700;
         margin: 0;
-        color: #1a1f3a;
-    }
-
-    .stats-label {
-        color: #495057;
-        font-weight: 600;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
     }
 
     .filter-card {
-        background: #f8f9fa;
+        background: #fff;
         border-radius: 15px;
         padding: 25px;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         margin-bottom: 30px;
-        border: 2px solid #1a1f3a;
-    }
-
-    .filter-card label {
-        color: #1a1f3a;
-        font-weight: 700;
     }
 
     .table-card {
@@ -150,64 +135,9 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
         color: white;
     }
 
-    .status-ditindaklanjuti {
-        background: #2563eb;
-        color: white;
-    }
-
     .status-selesai {
         background: #16a34a;
         color: white;
-    }
-
-    .page-header .title h4 {
-        color: #1a1f3a;
-        font-weight: 700;
-    }
-
-    .btn-primary {
-        background: #1a1f3a;
-        border-color: #1a1f3a;
-        font-weight: 600;
-    }
-
-    .btn-primary:hover {
-        background: #FFD700;
-        border-color: #FFD700;
-        color: #1a1f3a;
-    }
-
-    .btn-success {
-        background: #16a34a;
-        border-color: #16a34a;
-        font-weight: 600;
-    }
-
-    .btn-success:hover {
-        background: #15803d;
-        border-color: #15803d;
-    }
-
-    .btn-info {
-        background: #2563eb;
-        border-color: #2563eb;
-        font-weight: 600;
-    }
-
-    .btn-info:hover {
-        background: #1d4ed8;
-        border-color: #1d4ed8;
-    }
-
-    .form-control {
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-weight: 500;
-    }
-
-    .form-control:focus {
-        border-color: #1a1f3a;
-        box-shadow: 0 0 0 0.2rem rgba(26, 31, 58, 0.25);
     }
 </style>
 
@@ -216,20 +146,20 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
     <div class="row">
         <div class="col-md-6 col-sm-12">
             <div class="title">
-                <h4>🚨 Laporan Ditsamapta</h4>
+                <h4>👮 Laporan Ditbinmas</h4>
             </div>
             <nav aria-label="breadcrumb" role="navigation">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dash.php">Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Laporan Ditsamapta</li>
+                    <li class="breadcrumb-item active" aria-current="page">Laporan Ditbinmas</li>
                 </ol>
             </nav>
         </div>
         <div class="col-md-6 col-sm-12 text-right">
-            <?php if ($role == 'Ditsamapta'): ?>
-                <a href="dash.php?page=input-laporan-Ditsamapta" class="btn btn-primary">
-                    <i class="icon-copy dw dw-add"></i> Input Laporan
-                </a>
+            <?php if($role == 'Ditbinmas'): ?>
+            <a href="dash.php?page=input-laporan-Ditbinmas" class="btn btn-primary">
+                <i class="icon-copy dw dw-add"></i> Input Laporan
+            </a>
             <?php endif; ?>
             <button class="btn btn-success" onclick="exportToExcel()">
                 <i class="icon-copy fa fa-file-excel-o"></i> Export Excel
@@ -295,7 +225,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 <!-- Filter Section -->
 <div class="filter-card">
     <form method="GET" action="dash.php">
-        <input type="hidden" name="page" value="laporan-Ditsamapta">
+        <input type="hidden" name="page" value="laporan-Ditbinmas">
         <div class="row align-items-end">
             <div class="col-md-2">
                 <label class="font-weight-600">📅 Dari:</label>
@@ -330,7 +260,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 <!-- Table -->
 <div class="card table-card mb-30">
     <div class="card-header">
-        <h4 class="mb-0">📋 Daftar Laporan Ditsamapta</h4>
+        <h4 class="mb-0">📋 Daftar Laporan Ditbinmas</h4>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -356,7 +286,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                     ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo date('d/m/Y', $row['tanggal']); ?></td>
+                            <td><?php echo date('d/m/Y', strtotime($row['tanggal'])); ?></td>
                             <td>
                                 <strong><?php echo htmlspecialchars($row['pangkat']); ?></strong><br>
                                 <small><?php echo htmlspecialchars($row['petugas']); ?></small>
@@ -371,7 +301,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                                 </span>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-info" onclick="viewDetail(<?php echo $row['id_lapsam']; ?>)" title="Lihat Detail">
+                                <button class="btn btn-sm btn-info" onclick="viewDetail(<?php echo $row['id_lapbin']; ?>)" title="Lihat Detail">
                                     <i class="dw dw-eye"></i>
                                 </button>
                             </td>
@@ -387,9 +317,9 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 <div class="modal fade" id="detailModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header" style="background: #1a1f3a; color: white; border-bottom: 3px solid #FFD700;">
-                <h5 class="modal-title" style="color: #FFD700; font-weight: 700;">📋 Detail Laporan Ditsamapta</h5>
-                <button type="button" class="close" data-dismiss="modal" style="color: #FFD700; opacity: 1;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h5 class="modal-title">Detail Laporan Operasi</h5>
+                <button type="button" class="close" data-dismiss="modal" style="color: white;">
                     <span>&times;</span>
                 </button>
             </div>
@@ -421,10 +351,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
             targets: [0, 7],
             orderable: false,
         }],
-        "lengthMenu": [
-            [10, 25, 50, -1],
-            [10, 25, 50, "All"]
-        ],
+        "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
         "language": {
             "info": "Menampilkan _START_ - _END_ dari _TOTAL_ laporan",
             "lengthMenu": "Tampilkan _MENU_ data",
@@ -439,11 +366,9 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
     // View Detail
     function viewDetail(id) {
         $.ajax({
-            url: 'content/get_laporan_Ditsamapta_detail.php',
+            url: 'content/get_laporan_Ditbinmas_detail.php',
             type: 'GET',
-            data: {
-                id: id
-            },
+            data: { id: id },
             success: function(response) {
                 $('#modal-content').html(response);
                 $('#detailModal').modal('show');
@@ -457,12 +382,10 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
     // Export to Excel
     function exportToExcel() {
         var table = document.getElementById('laporan-table');
-        var wb = XLSX.utils.table_to_book(table, {
-            sheet: "Laporan Ditsamapta"
-        });
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Laporan Ditbinmas"});
 
         var today = new Date();
-        var filename = 'Laporan_Ditsamapta_' + today.toISOString().split('T')[0] + '.xlsx';
+        var filename = 'Laporan_Ditbinmas_' + today.toISOString().split('T')[0] + '.xlsx';
 
         XLSX.writeFile(wb, filename);
     }

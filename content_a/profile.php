@@ -1,14 +1,14 @@
 <?php
 // Get user data from session
-$id_tim = isset($_SESSION['id_tim']) ? $_SESSION['id_tim'] : 0;
-$nama = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
-$username = isset($_SESSION['username']) ? $_SESSION['username'] : '';
-$role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
+$id_akun = isset($_SESSION['Id_akun']) ? $_SESSION['Id_akun'] : 0;
+$nama = isset($_SESSION['Nama']) ? $_SESSION['Nama'] : '';
+$email = isset($_SESSION['Email']) ? $_SESSION['Email'] : '';
+$role = isset($_SESSION['Role']) ? $_SESSION['Role'] : '';
 
 // Get full user data from database
-$query_user = "SELECT * FROM tabel_tim WHERE id_tim = ?";
+$query_user = "SELECT * FROM akun WHERE Id_akun = ?";
 $stmt = mysqli_prepare($db, $query_user);
-mysqli_stmt_bind_param($stmt, "i", $id_tim);
+mysqli_stmt_bind_param($stmt, "i", $id_akun);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 $user_data = mysqli_fetch_assoc($result);
@@ -19,30 +19,32 @@ $error_message = '';
 
 if (isset($_POST['update_profile'])) {
     $nama_baru = mysqli_real_escape_string($db, $_POST['nama']);
-    $username_baru = mysqli_real_escape_string($db, $_POST['username']);
-    
-    // Check if username already exists (except current user)
-    $query_check = "SELECT id_tim FROM tabel_tim WHERE username = ? AND id_tim != ?";
+    $email_baru = mysqli_real_escape_string($db, $_POST['email']);
+    $nomor_hp_baru = mysqli_real_escape_string($db, $_POST['nomor_hp']);
+
+    // Check if email already exists (except current user)
+    $query_check = "SELECT Id_akun FROM akun WHERE Email = ? AND Id_akun != ?";
     $stmt_check = mysqli_prepare($db, $query_check);
-    mysqli_stmt_bind_param($stmt_check, "si", $username_baru, $id_tim);
+    mysqli_stmt_bind_param($stmt_check, "si", $email_baru, $id_akun);
     mysqli_stmt_execute($stmt_check);
     $result_check = mysqli_stmt_get_result($stmt_check);
-    
+
     if (mysqli_num_rows($result_check) > 0) {
-        $error_message = 'Username sudah digunakan!';
+        $error_message = 'Email sudah digunakan!';
     } else {
-        $query_update = "UPDATE tabel_tim SET nama = ?, username = ? WHERE id_tim = ?";
+        $query_update = "UPDATE akun SET Nama = ?, Email = ?, Nomor_hp = ? WHERE Id_akun = ?";
         $stmt_update = mysqli_prepare($db, $query_update);
-        mysqli_stmt_bind_param($stmt_update, "ssi", $nama_baru, $username_baru, $id_tim);
-        
+        mysqli_stmt_bind_param($stmt_update, "sssi", $nama_baru, $email_baru, $nomor_hp_baru, $id_akun);
+
         if (mysqli_stmt_execute($stmt_update)) {
-            $_SESSION['nama'] = $nama_baru;
-            $_SESSION['username'] = $username_baru;
+            $_SESSION['Nama'] = $nama_baru;
+            $_SESSION['Email'] = $email_baru;
             $success_message = 'Profile berhasil diupdate!';
-            
+
             // Refresh user data
-            $user_data['nama'] = $nama_baru;
-            $user_data['username'] = $username_baru;
+            $user_data['Nama'] = $nama_baru;
+            $user_data['Email'] = $email_baru;
+            $user_data['Nomor_hp'] = $nomor_hp_baru;
         } else {
             $error_message = 'Gagal update profile!';
         }
@@ -54,17 +56,17 @@ if (isset($_POST['change_password'])) {
     $password_lama = $_POST['password_lama'];
     $password_baru = $_POST['password_baru'];
     $password_confirm = $_POST['password_confirm'];
-    
+
     // Verify old password
-    if (password_verify($password_lama, $user_data['password'])) {
+    if (password_verify($password_lama, $user_data['Password'])) {
         if ($password_baru === $password_confirm) {
             if (strlen($password_baru) >= 6) {
                 $password_hash = password_hash($password_baru, PASSWORD_DEFAULT);
-                
-                $query_pass = "UPDATE tabel_tim SET password = ? WHERE id_tim = ?";
+
+                $query_pass = "UPDATE akun SET Password = ? WHERE Id_akun = ?";
                 $stmt_pass = mysqli_prepare($db, $query_pass);
-                mysqli_stmt_bind_param($stmt_pass, "si", $password_hash, $id_tim);
-                
+                mysqli_stmt_bind_param($stmt_pass, "si", $password_hash, $id_akun);
+
                 if (mysqli_stmt_execute($stmt_pass)) {
                     $success_message = 'Password berhasil diubah!';
                 } else {
@@ -82,15 +84,29 @@ if (isset($_POST['change_password'])) {
 }
 
 // Get user stats
-$query_stats = "SELECT COUNT(*) as total FROM tabel_laporan";
-$result_stats = mysqli_query($db, $query_stats);
+$query_stats = "SELECT COUNT(*) as total FROM lapmas WHERE Id_akun = ?";
+$stmt_stats = mysqli_prepare($db, $query_stats);
+mysqli_stmt_bind_param($stmt_stats, "i", $id_akun);
+mysqli_stmt_execute($stmt_stats);
+$result_stats = mysqli_stmt_get_result($stmt_stats);
 $total_laporan = mysqli_fetch_assoc($result_stats)['total'];
+
+// Debug: Check role value
+error_log("DEBUG Profile - Role from session: " . $role);
+error_log("DEBUG Profile - User data Role: " . ($user_data['Role'] ?? 'NULL'));
+
+// Use role from database if session is empty
+if (empty($role) && !empty($user_data['Role'])) {
+    $role = $user_data['Role'];
+}
 
 // Role display
 $role_display = ucfirst($role);
 if ($role == 'Ditresnarkoba') $role_display = 'Ditresnarkoba';
 if ($role == 'Ditsamapta') $role_display = 'Ditsamapta';
-if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
+if ($role == 'Ditbinmas') $role_display = 'Ditbinmas';
+
+error_log("DEBUG Profile - Final role_display: " . $role_display);
 ?>
 
 <style>
@@ -193,13 +209,15 @@ if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
     .info-label {
         font-weight: 600;
         color: #1a1f3a;
-        width: 200px;
+        width: 120px;
         flex-shrink: 0;
     }
 
     .info-value {
         color: #495057;
         flex: 1;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 
     .btn-update {
@@ -361,61 +379,31 @@ if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
         <div class="card profile-card">
             <div class="profile-header">
                 <div class="profile-avatar">
-                    <?php echo strtoupper(substr($user_data['nama'], 0, 2)); ?>
+                    <?php echo strtoupper(substr($user_data['Nama'], 0, 2)); ?>
                 </div>
-                <div class="profile-name"><?php echo htmlspecialchars($user_data['nama']); ?></div>
+                <div class="profile-name"><?php echo htmlspecialchars($user_data['Nama']); ?></div>
                 <div class="profile-role">
                     <i class="icon-copy dw dw-user1"></i> <?php echo $role_display; ?>
                 </div>
-                
-                <div class="profile-stats">
-                    <div class="stat-item">
-                        <div class="stat-number"><?php echo $total_laporan; ?></div>
-                        <div class="stat-label">Total Laporan</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">
-                            <?php 
-                            $days = 0;
-                            if ($user_data['last_login'] != '0000-00-00 00:00:00') {
-                                $last = new DateTime($user_data['last_login']);
-                                $now = new DateTime();
-                                $diff = $now->diff($last);
-                                $days = $diff->days;
-                            }
-                            echo $days;
-                            ?>
-                        </div>
-                        <div class="stat-label">Hari Aktif</div>
-                    </div>
-                </div>
             </div>
-            
+
             <div class="card-body">
                 <h6 class="mb-3 font-weight-600">Informasi Akun</h6>
-                
+
                 <div class="info-row">
-                    <div class="info-label">Username:</div>
-                    <div class="info-value">@<?php echo htmlspecialchars($user_data['username']); ?></div>
+                    <div class="info-label">Email:</div>
+                    <div class="info-value"><?php echo htmlspecialchars($user_data['Email']); ?></div>
                 </div>
-                
+
+                <div class="info-row">
+                    <div class="info-label">Nomor HP:</div>
+                    <div class="info-value"><?php echo htmlspecialchars($user_data['Nomor_hp']); ?></div>
+                </div>
+
                 <div class="info-row">
                     <div class="info-label">Role:</div>
                     <div class="info-value">
-                        <span class="badge badge-primary"><?php echo $role_display; ?></span>
-                    </div>
-                </div>
-                
-                <div class="info-row">
-                    <div class="info-label">Last Login:</div>
-                    <div class="info-value">
-                        <?php 
-                        if ($user_data['last_login'] != '0000-00-00 00:00:00') {
-                            echo date('d M Y, H:i', strtotime($user_data['last_login'])) . ' WIB';
-                        } else {
-                            echo '-';
-                        }
-                        ?>
+                        <span class="badge badge-primary"><?php echo htmlspecialchars($role_display); ?></span>
                     </div>
                 </div>
             </div>
@@ -425,19 +413,22 @@ if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
         <div class="form-section mt-3">
             <h5>📊 Aktivitas Terakhir</h5>
             <?php
-            $query_activity = "SELECT * FROM tabel_laporan ORDER BY tanggal_lapor DESC LIMIT 3";
-            $result_activity = mysqli_query($db, $query_activity);
-            
+            $query_activity = "SELECT * FROM lapmas WHERE Id_akun = ? ORDER BY tanggal_lapor DESC LIMIT 3";
+            $stmt_activity = mysqli_prepare($db, $query_activity);
+            mysqli_stmt_bind_param($stmt_activity, "i", $id_akun);
+            mysqli_stmt_execute($stmt_activity);
+            $result_activity = mysqli_stmt_get_result($stmt_activity);
+
             if (mysqli_num_rows($result_activity) > 0):
                 while ($activity = mysqli_fetch_assoc($result_activity)):
             ?>
                 <div class="activity-item">
-                    <div class="font-weight-600"><?php echo htmlspecialchars($activity['judul_laporan']); ?></div>
+                    <div class="font-weight-600"><?php echo htmlspecialchars($activity['judul']); ?></div>
                     <div class="activity-date">
                         <i class="dw dw-calendar1"></i> <?php echo date('d M Y', strtotime($activity['tanggal_lapor'])); ?>
                     </div>
                 </div>
-            <?php 
+            <?php
                 endwhile;
             else:
             ?>
@@ -457,29 +448,41 @@ if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="font-weight-600">Nama Lengkap <span class="text-danger">*</span></label>
-                            <input class="form-control" type="text" name="nama" 
-                                   value="<?php echo htmlspecialchars($user_data['nama']); ?>" 
+                            <input class="form-control" type="text" name="nama"
+                                   value="<?php echo htmlspecialchars($user_data['Nama']); ?>"
                                    required>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label class="font-weight-600">Username <span class="text-danger">*</span></label>
-                            <input class="form-control" type="text" name="username" 
-                                   value="<?php echo htmlspecialchars($user_data['username']); ?>" 
+                            <label class="font-weight-600">Email <span class="text-danger">*</span></label>
+                            <input class="form-control" type="email" name="email"
+                                   value="<?php echo htmlspecialchars($user_data['Email']); ?>"
                                    required>
                         </div>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label class="font-weight-600">Role</label>
-                    <input class="form-control" type="text" 
-                           value="<?php echo $role_display; ?>" 
-                           disabled>
-                    <small class="form-text text-muted">Role tidak dapat diubah</small>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-600">Nomor HP <span class="text-danger">*</span></label>
+                            <input class="form-control" type="text" name="nomor_hp"
+                                   value="<?php echo htmlspecialchars($user_data['Nomor_hp']); ?>"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-600">Role</label>
+                            <input class="form-control" type="text"
+                                   value="<?php echo $role_display; ?>"
+                                   disabled>
+                            <small class="form-text text-muted">Role tidak dapat diubah</small>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="form-group mb-0">
                     <button type="submit" name="update_profile" class="btn btn-update">
                         <i class="icon-copy dw dw-diskette"></i> Update Profile
@@ -596,4 +599,12 @@ if ($role == 'ditbinmas') $role_display = 'Ditbinmas';
             }, 500);
         });
     }, 5000);
+
+    // Debug console
+    console.log('=== DEBUG PROFILE ===');
+    console.log('Role display:', '<?php echo addslashes($role_display); ?>');
+    console.log('Role from PHP:', '<?php echo addslashes($role); ?>');
+    console.log('Nama:', '<?php echo addslashes($user_data["Nama"] ?? ""); ?>');
+    console.log('Email:', '<?php echo addslashes($user_data["Email"] ?? ""); ?>');
+    console.log('====================');
 </script>

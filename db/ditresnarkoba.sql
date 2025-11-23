@@ -45,6 +45,23 @@ CREATE TABLE IF NOT EXISTS `berita` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table ditresnarkoba.lapbin
+CREATE TABLE IF NOT EXISTS `lapbin` (
+  `id_lapbin` int(11) NOT NULL AUTO_INCREMENT,
+  `Id_akun` int(11) DEFAULT NULL,
+  `judul` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
+  `kegiatan` varchar(255) DEFAULT NULL,
+  `tanggal` timestamp NULL DEFAULT NULL,
+  `personil` int(50) DEFAULT NULL,
+  `lokasi` varchar(255) DEFAULT NULL,
+  `petugas` varchar(255) DEFAULT NULL,
+  `pangkat` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id_lapbin`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table ditresnarkoba.lapmas
 CREATE TABLE IF NOT EXISTS `lapmas` (
   `id_lapmas` int(11) NOT NULL AUTO_INCREMENT,
@@ -64,9 +81,15 @@ CREATE TABLE IF NOT EXISTS `lapmas` (
 -- Dumping structure for table ditresnarkoba.lapsam
 CREATE TABLE IF NOT EXISTS `lapsam` (
   `id_lapsam` int(11) NOT NULL AUTO_INCREMENT,
+  `Id_akun` int(50) NOT NULL DEFAULT 0,
   `judul` varchar(255) DEFAULT NULL,
+  `status` varchar(50) DEFAULT NULL,
   `kegiatan` varchar(255) DEFAULT NULL,
   `tanggal` int(11) DEFAULT NULL,
+  `personil` int(50) DEFAULT NULL,
+  `lokasi` varchar(255) DEFAULT NULL,
+  `petugas` varchar(255) DEFAULT NULL,
+  `pangkat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_lapsam`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

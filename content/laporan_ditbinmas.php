@@ -3,8 +3,8 @@
 $filter_dari = isset($_GET['dari']) ? $_GET['dari'] : date('Y-m-d');
 $filter_sampai = isset($_GET['sampai']) ? $_GET['sampai'] : date('Y-m-d');
 
-// Build query - PAKAI TABEL kegiatan_ditbinmas
-$query = "SELECT * FROM kegiatan_ditbinmas WHERE 1=1";
+// Build query - PAKAI TABEL kegiatan_Ditbinmas
+$query = "SELECT * FROM kegiatan_Ditbinmas WHERE 1=1";
 $params = [];
 $types = '';
 
@@ -31,7 +31,7 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 // Get statistics
-$query_stats = "SELECT COUNT(*) as total FROM kegiatan_ditbinmas WHERE tanggal BETWEEN ? AND ?";
+$query_stats = "SELECT COUNT(*) as total FROM kegiatan_Ditbinmas WHERE tanggal BETWEEN ? AND ?";
 $stmt_stats = mysqli_prepare($db, $query_stats);
 mysqli_stmt_bind_param($stmt_stats, "ss", $filter_dari, $filter_sampai);
 mysqli_stmt_execute($stmt_stats);

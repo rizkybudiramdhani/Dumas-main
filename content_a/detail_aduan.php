@@ -75,13 +75,33 @@ if (isset($_POST['update_status'])) {
     if ($id_akun === null) {
         $error_message = 'User session not valid. Silakan login kembali.';
     } else {
-        // UPDATE status pada lapmas
+        // Build timeline JSON
+        $timeline_entry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'status_dari' => $laporan['status'],
+            'status_ke' => $status_baru,
+            'diproses_oleh' => $sedang_diproses_oleh,
+            'nama_petugas' => $petugas,
+            'tanggapan' => $tanggapan
+        ];
+
+        // Get existing timeline or create new array
+        $existing_timeline = !empty($laporan['timeline_json']) ? json_decode($laporan['timeline_json'], true) : [];
+        if (!is_array($existing_timeline)) {
+            $existing_timeline = [];
+        }
+
+        // Add new entry
+        $existing_timeline[] = $timeline_entry;
+        $timeline_json = json_encode($existing_timeline, JSON_UNESCAPED_UNICODE);
+
+        // UPDATE status dan timeline pada lapmas
         $query_update = "UPDATE lapmas
-                        SET status = ?
+                        SET status = ?, timeline_json = ?
                         WHERE id_lapmas = ?";
 
         $stmt_update = mysqli_prepare($db, $query_update);
-        mysqli_stmt_bind_param($stmt_update, "si", $status_baru, $id_laporan);
+        mysqli_stmt_bind_param($stmt_update, "ssi", $status_baru, $timeline_json, $id_laporan);
 
         if (mysqli_stmt_execute($stmt_update)) {
             // Cek apakah sudah ada respon yang sama dalam 1 menit terakhir (untuk mencegah duplikasi)
@@ -831,7 +851,7 @@ if (!empty($laporan['nama_pelapor'])) {
                             <i class="dw dw-calendar1"></i>
                             <?php echo date('d M Y, H:i', strtotime($laporan['tanggal_lapor'])); ?> WIB
                         </div>
-<div class="mt-2">Status: <span class="badge badge-warning"><?php echo isset($laporan['status']) ? htmlspecialchars($laporan['status']) : 'Baru'; ?></span></div>
+                        <div class="mt-2">Status: <span class="badge badge-warning"><?php echo isset($laporan['status']) ? htmlspecialchars($laporan['status']) : 'Baru'; ?></span></div>
                         <?php echo "<script>console.log('status: " . addslashes(isset($laporan['status']) ? $laporan['status'] : 'Baru') . "');</script>";?>
                     </div>
 

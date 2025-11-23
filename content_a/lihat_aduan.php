@@ -355,8 +355,8 @@ if (isset($_POST['update_status'])) {
                             <option value="baru">Baru</option>
                             <option value="diproses Ditsamapta">Diproses Ditsamapta</option>
                             <option value="selesai Ditsamapta">Selesai Ditsamapta</option>
-                            <option value="diproses ditbinmas">Diproses Ditbinmas</option>
-                            <option value="selesai ditbinmas">Selesai Ditbinmas</option>
+                            <option value="diproses Ditbinmas">Diproses Ditbinmas</option>
+                            <option value="selesai Ditbinmas">Selesai Ditbinmas</option>
                             <option value="diproses Ditresnarkoba">Diproses Ditresnarkoba</option>
                             <option value="selesai">Selesai</option>
                         </select>

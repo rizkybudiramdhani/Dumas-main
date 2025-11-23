@@ -108,10 +108,20 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                     $user_id = $_SESSION['Id_akun'];
 
                                     // Ambil semua laporan user (dengan status)
-                                    $query_notif = "SELECT id_lapmas, judul, desk, lokasi, status, tanggal_lapor
-                                                FROM lapmas
-                                                WHERE Id_akun = ?
-                                                ORDER BY tanggal_lapor DESC LIMIT 5";
+                                    $query_notif = "
+                                        SELECT
+                                            l.id_lapmas,
+                                            l.judul,
+                                            l.desk,
+                                            l.lokasi,
+                                            l.status,
+                                            l.tanggal_lapor
+                                        FROM lapmas l
+                                        WHERE l.Id_akun = ?
+                                        ORDER BY l.tanggal_lapor DESC
+                                        LIMIT 5
+                                    ";
+
                                     $stmt_notif = mysqli_prepare($db, $query_notif);
                                     mysqli_stmt_bind_param($stmt_notif, "i", $user_id);
                                     mysqli_stmt_execute($stmt_notif);
@@ -153,6 +163,24 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                     $icon_bg = 'background: #ffc107;'; // Kuning
                                                     $status_text = 'Menunggu';
                                             }
+
+                                            // Ambil semua balasan untuk laporan ini dengan role dari akun
+                                            $query_respon = "
+                                                SELECT r.respon, r.a_respon, r.tanggal_respon, a.Role
+                                                FROM respon r
+                                                LEFT JOIN akun a ON r.a_respon = a.Id_akun
+                                                WHERE r.id_lapmas = ?
+                                                ORDER BY r.tanggal_respon ASC
+                                            ";
+                                            $stmt_respon = mysqli_prepare($db, $query_respon);
+                                            mysqli_stmt_bind_param($stmt_respon, "i", $notif['id_lapmas']);
+                                            mysqli_stmt_execute($stmt_respon);
+                                            $result_respon = mysqli_stmt_get_result($stmt_respon);
+
+                                            $semua_balasan = [];
+                                            while ($respon_row = mysqli_fetch_assoc($result_respon)) {
+                                                $semua_balasan[] = $respon_row;
+                                            }
                                 ?>
                                             <li>
                                                 <div class="dropdown-item notification-item-custom">
@@ -174,7 +202,7 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                                 <div class="notification-time">
                                                                     <i class="bi bi-calendar3"></i>
                                                                     <?php
-                                                                    
+
                                                                     ?>
                                                                 </div>
                                                             </div>
@@ -184,7 +212,7 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                                 data-judul="<?php echo htmlspecialchars($notif['judul'] ?? '', ENT_QUOTES); ?>"
                                                                 data-desk="<?php echo htmlspecialchars($notif['desk'] ?? '', ENT_QUOTES); ?>"
                                                                 data-lokasi="<?php echo htmlspecialchars($notif['lokasi'] ?? '-', ENT_QUOTES); ?>"
-                                                                data-balasan="<?php echo htmlspecialchars($notif['balasan'] ?? '', ENT_QUOTES); ?>"
+                                                                data-balasan="<?php echo htmlspecialchars(json_encode($semua_balasan), ENT_QUOTES); ?>"
                                                                 data-status="<?php echo htmlspecialchars($status_text ?? 'Baru', ENT_QUOTES); ?>"
                                                                 data-warna="<?php echo str_replace('background: ', '', $icon_bg ?? 'background: #6c757d'); ?>"
                                                                 data-tanggal="<?php echo date('d M Y, H:i', strtotime($notif['tanggal_lapor'])); ?>">
@@ -448,11 +476,72 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                 // Tampilkan balasan jika ada
                 const sectionBalasan = document.getElementById('sectionBalasan');
                 const detailBalasan = document.getElementById('detailBalasan');
-                if (balasan && balasan.trim() !== '' && balasan !== 'null' && balasan !== 'NULL') {
-                    sectionBalasan.style.display = 'block';
-                    detailBalasan.textContent = balasan;
-                } else {
-                    sectionBalasan.style.display = 'none';
+
+                try {
+                    const balasanArray = JSON.parse(balasan);
+
+                    if (balasanArray && Array.isArray(balasanArray) && balasanArray.length > 0) {
+                        sectionBalasan.style.display = 'block';
+
+                        // Buat HTML untuk semua balasan
+                        let balasanHTML = '';
+                        balasanArray.forEach((item, index) => {
+                            // Tentukan badge berdasarkan Role
+                            let timBadge = '<span class="badge bg-secondary me-2">Admin</span>';
+                            let badgeColor = 'bg-secondary';
+
+                            if (item.Role) {
+                                switch(item.Role) {
+                                    case 'Ditresnarkoba':
+                                        badgeColor = 'bg-primary';
+                                        break;
+                                    case 'Ditsamapta':
+                                        badgeColor = 'bg-info';
+                                        break;
+                                    case 'Ditbinmas':
+                                        badgeColor = 'bg-warning text-dark';
+                                        break;
+                                    default:
+                                        badgeColor = 'bg-secondary';
+                                }
+                                timBadge = `<span class="badge ${badgeColor} me-2">${item.Role}</span>`;
+                            }
+
+                            const tanggalBalasan = item.tanggal_respon ? new Date(item.tanggal_respon).toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '';
+
+                            balasanHTML += `
+                                <div class="balasan-item ${index > 0 ? 'mt-3' : ''}">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        ${timBadge}
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock"></i> ${tanggalBalasan}
+                                        </small>
+                                    </div>
+                                    <div class="balasan-text-content">
+                                        ${item.respon || '-'}
+                                    </div>
+                                </div>
+                            `;
+                        });
+
+                        detailBalasan.innerHTML = balasanHTML;
+                    } else {
+                        sectionBalasan.style.display = 'none';
+                    }
+                } catch (e) {
+                    // Jika bukan JSON array, tampilkan sebagai text biasa (fallback)
+                    if (balasan && balasan.trim() !== '' && balasan !== 'null' && balasan !== 'NULL') {
+                        sectionBalasan.style.display = 'block';
+                        detailBalasan.textContent = balasan;
+                    } else {
+                        sectionBalasan.style.display = 'none';
+                    }
                 }
 
                 // Tampilkan modal
@@ -1067,8 +1156,32 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
     }
 
     #modalDetailLapmas .detail-value.has-balasan {
-        background: #e7f3ff;
+        background: #f8f9fa;
         border-left-color: #28a745;
+        padding: 0.5rem;
+    }
+
+    /* Styling untuk setiap balasan item */
+    .balasan-item {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .balasan-item .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .balasan-text-content {
+        background: #f8f9fa;
+        padding: 0.75rem;
+        border-radius: 6px;
+        line-height: 1.6;
+        color: #212529;
+        border-left: 3px solid #28a745;
     }
 
     #modalDetailLapmas .status-badge-large {

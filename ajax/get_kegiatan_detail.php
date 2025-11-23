@@ -9,7 +9,7 @@ if ($id == 0) {
     exit;
 }
 
-$query = "SELECT * FROM kegiatan_ditbinmas WHERE id = ?";
+$query = "SELECT * FROM kegiatan_Ditbinmas WHERE id = ?";
 $stmt = mysqli_prepare($db, $query);
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);

@@ -3,7 +3,7 @@
         <!-- Single Hero Slide - Anti Narkoba -->
         <div class="hero-item active">
             <video class="w-100 hero-video" muted loop playsinline preload="auto" autoplay>
-                <source src="video/ditbinmas.mp4" type="video/mp4">
+                <source src="video/Ditbinmas.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-overlay"></div>
