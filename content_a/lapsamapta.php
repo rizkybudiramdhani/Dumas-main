@@ -6,18 +6,18 @@ $filter_status = isset($_GET['status']) ? $_GET['status'] : '';
 $filter_jenis = isset($_GET['jenis']) ? $_GET['jenis'] : '';
 
 // Build query with filters
-$query = "SELECT * FROM laporan_samapta WHERE 1=1";
+$query = "SELECT * FROM lapsamapta WHERE 1=1";
 $params = [];
 $types = '';
 
 if (!empty($filter_dari)) {
-    $query .= " AND DATE(tanggal_lapor) >= ?";
+    $query .= " AND DATE(tanggal) >= ?";
     $params[] = $filter_dari;
     $types .= 's';
 }
 
 if (!empty($filter_sampai)) {
-    $query .= " AND DATE(tanggal_lapor) <= ?";
+    $query .= " AND DATE(tanggal) <= ?";
     $params[] = $filter_sampai;
     $types .= 's';
 }
@@ -29,12 +29,12 @@ if (!empty($filter_status)) {
 }
 
 if (!empty($filter_jenis)) {
-    $query .= " AND jenis_kegiatan LIKE ?";
+    $query .= " AND kegiatan LIKE ?";
     $params[] = "%$filter_jenis%";
     $types .= 's';
 }
 
-$query .= " ORDER BY tanggal_lapor DESC";
+$query .= " ORDER BY tanggal DESC";
 
 // Execute query
 $stmt = mysqli_prepare($db, $query);

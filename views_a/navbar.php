@@ -288,7 +288,7 @@ $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
         <!-- User Info Dropdown -->
         <div class="user-info-dropdown">
             <div class="dropdown">
-                <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown">
+                <a class="dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
                     <span class="user-icon">
                         <img src="vendors/images/photo1.jpg" alt="<?php echo htmlspecialchars($nama); ?>">
                     </span>
@@ -297,7 +297,7 @@ $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
                 <div class="dropdown-menu dropdown-menu-right dropdown-menu-icon-list">
                     <a class="dropdown-item" href="dash.php?page=profile">
                         <i class="dw dw-user1"></i> Profile
-                    </a>
+                        </a>
                     <a class="dropdown-item" href="dash.php">
                         <i class="dw dw-settings2"></i> Dashboard
                     </a>
@@ -310,6 +310,169 @@ $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
                 </div>
             </div>
         </div>
+
+        <style>
+            /* User Info Dropdown Styling */
+            .user-info-dropdown {
+                margin-left: 15px;
+            }
+
+            .user-info-dropdown .dropdown-toggle {
+                display: flex;
+                align-items: center;
+                padding: 8px 15px;
+                border-radius: 25px;
+                text-decoration: none;
+                color: #1E40AF;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+
+            .user-info-dropdown .dropdown-toggle:hover {
+                color: #FFD700;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(30, 64, 175, 0.3);
+            }
+
+            .user-info-dropdown .user-icon {
+                width: 35px;
+                height: 35px;
+                border-radius: 50%;
+                overflow: hidden;
+                margin-right: 10px;
+                border: 2px solid #FFD700;
+            }
+
+            .user-info-dropdown .user-icon img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .user-info-dropdown .user-name {
+                font-weight: 600;
+                font-size: 0.95rem;
+                white-space: nowrap;
+            }
+
+            .user-info-dropdown .dropdown {
+                position: relative;
+            }
+
+            .user-info-dropdown .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                right: 0;
+                min-width: 220px;
+                background: #fff;
+                border-radius: 10px;
+                border: 1px solid #e0e0e0;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                margin-top: 10px;
+                padding: 10px 0;
+                display: none;
+                z-index: 1000;
+            }
+
+            .user-info-dropdown .dropdown-menu.show {
+                display: block;
+            }
+
+            .user-info-dropdown .dropdown-item {
+                
+                color: #495057;
+                transition: all 0.3s ease;
+                display: flex;
+                align-items: center;
+                text-decoration: none;
+                cursor: pointer;
+            }
+
+            .user-info-dropdown .dropdown-item i {
+                margin-right: 0px;
+                margin-left: 1px;
+                font-size: 1.1rem;
+                width: 20px;
+                text-align: center;
+                color: #1E40AF;
+            }
+
+            .user-info-dropdown .dropdown-item:hover {
+                background: linear-gradient(90deg, rgba(30, 64, 175, 0.1) 0%, rgba(255, 215, 0, 0.1) 100%);
+                color: #1E40AF;
+                padding-left: 30px;
+            }
+
+            .user-info-dropdown .dropdown-item:last-child {
+                border-top: 1px solid #e9ecef;
+                margin-top: 5px;
+                color: #dc3545;
+            }
+
+            .user-info-dropdown .dropdown-item:last-child i {
+                color: #dc3545;
+            }
+
+            .user-info-dropdown .dropdown-item:last-child:hover {
+                background: rgba(220, 53, 69, 0.1);
+                color: #dc3545;
+            }
+
+            /* Mobile responsive */
+            @media (max-width: 768px) {
+                .user-info-dropdown .user-name {
+                    display: none;
+                }
+
+                .user-info-dropdown .dropdown-toggle {
+                    padding: 5px;
+                }
+            }
+        </style>
+
+        <script>
+            // Manual dropdown toggle for user info
+            document.addEventListener('DOMContentLoaded', function() {
+                const userDropdown = document.querySelector('.user-info-dropdown .dropdown-toggle');
+                const userMenu = document.querySelector('.user-info-dropdown .dropdown-menu');
+
+                if (userDropdown && userMenu) {
+                    // Toggle dropdown on click
+                    userDropdown.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Close other dropdowns
+                        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+                            if (menu !== userMenu) {
+                                menu.classList.remove('show');
+                            }
+                        });
+
+                        // Toggle current dropdown
+                        userMenu.classList.toggle('show');
+                        this.setAttribute('aria-expanded', userMenu.classList.contains('show'));
+                    });
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!userDropdown.contains(e.target) && !userMenu.contains(e.target)) {
+                            userMenu.classList.remove('show');
+                            userDropdown.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+
+                    // Prevent dropdown from closing when clicking inside
+                    userMenu.addEventListener('click', function(e) {
+                        // Allow links to work
+                        if (e.target.tagName === 'A') {
+                            return;
+                        }
+                        e.stopPropagation();
+                    });
+                }
+            });
+        </script>
         
     </div>
 </div>

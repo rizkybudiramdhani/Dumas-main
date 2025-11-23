@@ -12,7 +12,11 @@ $is_ajax_request = $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit
 
 include_once 'config/koneksi.php';
 
-$id_user_session = $_SESSION['user_id'] ?? null;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$id_user_session = $_SESSION['Id_akun'] ?? null;
 $is_logged_in = !empty($id_user_session);
 
 // Handle POST request
@@ -86,9 +90,9 @@ if ($is_ajax_request) {
         $upload_str = implode(',', $upload_files);
 
         // Insert ke tabel lapmas
-        $sql = "INSERT INTO lapmas (judul, desk, lokasi, upload, tanggal_lapor) VALUES (?, ?, ?, ?, NOW())";
+        $sql = "INSERT INTO lapmas (Id_akun, judul, desk, lokasi, upload, tanggal_lapor, status) VALUES (?, ?, ?, ?, ?, NOW(), 'Baru')";
         $stmt = $db->prepare($sql);
-        $stmt->bind_param("ssss", $judul, $desk, $lokasi, $upload_str);
+        $stmt->bind_param("issss", $id_user_session, $judul, $desk, $lokasi, $upload_str);
 
         if ($stmt->execute()) {
             $response['success'] = true;

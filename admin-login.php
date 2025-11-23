@@ -4,7 +4,7 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Jika sudah login sebagai admin, redirect ke dashboard
-if (isset($_SESSION['user_id']) && in_array($_SESSION['role'], ['Ditresnarkoba', 'Ditsamapta', 'Ditbinmas'])) {
+if (isset($_SESSION['Id_akun']) && in_array($_SESSION['role'] ?? '', ['Ditresnarkoba', 'Ditsamapta', 'Ditbinmas'])) {
     header("Location: dash.php");
     exit;
 }
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     if ($user = mysqli_fetch_assoc($result)) {
         // Cek password
         if (password_verify($password, $user['Password'])) {
-            $_SESSION['user_id'] = $user['Id_akun'];
+            $_SESSION['Id_akun'] = $user['Id_akun'];
             $_SESSION['nama'] = $user['Nama'];
             $_SESSION['email'] = $user['Email'];
             $_SESSION['role'] = $user['Role'];
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 mysqli_stmt_bind_param($update, "si", $new_hash, $user['Id_akun']);
                 mysqli_stmt_execute($update);
 
-                $_SESSION['user_id'] = $user['Id_akun'];
+                $_SESSION['Id_akun'] = $user['Id_akun'];
                 $_SESSION['nama'] = $user['Nama'];
                 $_SESSION['email'] = $user['Email'];
                 $_SESSION['role'] = $user['Role'];

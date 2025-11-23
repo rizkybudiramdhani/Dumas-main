@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $gambar_string = !empty($gambar_paths) ? implode(',', $gambar_paths) : '';
     
     // Ambil id_user dari session (jika user login) atau NULL jika anonim
-    $id_user = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : NULL;
+    $id_user = isset($_SESSION['Id_akun']) ? $_SESSION['Id_akun'] : NULL;
 
     // Insert ke database
     if (empty($error_message)) {
@@ -388,7 +388,7 @@ if (isset($_GET['success'])) {
         <div class="custom-control custom-checkbox mb-3">
             <input type="checkbox" class="custom-control-input" id="confirm-checkbox" required>
             <label class="custom-control-label" for="confirm-checkbox">
-                Saya menyatakan bahwa informasi yang saya berikan adalah <strong>benar</strong> dan dapat <strong>dipertanggungjawabkan</strong>. Saya memahami bahwa laporan palsu dapat dikenakan sanksi sesuai hukum yang berlaku.
+                Saya menyatakan bahwa informasi yang saya berikan adalah <strong>benar</strong> dan dapat <strong>dipertanggung jawabkan</strong>. Saya memahami bahwa laporan palsu dapat dikenakan sanksi sesuai hukum yang berlaku.
             </label>
         </div>
 

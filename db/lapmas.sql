@@ -15,11 +15,11 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
--- Dumping database structure for ditresnarkoba
-CREATE DATABASE IF NOT EXISTS `ditresnarkoba` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
-USE `ditresnarkoba`;
+-- Dumping database structure for Ditresnarkoba
+CREATE DATABASE IF NOT EXISTS `Ditresnarkoba` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
+USE `Ditresnarkoba`;
 
--- Dumping structure for table ditresnarkoba.akun
+-- Dumping structure for table Ditresnarkoba.akun
 CREATE TABLE IF NOT EXISTS `akun` (
   `Id_akun` int(11) NOT NULL AUTO_INCREMENT,
   `Nomor_hp` varchar(255) DEFAULT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS `akun` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table ditresnarkoba.berita
+-- Dumping structure for table Ditresnarkoba.berita
 CREATE TABLE IF NOT EXISTS `berita` (
   `id_berita` int(11) DEFAULT NULL,
   `judul` varchar(255) DEFAULT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `berita` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table ditresnarkoba.lapmas
+-- Dumping structure for table Ditresnarkoba.lapmas
 CREATE TABLE IF NOT EXISTS `lapmas` (
   `id_lapmas` int(11) NOT NULL AUTO_INCREMENT,
   `Id_akun` int(11) DEFAULT NULL,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS `lapmas` (
 
 -- Data exporting was unselected.
 
--- Dumping structure for table ditresnarkoba.temuan
+-- Dumping structure for table Ditresnarkoba.temuan
 CREATE TABLE IF NOT EXISTS `temuan` (
   `id_temuan` int(11) NOT NULL AUTO_INCREMENT,
   `nama` varchar(255) DEFAULT NULL,

@@ -4,7 +4,7 @@
 -- Copy paste ini ke phpMyAdmin atau HeidiSQL
 -- ========================================================================
 
-USE ditresnarkoba;
+USE Ditresnarkoba;
 
 -- Buat tabel statistik
 CREATE TABLE IF NOT EXISTS `statistik` (

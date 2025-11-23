@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     if ($user = mysqli_fetch_assoc($result)) {
         // Cek password
         if (password_verify($password, $user['Password'])) {
-            $_SESSION['user_id'] = $user['Id_akun'];
+            $_SESSION['Id_akun'] = $user['Id_akun'];
             $_SESSION['nama'] = $user['Nama'];
             $_SESSION['email'] = $user['Email'];
             $_SESSION['role'] = $user['Role'];
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                 mysqli_stmt_bind_param($update, "si", $new_hash, $user['Id_akun']);
                 mysqli_stmt_execute($update);
 
-                $_SESSION['user_id'] = $user['Id_akun'];
+                $_SESSION['Id_akun'] = $user['Id_akun'];
                 $_SESSION['nama'] = $user['Nama'];
                 $_SESSION['email'] = $user['Email'];
                 $_SESSION['role'] = $user['Role'];
@@ -80,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
             mysqli_stmt_bind_param($stmt_insert, "ssss", $nama, $email, $nomor_hp, $hashed_password);
 
             if (mysqli_stmt_execute($stmt_insert)) {
-                $_SESSION['user_id'] = mysqli_insert_id($db);
+                $_SESSION['Id_akun'] = mysqli_insert_id($db);
                 $_SESSION['nama'] = $nama;
                 $_SESSION['email'] = $email;
                 $_SESSION['role'] = 'masyarakat';
@@ -426,6 +426,9 @@ $active_tab = isset($_POST['action']) && $_POST['action'] == 'register' ? 'regis
                 }
             });
         });
+
+        // Debug: Log current session Id_akun to console
+        console.log('Current session Id_akun:', <?php echo json_encode($_SESSION['Id_akun'] ?? null); ?>);
     </script>
 </body>
 </html>

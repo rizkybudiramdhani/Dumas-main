@@ -1,4 +1,7 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 // Handle delete action
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $id_laporan = (int)$_GET['id'];
@@ -291,6 +294,14 @@ if (isset($_POST['update_status'])) {
                         elseif (strpos($row['status'], 'Diproses') !== false) $status_class = 'info';
                         elseif (strpos($row['status'], 'Selesai') !== false) $status_class = 'success';
 
+                        // Singkat status text - hapus nama divisi
+                        $status_display = $row['status'];
+                        if (strpos($status_display, 'Diproses') !== false) {
+                            $status_display = 'Diproses';
+                        } elseif (strpos($status_display, 'Selesai') !== false) {
+                            $status_display = 'Selesai';
+                        }
+
                         $nama_pelapor = $row['nama_user'] ? $row['nama_user'] : ($row['nama'] ? $row['nama'] : 'Anonim');
                     ?>
                         <tr class="clickable-row" data-href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>" style="cursor: pointer;">
@@ -305,7 +316,7 @@ if (isset($_POST['update_status'])) {
                             <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
                             <td>
                                 <span class="badge badge-<?php echo $status_class; ?> status-badge">
-                                    <?php echo ucfirst($row['status']); ?>
+                                    <?php echo ucfirst($status_display); ?>
                                 </span>
                             </td>
                             <td class="text-center">

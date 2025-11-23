@@ -3,7 +3,7 @@
 -- Copy paste ini ke phpMyAdmin
 -- ========================================================================
 
-USE ditresnarkoba;
+USE Ditresnarkoba;
 
 -- Tambah kolom status (default: 'Baru')
 ALTER TABLE `lapmas`

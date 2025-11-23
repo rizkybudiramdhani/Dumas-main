@@ -49,7 +49,7 @@
                 <div class="row wow fadeInUp" data-wow-delay="0.4s">
                     <div class="col-6">
                         <button type="button" class="btn btn-outline-primary border-2 py-3 w-100 btn-lapor-hero"
-                                data-logged-in="<?php echo isset($_SESSION['user_id']) ? '1' : '0'; ?>">
+                                data-logged-in="<?php echo isset($_SESSION['Id_akun']) ? '1' : '0'; ?>">
                             Layanan Pengaduan
                         </button>
                     </div>

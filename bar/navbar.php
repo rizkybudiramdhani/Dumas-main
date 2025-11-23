@@ -24,7 +24,7 @@ require_once __DIR__ . '/../config/koneksi.php';
             </div>
 
             <div class="d-none d-lg-flex align-items-center">
-                <?php if (isset($_SESSION['user_id'])): ?>
+                <?php if (isset($_SESSION['Id_akun'])): ?>
                     <span class="text-white me-3">
                         <i class="bi bi-person-circle me-1"></i>
                         <?php echo htmlspecialchars($_SESSION['nama']); ?>
@@ -41,13 +41,10 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 $unread_count = 0;
                                 // Untuk user biasa - notifikasi laporan dengan status update
                                 if (strpos($user_role, 'Ditsamapta') === false && strpos($user_role, 'Ditbinmas') === false && strpos($user_role, 'Ditresnarkoba') === false):
-                                    $user_id = $_SESSION['user_id'];
-                                    $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
-                                                WHERE user_id = ?
-                                                AND (
-                                                    (status IN ('Diproses Ditsamapta', 'Diproses Ditbinmas', 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak') AND is_read = 0)
-                                                    OR (balasan IS NOT NULL AND balasan != '' AND is_read = 0)
-                                                )";
+                                    $user_id = $_SESSION['Id_akun'];
+$query_count = "SELECT COUNT(*) as total FROM lapmas
+                WHERE Id_akun = ?
+                AND status IN ('Diproses Ditsamapta', 'Diproses Ditbinmas', 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
                                     $stmt_count = mysqli_prepare($db, $query_count);
                                     mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                     mysqli_stmt_execute($stmt_count);
@@ -94,65 +91,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                     <hr class="dropdown-divider">
                                 </li>
 
-                                <?php
-                                if (isset($db) && $db):
-                                    // Query berdasarkan role
-                                    if (strpos($user_role, 'Ditsamapta') !== false):
-                                        $query_notif = "SELECT id_laporan, judul_laporan, lokasi, tanggal_lapor, tanggal_mulai_diproses
-                                                      FROM tabel_laporan
-                                                      WHERE status_laporan = 'diproses_Ditresnarkoba'
-                                                      AND is_notif_Ditsamapta = 1
-                                                      ORDER BY tanggal_mulai_diproses DESC LIMIT 5";
-                                    else:
-                                        $query_notif = "SELECT id_laporan, judul_laporan, lokasi, tanggal_lapor, tanggal_mulai_diproses
-                                                      FROM tabel_laporan
-                                                      WHERE status_laporan = 'diproses_Ditresnarkoba'
-                                                      AND is_notif_Ditbinmas = 1
-                                                      ORDER BY tanggal_mulai_diproses DESC LIMIT 5";
-                                    endif;
-
-                                    $result_notif = mysqli_query($db, $query_notif);
-
-                                    if (mysqli_num_rows($result_notif) > 0):
-                                        while ($notif = mysqli_fetch_assoc($result_notif)):
-                                ?>
-                                            <li>
-                                                <a class="dropdown-item notification-item" href="content/detail_pengaduan.php?id=<?php echo $notif['id_laporan']; ?>">
-                                                    <div class="d-flex align-items-start">
-                                                        <div class="notification-icon" style="background: #FFD700; color: #1E40AF;">
-                                                            <i class="bi bi-megaphone-fill"></i>
-                                                        </div>
-                                                        <div class="notification-content">
-                                                            <div class="notification-title"><?php echo htmlspecialchars(substr($notif['judul_laporan'], 0, 40)); ?>...</div>
-                                                            <div class="notification-text">
-                                                                <i class="bi bi-geo-alt-fill"></i> <?php echo htmlspecialchars(substr($notif['lokasi'], 0, 30)); ?>
-                                                            </div>
-                                                            <div class="notification-time">
-                                                                <i class="bi bi-clock"></i>
-                                                                <?php
-                                                                if ($notif['tanggal_mulai_diproses']) {
-                                                                    echo date('d M Y, H:i', strtotime($notif['tanggal_mulai_diproses']));
-                                                                } else {
-                                                                    echo date('d M Y, H:i', strtotime($notif['tanggal_lapor']));
-                                                                }
-                                                                ?>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </a>
-                                            </li>
-                                        <?php
-                                        endwhile;
-                                    else:
-                                        ?>
-                                        <li class="dropdown-item text-center text-muted py-3">
-                                            <i class="bi bi-inbox"></i><br>
-                                            Belum ada laporan baru
-                                        </li>
-                                <?php
-                                    endif;
-                                endif;
-                                ?>
+                                
                             <?php
                             // Notifikasi untuk user biasa
                             else:
@@ -166,10 +105,10 @@ require_once __DIR__ . '/../config/koneksi.php';
 
                                 <?php
                                 if (isset($db) && $db):
-                                    $user_id = $_SESSION['user_id'];
+                                    $user_id = $_SESSION['Id_akun'];
 
                                     // Ambil semua laporan user (dengan status)
-                                    $query_notif = "SELECT id_lapmas, judul, desk, lokasi, balasan, status, tanggal_lapor, tanggal_balasan
+                                    $query_notif = "SELECT id_lapmas, judul, desk, lokasi, status, tanggal_lapor
                                                 FROM lapmas
                                                 WHERE Id_akun = ?
                                                 ORDER BY tanggal_lapor DESC LIMIT 5";
@@ -235,8 +174,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                                                 <div class="notification-time">
                                                                     <i class="bi bi-calendar3"></i>
                                                                     <?php
-                                                                    $display_date = !empty($notif['tanggal_balasan']) ? $notif['tanggal_balasan'] : $notif['tanggal_lapor'];
-                                                                    echo date('d M Y', strtotime($display_date));
+                                                                    
                                                                     ?>
                                                                 </div>
                                                             </div>
@@ -249,7 +187,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                                                 data-balasan="<?php echo htmlspecialchars($notif['balasan'] ?? '', ENT_QUOTES); ?>"
                                                                 data-status="<?php echo htmlspecialchars($status_text ?? 'Baru', ENT_QUOTES); ?>"
                                                                 data-warna="<?php echo str_replace('background: ', '', $icon_bg ?? 'background: #6c757d'); ?>"
-                                                                data-tanggal="<?php echo date('d M Y, H:i', strtotime($display_date)); ?>">
+                                                                data-tanggal="<?php echo date('d M Y, H:i', strtotime($notif['tanggal_lapor'])); ?>">
                                                             <i class="bi bi-eye"></i> Detail
                                                         </button>
                                                     </div>

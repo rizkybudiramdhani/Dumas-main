@@ -64,21 +64,21 @@ if ($result_berita) {
                     <?php if (!empty($berita_data)): ?>
                         <?php foreach ($berita_data as $berita): ?>
                             <div class="col-6">
-                                <a href="<?= htmlspecialchars($berita['link_berita']); ?>"
+                                <a href="<?= htmlspecialchars($berita['link']); ?>"
                                     target="_blank"
                                     class="berita-card border border-secondary rounded shadow-sm overflow-hidden d-block text-decoration-none"
-                                    title="<?= htmlspecialchars($berita['judul_berita']); ?>">
+                                    title="<?= htmlspecialchars($berita['judul']); ?>">
 
                                     <div class="position-relative">
-                                        <img src="uploads/berita/<?= htmlspecialchars($berita['gambar_berita']); ?>"
-                                            alt="<?= htmlspecialchars($berita['judul_berita']); ?>"
+                                        <img src="uploads/berita/<?= htmlspecialchars($berita['gambar']); ?>"
+                                            alt="<?= htmlspecialchars($berita['judul']); ?>"
                                             class="w-100 img-fluid berita-img">
 
                                         <div class="berita-overlay bg-dark bg-opacity-75 p-2 text-white">
                                             <small class="text-warning fw-bold d-block mb-1">Berita</small>
                                             <div class="berita-title small fw-semibold">
-                                                <?= htmlspecialchars(substr($berita['judul_berita'], 0, 50)); ?>
-                                                <?= strlen($berita['judul_berita']) > 50 ? '...' : ''; ?>
+                                                <?= htmlspecialchars(substr($berita['judul'], 0, 50)); ?>
+                                                <?= strlen($berita['judul']) > 50 ? '...' : ''; ?>
                                             </div>
                                         </div>
                                     </div>

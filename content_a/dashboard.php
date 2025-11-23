@@ -1,4 +1,7 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
 // Handle delete action
 if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
     $id_laporan = (int)$_GET['id'];
@@ -451,7 +454,6 @@ if ($hour < 12) {
                     <tr>
                         <th class="text-center" width="50">No</th>
                         <th>Judul Laporan</th>
-                        <th>Pelapor</th>
                         <th>Lokasi</th>
                         <th width="120">Tanggal</th>
                         <th width="120" class="text-center">Status</th>
@@ -489,21 +491,11 @@ if ($hour < 12) {
                             // Nama pelapor
                             $nama_pelapor = $row['nama_pelapor'] ? $row['nama_pelapor'] : 'Anonim';
                     ?>
-                            <tr class="clickable-row" data-href="content_a/detail_pengaduan.php?id=<?php echo $row['id_lapmas']; ?>" style="cursor: pointer;">
+                            <tr class="clickable-row" data-href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>" style="cursor: pointer;">
                                 <td class="text-center"><?php echo $no++; ?></td>
                                 <td>
                                     <div class="font-14 weight-600"><?php echo htmlspecialchars($row['judul']); ?></div>
                                     <div class="text-muted small"><?php echo substr(htmlspecialchars($row['desk']), 0, 50); ?>...</div>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="avatar mr-2" style="width: 35px; height: 35px; border-radius: 50%; background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600;">
-                                            <?php echo strtoupper(substr($nama_pelapor, 0, 1)); ?>
-                                        </div>
-                                        <div>
-                                            <div class="font-14"><?php echo htmlspecialchars($nama_pelapor); ?></div>
-                                        </div>
-                                    </div>
                                 </td>
                                 <td><?php echo htmlspecialchars($row['lokasi'] ? $row['lokasi'] : '-'); ?></td>
                                 <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
@@ -633,7 +625,7 @@ if ($hour < 12) {
             autoWidth: false,
             responsive: true,
             columnDefs: [{
-                targets: [0, 6],
+                targets: [0, 5],
                 orderable: false,
             }],
             "lengthMenu": [

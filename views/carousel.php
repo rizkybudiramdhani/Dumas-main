@@ -30,7 +30,7 @@
                     Lindungi keluarga dan lingkungan dari bahaya narkoba.
                 </p>
 
-                <button class="btn btn-danger-solid border-0 py-3 px-5 btn-lapor-hero" id="btnLaporHero" data-logged-in="<?= isset($_SESSION['user_id']) ? '1' : '0' ?>">
+                <button class="btn btn-danger-solid border-0 py-3 px-5 btn-lapor-hero" id="btnLaporHero" data-logged-in="<?= isset($_SESSION['Id_akun']) ? '1' : '0' ?>">
                     <i class="bi bi-megaphone-fill"></i> LAPORKAN SEKARANG!
                 </button>
             </div>

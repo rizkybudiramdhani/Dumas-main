@@ -1,4 +1,15 @@
 <?php
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Debug session info
+error_log("=== DEBUG DETAIL ADUAN ===");
+error_log("Session Id_akun: " . (isset($_SESSION['Id_akun']) ? $_SESSION['Id_akun'] : 'NOT SET'));
+error_log("Session nama: " . (isset($_SESSION['nama']) ? $_SESSION['nama'] : 'NOT SET'));
+error_log("Session role: " . (isset($_SESSION['role']) ? $_SESSION['role'] : 'NOT SET'));
+error_log("All session data: " . print_r($_SESSION, true));
+
 // Get id laporan from URL
 $id_laporan = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -42,9 +53,9 @@ $success_message = '';
 $error_message = '';
 
 if (isset($_POST['update_status'])) {
-    $status_baru = mysqli_real_escape_string($db, $_POST['status']);
+    $status_baru = mysqli_real_escape_string($db, $_POST['status_baru']);
     $tanggapan = mysqli_real_escape_string($db, $_POST['respon']);
-    $petugas = isset($_SESSION['Nama']) ? $_SESSION['Nama'] : 'Admin';
+    $petugas = isset($_SESSION['nama']) ? $_SESSION['nama'] : 'Admin';
     $role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
 
     // Tentukan siapa yang memproses berdasarkan role
@@ -57,75 +68,102 @@ if (isset($_POST['update_status'])) {
         $sedang_diproses_oleh = 'Ditbinmas';
     }
 
+    // Ambil ID akun dari session
+    $id_akun = isset($_SESSION['Id_akun']) ? $_SESSION['Id_akun'] : null;
 
-    // Tambahkan entry baru ke timeline
-    $new_entry = [
-        'timestamp' => date('Y-m-d H:i:s'),
-        'status_dari' => $laporan['status'],
-        'status_ke' => $status_baru,
-        'diproses_oleh' => $sedang_diproses_oleh,
-        'nama_petugas' => $petugas,
-        'tanggapan' => $tanggapan
-    ];
-    $timeline_array[] = $new_entry;
-    $timeline_json = json_encode($timeline_array, JSON_UNESCAPED_UNICODE);
-
-    // Update tabel_laporan dengan timeline baru
-    $query_update = "UPDATE tabel_laporan
-                     SET status_laporan = ?,
-                         tanggapan_admin = ?,
-                         tanggal_tanggapan = NOW(),
-                         sedang_diproses_oleh = ?,
-                         timeline_json = ?
-                     WHERE id_laporan = ?";
-    $stmt_update = mysqli_prepare($db, $query_update);
-    mysqli_stmt_bind_param($stmt_update, "ssssi", $status_baru, $tanggapan, $sedang_diproses_oleh, $timeline_json, $id_laporan);
-
-    if (mysqli_stmt_execute($stmt_update)) {
-        // Jika status = diproses_Ditresnarkoba, set notifikasi untuk Ditsamapta dan Ditbinmas
-        if ($status_baru == 'diproses_Ditresnarkoba') {
-            $query_notif = "UPDATE tabel_laporan
-                           SET is_notif_Ditsamapta = 1, is_notif_Ditbinmas = 1
-                           WHERE id_laporan = ?";
-            $stmt_notif = mysqli_prepare($db, $query_notif);
-            mysqli_stmt_bind_param($stmt_notif, "i", $id_laporan);
-            mysqli_stmt_execute($stmt_notif);
-        }
-
-        // Jika Ditsamapta atau Ditbinmas mengambil, clear notifikasi mereka
-        if ($status_baru == 'diproses_Ditsamapta') {
-            $query_clear = "UPDATE tabel_laporan SET is_notif_Ditsamapta = 0 WHERE id_laporan = ?";
-            $stmt_clear = mysqli_prepare($db, $query_clear);
-            mysqli_stmt_bind_param($stmt_clear, "i", $id_laporan);
-            mysqli_stmt_execute($stmt_clear);
-        } elseif ($status_baru == 'diproses_Ditbinmas') {
-            $query_clear = "UPDATE tabel_laporan SET is_notif_Ditbinmas = 0 WHERE id_laporan = ?";
-            $stmt_clear = mysqli_prepare($db, $query_clear);
-            mysqli_stmt_bind_param($stmt_clear, "i", $id_laporan);
-            mysqli_stmt_execute($stmt_clear);
-        }
-
-        $success_message = 'Status berhasil diupdate!';
-
-        // Refresh data
-        mysqli_stmt_execute($stmt);
-        $result = mysqli_stmt_get_result($stmt);
-        $laporan = mysqli_fetch_assoc($result);
+    // Validasi session
+    if ($id_akun === null) {
+        $error_message = 'User session not valid. Silakan login kembali.';
     } else {
-        $error_message = 'Gagal update status!';
+        // UPDATE status pada lapmas
+        $query_update = "UPDATE lapmas
+                        SET status = ?
+                        WHERE id_lapmas = ?";
+
+        $stmt_update = mysqli_prepare($db, $query_update);
+        mysqli_stmt_bind_param($stmt_update, "si", $status_baru, $id_laporan);
+
+        if (mysqli_stmt_execute($stmt_update)) {
+            // Cek apakah sudah ada respon yang sama dalam 1 menit terakhir (untuk mencegah duplikasi)
+            $query_check = "SELECT COUNT(*) as count FROM respon
+                           WHERE id_lapmas = ?
+                           AND a_respon = ?
+                           AND respon = ?
+                           AND tanggal_respon >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)";
+            $stmt_check = mysqli_prepare($db, $query_check);
+            mysqli_stmt_bind_param($stmt_check, "iis", $id_laporan, $id_akun, $tanggapan);
+            mysqli_stmt_execute($stmt_check);
+            $result_check = mysqli_stmt_get_result($stmt_check);
+            $check_data = mysqli_fetch_assoc($result_check);
+
+            // Hanya insert jika tidak ada duplikasi
+            if ($check_data['count'] == 0) {
+                // Insert respon ke tabel respon
+                $query_insert = "INSERT INTO respon (id_lapmas, respon, a_respon, tanggal_respon)
+                                VALUES (?, ?, ?, NOW())";
+                $stmt_insert = mysqli_prepare($db, $query_insert);
+                mysqli_stmt_bind_param($stmt_insert, "isi", $id_laporan, $tanggapan, $id_akun);
+
+                if (mysqli_stmt_execute($stmt_insert)) {
+                    $success_message = 'Status dan tanggapan berhasil disimpan!';
+                } else {
+                    $success_message = 'Status berhasil diupdate, tapi gagal menyimpan tanggapan: ' . mysqli_error($db);
+                }
+            } else {
+                $success_message = 'Status berhasil diupdate! (Tanggapan sudah ada sebelumnya)';
+            }
+
+            // Refresh data laporan
+            $query_refresh = "SELECT
+                                l.*,
+                                a.Nama AS nama_pelapor,
+                                a.Email AS email_pelapor,
+                                a.Nomor_hp AS nomor_hp,
+                                r.id_respon,
+                                r.respon,
+                                r.a_respon,
+                                r.tanggal_respon
+                              FROM lapmas l
+                              LEFT JOIN akun a ON l.Id_akun = a.Id_Akun
+                              LEFT JOIN respon r ON r.id_lapmas = l.id_lapmas
+                              WHERE l.id_lapmas = ?";
+
+            $stmt_refresh = mysqli_prepare($db, $query_refresh);
+            mysqli_stmt_bind_param($stmt_refresh, "i", $id_laporan);
+            mysqli_stmt_execute($stmt_refresh);
+            $result_refresh = mysqli_stmt_get_result($stmt_refresh);
+            $laporan = mysqli_fetch_assoc($result_refresh);
+
+            // Simpan pesan di session untuk ditampilkan setelah redirect
+            $_SESSION['form_success'] = true;
+
+            // Redirect menggunakan JavaScript untuk mencegah form resubmission
+            echo '<script>window.location.href = "dash.php?page=detail-pengaduan&id=' . $id_laporan . '";</script>';
+            exit;
+        } else {
+            $error_message = 'Gagal mengupdate status: ' . mysqli_error($db);
+        }
     }
+}
+
+// Handle success message dari session
+if (isset($_SESSION['form_success']) && $_SESSION['form_success'] === true) {
+    $success_message = 'Status dan tanggapan berhasil disimpan!';
+    unset($_SESSION['form_success']); // Hapus setelah ditampilkan
 }
 
 // Status badge class
 $status_class = 'secondary';
 $status_icon = 'dw-file';
-if ($laporan['status'] == 'baru') {
+$status_laporan = isset($laporan['status']) ? $laporan['status'] : 'Baru';
+
+if ($status_laporan == 'Baru') {
     $status_class = 'warning';
     $status_icon = 'dw-inbox';
-} elseif (strpos($laporan['status'], 'diproses') !== false) {
+} elseif (strpos($status_laporan, 'Diproses Ditresnarkoba') !== false) {
     $status_class = 'info';
     $status_icon = 'dw-loading';
-} elseif (strpos($laporan['status'], 'selesai') !== false) {
+} elseif (strpos($status_laporan, 'selesai') !== false) {
     $status_class = 'success';
     $status_icon = 'dw-checked';
 }
@@ -359,6 +397,8 @@ if (!empty($laporan['nama_pelapor'])) {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
+        justify-content: flex-end;
+        margin-right: 20px;
     }
 
     .btn-action {
@@ -412,11 +452,95 @@ if (!empty($laporan['nama_pelapor'])) {
         box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
     }
 
-    .tanggapan-box {
-        background: #e7f3ff;
-        padding: 20px;
+    /* Chat Bubble Styles */
+    .chat-container {
+        max-height: 500px;
+        overflow-y: auto;
+        padding: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-container::-webkit-scrollbar-track {
+        background: #f1f1f1;
         border-radius: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb {
+        background: #1E40AF;
+        border-radius: 10px;
+    }
+
+    .chat-container::-webkit-scrollbar-thumb:hover {
+        background: #FFD700;
+    }
+
+    .chat-bubble {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 15px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         border-left: 4px solid #1E40AF;
+        transition: all 0.3s ease;
+    }
+
+    .chat-bubble:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateX(5px);
+    }
+
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #1E40AF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 10px;
+        font-size: 1.2rem;
+    }
+
+    .chat-message {
+        background: white;
+        padding: 12px 15px;
+        border-radius: 10px;
+        line-height: 1.6;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+
+    .badge-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-primary {
+        background-color: #1E40AF;
+        color: white;
+    }
+
+    .badge-success {
+        background-color: #28a745;
+        color: white;
+    }
+
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
     }
 
     .no-tanggapan {
@@ -488,9 +612,6 @@ if (!empty($laporan['nama_pelapor'])) {
                 <a href="dash.php?page=lihat-pengaduan" class="btn btn-secondary btn-action">
                     <i class="dw dw-left-arrow"></i> Kembali
                 </a>
-                <button class="btn btn-primary btn-action" onclick="window.print()">
-                    <i class="dw dw-print"></i> Print
-                </button>
             </div>
         </div>
     </div>
@@ -534,7 +655,7 @@ if (!empty($laporan['nama_pelapor'])) {
         <div class="col-md-4 text-right">
             <span class="status-badge-large badge-<?php echo $status_class; ?>">
                 <i class="dw <?php echo $status_icon; ?>"></i>
-                <?php echo ucfirst($laporan['status']); ?>
+                <?php echo ucfirst(isset($laporan['status']) ? $laporan['status'] : 'Baru'); ?>
             </span>
         </div>
     </div>
@@ -580,26 +701,82 @@ if (!empty($laporan['nama_pelapor'])) {
         <div class="detail-card">
             <div class="info-section">
                 <h5>💬 Tanggapan Petugas</h5>
-                <?php if (!empty($laporan['respon'])): ?>
-                    <div class="tanggapan-box">
-                        <div class="d-flex justify-content-between mb-2">
-                            <strong>Tanggapan:</strong>
-                            <small class="text-muted">
-                                <?php
-                                if ($laporan['tanggal_tanggapan'] != '0000-00-00 00:00:00') {
-                                    echo date('d M Y, H:i', strtotime($laporan['tanggal_tanggapan']));
-                                }
-                                ?>
-                            </small>
+                <?php
+                // Query untuk mengambil semua respon (diurutkan dari terlama ke terbaru)
+                $query_respon = "SELECT DISTINCT
+                                    r.id_respon,
+                                    r.respon,
+                                    r.a_respon,
+                                    r.tanggal_respon,
+                                    a.Nama as nama_petugas,
+                                    a.Role as role_petugas
+                                FROM respon r
+                                LEFT JOIN akun a ON r.a_respon = a.Id_akun
+                                WHERE r.id_lapmas = ?
+                                GROUP BY r.id_respon
+                                ORDER BY r.tanggal_respon ASC";
+
+                $stmt_respon = mysqli_prepare($db, $query_respon);
+                mysqli_stmt_bind_param($stmt_respon, "i", $id_laporan);
+                mysqli_stmt_execute($stmt_respon);
+                $result_respon = mysqli_stmt_get_result($stmt_respon);
+
+                $has_respon = false;
+                ?>
+
+                <div class="chat-container">
+                    <?php
+                    while ($resp = mysqli_fetch_assoc($result_respon)):
+                        if (!empty($resp['respon'])):
+                            $has_respon = true;
+
+                            // Tentukan warna badge berdasarkan role
+                            $role_badge_class = 'badge-secondary';
+                            $role_display = $resp['role_petugas'];
+
+                            if ($resp['role_petugas'] == 'Ditresnarkoba') {
+                                $role_badge_class = 'badge-danger';
+                            } elseif ($resp['role_petugas'] == 'Ditsamapta') {
+                                $role_badge_class = 'badge-primary';
+                            } elseif ($resp['role_petugas'] == 'Ditbinmas') {
+                                $role_badge_class = 'badge-success';
+                            }
+                    ?>
+                        <div class="chat-bubble">
+                            <div class="chat-header">
+                                <div class="d-flex align-items-center">
+                                    <div class="chat-avatar">
+                                        <i class="dw dw-user1"></i>
+                                    </div>
+                                    <div>
+                                        <strong><?php echo htmlspecialchars($resp['nama_petugas'] ?? 'Petugas'); ?></strong>
+                                        <span class="badge <?php echo $role_badge_class; ?> ml-2"><?php echo htmlspecialchars($role_display); ?></span>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <?php
+                                    if ($resp['tanggal_respon'] && $resp['tanggal_respon'] != '0000-00-00 00:00:00') {
+                                        echo date('d M Y, H:i', strtotime($resp['tanggal_respon'])) . ' WIB';
+                                    }
+                                    ?>
+                                </small>
+                            </div>
+                            <div class="chat-message">
+                                <?php echo nl2br(htmlspecialchars($resp['respon'])); ?>
+                            </div>
                         </div>
-                        <div><?php echo nl2br(htmlspecialchars($laporan['tanggapan_admin'])); ?></div>
-                    </div>
-                <?php else: ?>
-                    <div class="no-tanggapan">
-                        <i class="dw dw-chat" style="font-size: 3rem; opacity: 0.3;"></i>
-                        <p class="mb-0 mt-2">Belum ada tanggapan dari petugas</p>
-                    </div>
-                <?php endif; ?>
+                    <?php
+                        endif;
+                    endwhile;
+
+                    if (!$has_respon):
+                    ?>
+                        <div class="no-tanggapan">
+                            <i class="dw dw-chat" style="font-size: 3rem; opacity: 0.3;"></i>
+                            <p class="mb-0 mt-2">Belum ada tanggapan dari petugas</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -654,7 +831,8 @@ if (!empty($laporan['nama_pelapor'])) {
                             <i class="dw dw-calendar1"></i>
                             <?php echo date('d M Y, H:i', strtotime($laporan['tanggal_lapor'])); ?> WIB
                         </div>
-                        <div class="mt-2">Status: <span class="badge badge-warning">Baru</span></div>
+<div class="mt-2">Status: <span class="badge badge-warning"><?php echo isset($laporan['status']) ? htmlspecialchars($laporan['status']) : 'Baru'; ?></span></div>
+                        <?php echo "<script>console.log('status: " . addslashes(isset($laporan['status']) ? $laporan['status'] : 'Baru') . "');</script>";?>
                     </div>
 
                     <?php
@@ -736,8 +914,8 @@ if (!empty($laporan['nama_pelapor'])) {
                         <select class="form-control" name="status_baru" required>
                             <?php
                             $session_role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
-                            echo "<script>console.log('session_role: " . addslashes($session_role) . "');</script>";
-                            $current_status = $laporan['status'];
+                            $current_status = isset($laporan['status']) ? $laporan['status'] : 'Baru';
+                            echo "<script>console.log('current_status: " . addslashes($current_status) . "');</script>";
 
                             // Ditresnarkoba - Aktor pertama
                             if (strpos($session_role, 'Ditresnarkoba') !== false) {
@@ -809,9 +987,9 @@ if (!empty($laporan['nama_pelapor'])) {
 
                     <div class="form-group">
                         <label class="font-weight-600">Tanggapan/Keterangan</label>
-                        <textarea class="form-control" name="tanggapan" rows="4"
+                        <textarea class="form-control" name="respon" rows="4"
                             placeholder="Berikan tanggapan atau keterangan..."
-                            required><?php echo htmlspecialchars($laporan['respon']); ?></textarea>
+                            required><?php echo htmlspecialchars(isset($laporan['respon']) ? $laporan['respon'] : ''); ?></textarea>
                     </div>
 
                     <button type="submit" name="update_status" class="btn btn-primary btn-block">
@@ -903,6 +1081,18 @@ if (!empty($laporan['nama_pelapor'])) {
                     return false;
                 }
             });
+        }
+
+        // Debug: Log current session Id_akun to console
+        console.log('Current session Id_akun:', <?php echo json_encode($_SESSION['Id_akun'] ?? null); ?>);
+
+        // Auto scroll to latest chat bubble
+        const chatContainer = document.querySelector('.chat-container');
+        if (chatContainer) {
+            const lastBubble = chatContainer.querySelector('.chat-bubble:last-child');
+            if (lastBubble) {
+                lastBubble.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            }
         }
     });
 </script>

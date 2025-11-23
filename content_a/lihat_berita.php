@@ -185,6 +185,46 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
         color: #1a1f3a;
     }
 
+    /* Modal custom scrollbar */
+    #modal-deskripsi::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    #modal-deskripsi::-webkit-scrollbar-track {
+        background: #e9ecef;
+        border-radius: 10px;
+    }
+
+    #modal-deskripsi::-webkit-scrollbar-thumb {
+        background: #1a1f3a;
+        border-radius: 10px;
+    }
+
+    #modal-deskripsi::-webkit-scrollbar-thumb:hover {
+        background: #FFD700;
+    }
+
+    /* Modal content styling */
+    .modal-content {
+        border: 3px solid #FFD700;
+        border-radius: 15px;
+    }
+
+    .modal-header {
+        background: #1a1f3a;
+        color: #FFD700;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .modal-header .close {
+        color: #FFD700;
+        opacity: 1;
+    }
+
+    .modal-header .close:hover {
+        color: #fff;
+    }
+
     .btn-primary {
         background: #1a1f3a;
         border: 2px solid #FFD700;
@@ -257,7 +297,7 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
     .btn-sm.btn-primary {
         background: #1a1f3a;
         border: 2px solid #1a1f3a;
-        color: #1a1f3a;
+        color: #FFD700;
         font-weight: 600;
     }
 
@@ -432,14 +472,14 @@ if (isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id']))
                 <h5 class="modal-title" id="modal-title">Detail Berita</h5>
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 20px;">
                 <img id="modal-image" src="" class="img-fluid mb-3 rounded"
                     style="width: 100%; max-height: 400px; object-fit: cover; border: 3px solid #FFD700;"
                     onerror="this.src='vendors/images/photo1.jpg';">
-                <h4 id="modal-judul" style="color: #1a1f3a;"></h4>
+                <h4 id="modal-judul" style="color: #1a1f3a; word-wrap: break-word; overflow-wrap: break-word;"></h4>
                 <p class="text-muted" id="modal-tanggal" style="color: #FFD700; font-weight: 600;"></p>
                 <hr style="border-color: #FFD700;">
-                <div id="modal-deskripsi" style="color: #1a1f3a;"></div>
+                <div id="modal-deskripsi" style="color: #1a1f3a; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; max-height: 400px; overflow-y: auto; line-height: 1.6; padding: 10px; background: #f8f9fa; border-radius: 8px;"></div>
                 <hr style="border-color: #FFD700;">
                 <a id="modal-link" href="#" target="_blank" class="btn btn-primary">
                     <i class="dw dw-share"></i> Buka Link Lengkap
