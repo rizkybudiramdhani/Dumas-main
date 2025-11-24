@@ -239,9 +239,9 @@ if ($role == 'Ditbinmas') {
                         <li>
                             <a href="dash.php?page=input-pengungkapan" class="<?php echo $current_page == 'input-pengungkapan' ? 'active' : ''; ?>">Input Pengungkapan</a>
                         </li>
-                        <li>
+                        <!-- <li>
                             <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Laporan Kegiatan</a>
-                        </li>
+                        </li> -->
                     </ul>
                 </li>
                 <?php endif; ?>

@@ -25,6 +25,11 @@
         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.bootstrap4.min.css">
     <?php endif; ?>
 
+    <!-- ApexCharts Library untuk Dashboard Chart -->
+    <?php if ($page == 'dashboard'): ?>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts@3.45.1/dist/apexcharts.min.js"></script>
+    <?php endif; ?>
+
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-119386393-1"></script>
     <script>

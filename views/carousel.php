@@ -1,8 +1,8 @@
 <div id="header-carousel" class="hero-section">
     <div class="hero-inner">
-        <!-- Single Hero Slide - Anti Narkoba -->
+        <!-- Video Carousel Slides -->
         <div class="hero-item active">
-            <video class="w-100 hero-video" muted loop playsinline preload="auto" autoplay>
+            <video class="w-100 hero-video" muted playsinline preload="auto" autoplay data-video-index="0">
                 <source src="video/Ditbinmas.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
@@ -86,6 +86,15 @@
             height: 100vh;
             object-fit: cover;
             display: block;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .hero-video.fade-out {
+            opacity: 0;
+        }
+
+        .hero-video.fade-in {
+            opacity: 1;
         }
 
         .video-overlay {
@@ -298,7 +307,54 @@
         document.addEventListener('DOMContentLoaded', function() {
             const video = document.querySelector('.hero-video');
 
-            // Auto-play video dengan error handling
+            // Array video yang akan diputar secara berurutan
+            const videos = [
+                'video/Ditbinmas.mp4',
+                'video/Ditresnarkoba.mp4',
+                'video/Ditsamapta.mp4'
+            ];
+
+            let currentVideoIndex = 0;
+            let isTransitioning = false;
+
+            // Fungsi untuk mengganti video
+            function changeVideo() {
+                if (isTransitioning) return;
+
+                isTransitioning = true;
+
+                // Fade out video saat ini
+                video.classList.add('fade-out');
+
+                setTimeout(() => {
+                    // Pindah ke video berikutnya
+                    currentVideoIndex = (currentVideoIndex + 1) % videos.length;
+
+                    // Ganti source video
+                    const source = video.querySelector('source');
+                    source.src = videos[currentVideoIndex];
+
+                    // Load video baru
+                    video.load();
+
+                    // Fade in video baru
+                    video.classList.remove('fade-out');
+                    video.classList.add('fade-in');
+
+                    // Play video baru
+                    const playPromise = video.play();
+
+                    if (playPromise !== undefined) {
+                        playPromise.catch(() => {
+                            console.log('Autoplay prevented for video:', videos[currentVideoIndex]);
+                        });
+                    }
+
+                    isTransitioning = false;
+                }, 1000); // Durasi fade out
+            }
+
+            // Auto-play video pertama dengan error handling
             if (video) {
                 const playPromise = video.play();
 
@@ -314,18 +370,29 @@
                     });
                 }
 
+                // Event listener saat video selesai
+                video.addEventListener('ended', () => {
+                    changeVideo();
+                });
+
                 // Pause video saat tab tidak aktif
                 document.addEventListener('visibilitychange', () => {
                     if (document.hidden) {
                         video.pause();
                     } else {
-                        video.play();
+                        if (video.paused) {
+                            video.play();
+                        }
                     }
                 });
 
                 // Error handling
                 video.addEventListener('error', (e) => {
-                    console.error('Error loading video:', e);
+                    console.error('Error loading video:', videos[currentVideoIndex], e);
+                    // Coba video berikutnya jika ada error
+                    setTimeout(() => {
+                        changeVideo();
+                    }, 2000);
                 });
             }
 

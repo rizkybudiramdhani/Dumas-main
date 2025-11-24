@@ -138,6 +138,11 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                     $icon_bg = 'background: #6c757d;'; // Abu-abu
                                                     $status_text = 'Laporan Baru';
                                                     break;
+                                                case 'Waiting':
+                                                    $icon_class = 'bi-hourglass-split';
+                                                    $icon_bg = 'background: #ffc107;'; // Kuning
+                                                    $status_text = 'Waiting (Menunggu Final)';
+                                                    break;
                                                 case 'Diproses Ditresnarkoba':
                                                     $icon_class = 'bi-gear-fill';
                                                     $icon_bg = 'background: #0d6efd;'; // Biru
@@ -153,10 +158,25 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                     $icon_bg = 'background: #fd7e14;'; // Orange
                                                     $status_text = 'Diproses Ditbinmas';
                                                     break;
+                                                case 'Selesai Ditsamapta':
+                                                    $icon_class = 'bi-check-circle-fill';
+                                                    $icon_bg = 'background: #0dcaf0;'; // Cyan
+                                                    $status_text = 'Selesai Ditsamapta';
+                                                    break;
+                                                case 'Selesai Ditbinmas':
+                                                    $icon_class = 'bi-check-circle-fill';
+                                                    $icon_bg = 'background: #fd7e14;'; // Orange
+                                                    $status_text = 'Selesai Ditbinmas';
+                                                    break;
                                                 case 'Selesai':
                                                     $icon_class = 'bi-check-circle-fill';
                                                     $icon_bg = 'background: #28a745;'; // Hijau
                                                     $status_text = 'Selesai';
+                                                    break;
+                                                case 'Ditolak':
+                                                    $icon_class = 'bi-x-circle-fill';
+                                                    $icon_bg = 'background: #dc3545;'; // Merah
+                                                    $status_text = 'Ditolak';
                                                     break;
                                                 default:
                                                     $icon_class = 'bi-hourglass-split';

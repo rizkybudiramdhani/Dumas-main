@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS `lapbin` (
   `Id_akun` int(11) DEFAULT NULL,
   `judul` varchar(255) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
-  `kegiatan` varchar(255) DEFAULT NULL,
+  `materi` varchar(255) DEFAULT NULL,
   `tanggal` timestamp NULL DEFAULT NULL,
   `personil` int(50) DEFAULT NULL,
   `lokasi` varchar(255) DEFAULT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE IF NOT EXISTS `lapmas` (
   `lokasi` varchar(2255) DEFAULT NULL,
   `upload` varchar(255) DEFAULT NULL,
   `tanggal_lapor` varchar(255) DEFAULT NULL,
-  `status` enum('Baru','Diproses Ditresnarkoba','Diproses Ditsamapta','Diproses Ditbinmas','Selesai','Selesai Ditresnarkoba','Selesai Ditsamapta','Selesai Ditbinmas','Ditolak') NOT NULL DEFAULT 'Baru',
+  `status` enum('Baru','Diproses Ditresnarkoba','Diproses Ditsamapta','Diproses Ditbinmas','Selesai','Selesai Ditresnarkoba','Selesai Ditsamapta','Selesai Ditbinmas','Waiting','Ditolak') NOT NULL DEFAULT 'Baru',
   PRIMARY KEY (`id_lapmas`),
   KEY `idx_status` (`status`)
 ) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `respon` (
   `a_respon` varchar(255) DEFAULT NULL,
   `tanggal_respon` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_respon`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 

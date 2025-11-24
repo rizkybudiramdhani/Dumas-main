@@ -292,7 +292,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                                 <small><?php echo htmlspecialchars($row['petugas']); ?></small>
                             </td>
                             <td><?php echo htmlspecialchars($row['judul']); ?></td>
-                            <td><?php echo htmlspecialchars($row['kegiatan']); ?></td>
+                            <td><?php echo htmlspecialchars($row['materi']); ?></td>
                             <td><?php echo htmlspecialchars($row['lokasi']); ?></td>
                             <td class="text-center"><?php echo $row['personil']; ?></td>
                             <td>
@@ -366,7 +366,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
     // View Detail
     function viewDetail(id) {
         $.ajax({
-            url: 'content/get_laporan_Ditbinmas_detail.php',
+            url: 'content_a/detail_lapbin.php',
             type: 'GET',
             data: { id: id },
             success: function(response) {

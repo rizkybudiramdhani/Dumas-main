@@ -369,13 +369,7 @@ if ($hour < 12) {
                         <h5 class="mb-0" style="color: #1a1f3a; font-weight: 700;">📊 Grafik Laporan Per Bulan</h5>
                         <p class="mb-0 text-muted small" style="font-weight: 600;">Statistik 6 bulan terakhir</p>
                     </div>
-                    <div class="form-group mb-0">
-                        <select class="form-control form-control-sm" style="border-radius: 10px; border: 2px solid #1a1f3a; color: #1a1f3a; font-weight: 600;">
-                            <option value="">Last 6 Months</option>
-                            <option value="">Last 12 Months</option>
-                            <option value="">This Year</option>
-                        </select>
-                    </div>
+                    
                 </div>
                 <div id="chart-pengaduan" style="height: 350px;"></div>
             </div>
