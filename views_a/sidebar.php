@@ -239,9 +239,9 @@ if ($role == 'Ditbinmas') {
                         <li>
                             <a href="dash.php?page=input-pengungkapan" class="<?php echo $current_page == 'input-pengungkapan' ? 'active' : ''; ?>">Input Pengungkapan</a>
                         </li>
-                        <!-- <li>
-                            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Laporan Kegiatan</a>
-                        </li> -->
+                        <li>
+                            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Kasus</a>
+                        </li>
                     </ul>
                 </li>
                 <?php endif; ?>
@@ -323,12 +323,14 @@ if ($role == 'Ditbinmas') {
                 <li>
                     <a href="#" class="dropdown-toggle collapsed" data-toggle="collapse" data-target="#pengaduan-menu">
                         <span class="micon dw dw-megaphone"></span>
-                        <span class="mtext">Pengaduan Masyarakat</span>
+                        <span class="mtext">Informasi Dumas</span>
                     </a>
                     <ul class="submenu collapse" id="pengaduan-menu">
-                        <li>
-                            <a href="dash.php?page=input-pengaduan" class="<?php echo $current_page == 'input-pengaduan' ? 'active' : ''; ?>">Input Pengaduan</a>
-                        </li>
+                        <?php if($brand_text === 'Ditresnarkoba') :?>
+                            <li>
+                                <a href="dash.php?page=input-pengaduan" class="<?php echo $current_page == 'input-pengaduan' ? 'active' : ''; ?>">Input Pengaduan</a>
+                            </li>
+                        <?php endif;?>
                         <li>
                             <a href="dash.php?page=lihat-pengaduan" class="<?php echo ($current_page == 'lihat-pengaduan' || $current_page == 'detail-pengaduan') ? 'active' : ''; ?>">Lihat Pengaduan</a>
                         </li>

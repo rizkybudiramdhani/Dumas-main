@@ -42,9 +42,9 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 // Untuk user biasa - notifikasi laporan dengan status update
                                 if (strpos($user_role, 'Ditsamapta') === false && strpos($user_role, 'Ditbinmas') === false && strpos($user_role, 'Ditresnarkoba') === false):
                                     $user_id = $_SESSION['Id_akun'];
-$query_count = "SELECT COUNT(*) as total FROM lapmas
-                WHERE Id_akun = ?
-                AND status IN ('Diproses Ditsamapta', 'Diproses Ditbinmas', 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
+                                    $query_count = "SELECT COUNT(*) as total FROM lapmas
+                                                    WHERE Id_akun = ?
+                                                    AND status IN ( 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
                                     $stmt_count = mysqli_prepare($db, $query_count);
                                     mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                     mysqli_stmt_execute($stmt_count);
@@ -108,8 +108,7 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                     $user_id = $_SESSION['Id_akun'];
 
                                     // Ambil semua laporan user (dengan status)
-                                    $query_notif = "
-                                        SELECT
+                                    $query_notif = "SELECT
                                             l.id_lapmas,
                                             l.judul,
                                             l.desk,
@@ -118,6 +117,8 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                             l.tanggal_lapor
                                         FROM lapmas l
                                         WHERE l.Id_akun = ?
+                                        AND (l.status = 'Diproses Ditresnarkoba' 
+                                            OR l.status = 'selesai')
                                         ORDER BY l.tanggal_lapor DESC
                                         LIMIT 5
                                     ";
@@ -184,12 +185,15 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                     $status_text = 'Menunggu';
                                             }
 
-                                            // Ambil semua balasan untuk laporan ini dengan role dari akun
+                                            // Ambil balasan dari Ditresnarkoba dengan status Diproses Ditresnarkoba atau Selesai
                                             $query_respon = "
-                                                SELECT r.respon, r.a_respon, r.tanggal_respon, a.Role
+                                                SELECT r.respon, r.a_respon, r.tanggal_respon, a.Role, l.status
                                                 FROM respon r
                                                 LEFT JOIN akun a ON r.a_respon = a.Id_akun
+                                                LEFT JOIN lapmas l ON r.id_lapmas = l.id_lapmas
                                                 WHERE r.id_lapmas = ?
+                                                AND a.Role = 'Ditresnarkoba'
+                                                AND (l.status = 'Diproses Ditresnarkoba' OR l.status = 'Selesai')
                                                 ORDER BY r.tanggal_respon ASC
                                             ";
                                             $stmt_respon = mysqli_prepare($db, $query_respon);
@@ -503,29 +507,10 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                     if (balasanArray && Array.isArray(balasanArray) && balasanArray.length > 0) {
                         sectionBalasan.style.display = 'block';
 
-                        // Buat HTML untuk semua balasan
+                        // Data sudah difilter dari database (hanya Ditresnarkoba dengan status tertentu)
                         let balasanHTML = '';
                         balasanArray.forEach((item, index) => {
-                            // Tentukan badge berdasarkan Role
-                            let timBadge = '<span class="badge bg-secondary me-2">Admin</span>';
-                            let badgeColor = 'bg-secondary';
-
-                            if (item.Role) {
-                                switch(item.Role) {
-                                    case 'Ditresnarkoba':
-                                        badgeColor = 'bg-primary';
-                                        break;
-                                    case 'Ditsamapta':
-                                        badgeColor = 'bg-info';
-                                        break;
-                                    case 'Ditbinmas':
-                                        badgeColor = 'bg-warning text-dark';
-                                        break;
-                                    default:
-                                        badgeColor = 'bg-secondary';
-                                }
-                                timBadge = `<span class="badge ${badgeColor} me-2">${item.Role}</span>`;
-                            }
+                            const timBadge = '<span class="badge bg-primary me-2">Ditresnarkoba</span>';
 
                             const tanggalBalasan = item.tanggal_respon ? new Date(item.tanggal_respon).toLocaleDateString('id-ID', {
                                 day: '2-digit',
@@ -846,7 +831,7 @@ $query_count = "SELECT COUNT(*) as total FROM lapmas
                 <div class="detail-section" id="sectionBalasan" style="display: none;">
                     <div class="detail-label">
                         <i class="bi bi-reply-fill text-success"></i>
-                        Balasan dari Tim
+                        Balasan
                     </div>
                     <div class="detail-value has-balasan" id="detailBalasan">-</div>
                 </div>

@@ -11,11 +11,14 @@
             <div class="hero-caption d-flex flex-column align-items-center justify-content-center">
                 <div class="title mx-5 px-5 animated slideInDown">
                     <div class="title-center">
-                        <h5 class="hero-subtitle">Polda Sumut</h5>
-                        <h1 class="display-1 hero-title">BERSAMA BERANTAS NARKOBA</h1>
+                        <h5 class="hero-subtitle mt-5">Polda Sumut</h5>
+                        <h1 class="display-1 hero-title mb-2">BERSAMA BERANTAS NARKOBA</h1>
                     </div>
-                </div>
-
+                    </div>
+                    
+                    <p class="fs-3 mb-3 mt-3 pt-0 hero-description animated slideInDown">
+                        INTEGRITAS LINTAS FUNGSI
+                    </p>
                 <!-- Badge Tim -->
                 <div class="team-badges mb-4 animated slideInDown">
                     <span class="badge-team">Ditresnarkoba</span>
@@ -25,8 +28,8 @@
                     <span class="badge-team">Ditbinmas</span>
                 </div>
 
-                <p class="fs-5 mb-5 hero-description animated slideInDown">
-                    Ditresnarkoba, Ditsamapta, dan Ditbinmas Polda Sumut siap menerima laporan Anda.<br>
+                <p class="fs-3 mb-5 hero-description animated slideInDown">
+                    
                     Lindungi keluarga dan lingkungan dari bahaya narkoba.
                 </p>
 
@@ -148,7 +151,7 @@
 
         .badge-team {
             color: #FFD700;
-            font-size: 1.8rem;
+            font-size: 2.5rem;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -157,7 +160,7 @@
 
         .team-separator {
             color: #FFD700;
-            font-size: 1.3rem;
+            font-size: 1.8rem;
             opacity: 0.6;
         }
 

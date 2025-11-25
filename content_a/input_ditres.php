@@ -10,71 +10,47 @@ $success_message = '';
 $error_message = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Ambil data dari form
-    $tanggal_kegiatan = mysqli_real_escape_string($db, $_POST['tanggal_kegiatan']);
-    $no_sprint = mysqli_real_escape_string($db, $_POST['no_sprint']);
-    $jenis_kegiatan = mysqli_real_escape_string($db, $_POST['jenis_kegiatan']);
-    $lokasi = mysqli_real_escape_string($db, $_POST['lokasi']);
-    $nama_petugas = mysqli_real_escape_string($db, $_POST['nama_petugas']);
-    $nrp_petugas = mysqli_real_escape_string($db, $_POST['nrp_petugas']);
-    $pangkat_petugas = mysqli_real_escape_string($db, $_POST['pangkat_petugas']);
-    $kronologi = mysqli_real_escape_string($db, $_POST['kronologi']);
-    $jumlah_tersangka = mysqli_real_escape_string($db, $_POST['jumlah_tersangka']);
-    $rincian_barang_bukti = mysqli_real_escape_string($db, $_POST['rincian_barang_bukti']);
+    // Check if this is an edit or insert
+    if (isset($_POST['action']) && $_POST['action'] == 'edit' && isset($_POST['id_kasus'])) {
+        // Update existing data
+        $id_kasus = mysqli_real_escape_string($db, $_POST['id_kasus']);
+        $tersangka = mysqli_real_escape_string($db, $_POST['tersangka']);
+        $kasus = mysqli_real_escape_string($db, $_POST['kasus']);
+        $kec = mysqli_real_escape_string($db, $_POST['kec']);
+        $kel = mysqli_real_escape_string($db, $_POST['kel']);
+        $alamat_lengkap = mysqli_real_escape_string($db, $_POST['alamat_lengkap']);
 
-    // Handle file upload
-    $file_bukti = '';
-    if (isset($_FILES['file_bukti']) && $_FILES['file_bukti']['error'] == 0) {
-        $upload_dir = 'uploads/laporan_Ditresnarkoba/';
-
-        // Create directory if not exists
-        if (!is_dir($upload_dir)) {
-            mkdir($upload_dir, 0777, true);
-        }
-
-        $file_name = $_FILES['file_bukti']['name'];
-        $file_tmp = $_FILES['file_bukti']['tmp_name'];
-        $file_size = $_FILES['file_bukti']['size'];
-        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
-        // Validasi extension
-        $allowed_ext = array('jpg', 'jpeg', 'png', 'gif', 'pdf', 'doc', 'docx');
-        if (in_array($file_ext, $allowed_ext)) {
-            // Validasi size (max 10MB)
-            if ($file_size <= 10485760) {
-                $new_file_name = 'bukti_' . uniqid() . '_' . time() . '.' . $file_ext;
-                $upload_path = $upload_dir . $new_file_name;
-
-                if (move_uploaded_file($file_tmp, $upload_path)) {
-                    $file_bukti = $upload_path;
-                } else {
-                    $error_message = 'Gagal mengupload file!';
-                }
-            } else {
-                $error_message = 'Ukuran file terlalu besar (max 10MB)!';
-            }
-        } else {
-            $error_message = 'Format file tidak diizinkan!';
-        }
-    }
-
-    // Insert ke database (menggunakan tabel laporan_samapta karena strukturnya mirip)
-    // Tapi bisa dibuat tabel baru laporan_Ditresnarkoba jika diperlukan
-    if (empty($error_message)) {
-        $query = "INSERT INTO laporan_samapta 
-                  (tanggal_lapor, nama_petugas, nrp_petugas, pangkat_petugas, jenis_kegiatan, kronologi, lokasi, jumlah_tersangka, rincian_barang_bukti, file_bukti, status_verifikasi, asal_laporan) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'baru', 'Ditresnarkoba Internal')";
-
+        $query = "UPDATE kasus SET tersangka=?, kasus=?, kec=?, kel=?, alamat_lengkap=? WHERE id_kasus=?";
         $stmt = mysqli_prepare($db, $query);
-        mysqli_stmt_bind_param($stmt, "sssssssis", $tanggal_kegiatan, $nama_petugas, $nrp_petugas, $pangkat_petugas, $jenis_kegiatan, $kronologi, $lokasi, $jumlah_tersangka, $rincian_barang_bukti, $file_bukti);
+        mysqli_stmt_bind_param($stmt, "issssi", $tersangka, $kasus, $kec, $kel, $alamat_lengkap, $id_kasus);
 
         if (mysqli_stmt_execute($stmt)) {
-            $success_message = 'Laporan kegiatan berhasil disimpan!';
+            $success_message = 'Data kasus berhasil diupdate!';
+            echo '<script>setTimeout(function(){ window.location.href = "dash.php?page=input-laporan-Ditresnarkoba&success=2"; }, 2000);</script>';
+        } else {
+            $error_message = 'Gagal mengupdate data kasus: ' . mysqli_error($db);
+        }
 
-            // Redirect to prevent resubmit
+        mysqli_stmt_close($stmt);
+    } else {
+        // Insert new data
+        $tersangka = mysqli_real_escape_string($db, $_POST['tersangka']);
+        $kasus = mysqli_real_escape_string($db, $_POST['kasus']);
+        $kec = mysqli_real_escape_string($db, $_POST['kec']);
+        $kel = mysqli_real_escape_string($db, $_POST['kel']);
+        $alamat_lengkap = mysqli_real_escape_string($db, $_POST['alamat_lengkap']);
+
+        $query = "INSERT INTO kasus (tersangka, kasus, kec, kel, alamat_lengkap)
+                  VALUES (?, ?, ?, ?, ?)";
+
+        $stmt = mysqli_prepare($db, $query);
+        mysqli_stmt_bind_param($stmt, "issss", $tersangka, $kasus, $kec, $kel, $alamat_lengkap);
+
+        if (mysqli_stmt_execute($stmt)) {
+            $success_message = 'Data kasus berhasil disimpan!';
             echo '<script>setTimeout(function(){ window.location.href = "dash.php?page=input-laporan-Ditresnarkoba&success=1"; }, 2000);</script>';
         } else {
-            $error_message = 'Gagal menyimpan laporan: ' . mysqli_error($db);
+            $error_message = 'Gagal menyimpan data kasus: ' . mysqli_error($db);
         }
 
         mysqli_stmt_close($stmt);
@@ -83,11 +59,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 // Show success message from redirect
 if (isset($_GET['success'])) {
-    $success_message = 'Laporan kegiatan berhasil disimpan!';
+    if ($_GET['success'] == 1) {
+        $success_message = 'Data kasus berhasil disimpan!';
+    } elseif ($_GET['success'] == 2) {
+        $success_message = 'Data kasus berhasil diupdate!';
+    }
 }
-
-// Get petugas info from session
-$nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
 ?>
 
 <style>
@@ -156,44 +133,6 @@ $nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
         color: #ffffff;
     }
 
-    .file-upload-wrapper {
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-        width: 100%;
-    }
-
-    .file-upload-label {
-        display: block;
-        padding: 15px 20px;
-        background: #f8f9fa;
-        border: 2px dashed #FFD700;
-        border-radius: 8px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s ease;
-    }
-
-    .file-upload-label:hover {
-        background: #fffef0;
-        border-color: #1a1f3a;
-    }
-
-    .file-upload-label i {
-        font-size: 2rem;
-        color: #1a1f3a;
-        margin-bottom: 10px;
-    }
-
-    .file-info {
-        margin-top: 10px;
-        padding: 10px;
-        background: #fffef0;
-        border-left: 4px solid #FFD700;
-        border-radius: 5px;
-        display: none;
-    }
-
     .required-mark {
         color: #dc3545;
         font-weight: bold;
@@ -212,12 +151,12 @@ $nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
     <div class="row">
         <div class="col-md-6 col-sm-12">
             <div class="title">
-                <h4>Input Laporan Kegiatan Ditresnarkoba</h4>
+                <h4>Input Data Kasus Ditresnarkoba</h4>
             </div>
             <nav aria-label="breadcrumb" role="navigation">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dash.php">Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Input Laporan</li>
+                    <li class="breadcrumb-item active" aria-current="page">Input Data Kasus</li>
                 </ol>
             </nav>
         </div>
@@ -250,160 +189,79 @@ $nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
 
 <!-- Info Box -->
 <div class="info-box">
-    <h4>📋 Laporan Kegiatan Internal</h4>
-    <p>Form ini digunakan untuk melaporkan kegiatan internal Ditresnarkoba seperti penangkapan, pengungkapan kasus, pengawalan, dan kegiatan operasional lainnya.</p>
+    <h4>📋 Input Data Kasus Narkoba</h4>
+    <p>Form ini digunakan untuk menginput data kasus narkoba yang ditangani oleh Ditresnarkoba, termasuk informasi tersangka, jenis kasus, dan lokasi kejadian.</p>
 </div>
 
 <!-- Form Input -->
-<form method="POST" enctype="multipart/form-data" id="form-laporan">
+<form method="POST" id="form-kasus">
 
-    <!-- Section 1: Informasi Kegiatan -->
+    <!-- Section 1: Informasi Kasus -->
     <div class="form-section">
-        <h5>📅 Informasi Kegiatan</h5>
+        <h5>🔍 Informasi Kasus</h5>
         <div class="row">
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="form-group">
-                    <label>Tanggal Kegiatan <span class="required-mark">*</span></label>
-                    <input class="form-control" type="datetime-local" name="tanggal_kegiatan" required>
-                    <small class="form-text text-muted">Tanggal dan waktu pelaksanaan kegiatan</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>No. Sprint/Surat <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="no_sprint"
-                        placeholder="Contoh: SPRINT-001/2025"
+                    <label>Jenis Kasus <span class="required-mark">*</span></label>
+                    <input class="form-control" type="text" name="kasus"
+                        placeholder="Contoh: Penyalahgunaan Narkotika Golongan I"
                         required>
-                    <small class="form-text text-muted">Nomor sprint atau nomor surat tugas</small>
+                    <small class="form-text text-muted">Sebutkan jenis/kategori kasus narkoba</small>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Lokasi Kegiatan <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="lokasi"
-                        placeholder="Alamat lengkap lokasi"
-                        required>
-                </div>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label>Jenis Kegiatan <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="jenis_kegiatan"
-                        placeholder="Contoh: Penangkapan, Pengungkapan, Razia, Patroli, dll"
-                        required>
-                    <small class="form-text text-muted">Sebutkan jenis kegiatan yang dilakukan</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Section 2: Informasi Petugas -->
-    <div class="form-section">
-        <h5>👮 Informasi Petugas</h5>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Nama Petugas <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="nama_petugas"
-                        value="<?php echo htmlspecialchars($nama_petugas_default); ?>"
-                        placeholder="Nama lengkap petugas"
-                        required>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>NRP <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="nrp_petugas"
-                        placeholder="Contoh: 85010123"
-                        required>
-                    <small class="form-text text-muted">Nomor Registrasi Pokok</small>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label>Pangkat <span class="required-mark">*</span></label>
-                    <select class="form-control" name="pangkat_petugas" required>
-                        <option value="">-- Pilih Pangkat --</option>
-                        <option value="AKBP">AKBP</option>
-                        <option value="Kompol">Kompol</option>
-                        <option value="AKP">AKP</option>
-                        <option value="Iptu">Iptu</option>
-                        <option value="Aiptu">Aiptu</option>
-                        <option value="Ipda">Ipda</option>
-                        <option value="Aipda">Aipda</option>
-                        <option value="Bripka">Bripka</option>
-                        <option value="Brigadir">Brigadir</option>
-                        <option value="Abrip">Abrip</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Section 3: Kronologi & Detail -->
-    <div class="form-section">
-        <h5>📝 Kronologi & Detail Kegiatan</h5>
-
-        <div class="form-group">
-            <label>Kronologi Kegiatan <span class="required-mark">*</span></label>
-            <textarea class="form-control" name="kronologi" rows="8"
-                placeholder="Jelaskan secara detail kronologi kegiatan:&#10;- Waktu pelaksanaan&#10;- Proses kegiatan&#10;- Hasil yang dicapai&#10;- Kendala yang dihadapi (jika ada)&#10;- Informasi tambahan"
-                required></textarea>
-            <small class="form-text text-muted">Jelaskan kronologi kegiatan secara lengkap dan detail</small>
-        </div>
-
-        <div class="row">
             <div class="col-md-6">
                 <div class="form-group">
                     <label>Jumlah Tersangka <span class="required-mark">*</span></label>
                     <div class="input-group">
-                        <input class="form-control" type="number" name="jumlah_tersangka"
+                        <input class="form-control" type="number" name="tersangka"
                             value="0" min="0" required>
                         <div class="input-group-append">
                             <span class="input-group-text">orang</span>
                         </div>
                     </div>
-                    <small class="form-text text-muted">Jumlah tersangka yang diamankan (isi 0 jika tidak ada)</small>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label>Rincian Barang Bukti <span class="required-mark">*</span></label>
-                    <input class="form-control" type="text" name="rincian_barang_bukti"
-                        placeholder="Contoh: 20 gram sabu-sabu, 5 butir ekstasi"
-                        required>
-                    <small class="form-text text-muted">Sebutkan jenis dan jumlah barang bukti (isi '-' jika tidak ada)</small>
+                    <small class="form-text text-muted">Jumlah tersangka yang terlibat dalam kasus ini</small>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Section 4: Upload File -->
+    <!-- Section 2: Lokasi Kejadian -->
     <div class="form-section">
-        <h5>📎 Upload File Bukti</h5>
-        <p class="text-muted mb-3">Upload dokumentasi kegiatan (foto, dokumen, atau laporan). Maksimal 10MB.</p>
-
-        <div class="file-upload-wrapper">
-            <input type="file" name="file_bukti" id="file-input" accept="image/*,.pdf,.doc,.docx">
-            <label for="file-input" class="file-upload-label">
-                <i class="icon-copy dw dw-upload"></i>
-                <div><strong>Klik untuk upload file</strong></div>
-                <div class="small mt-2 text-muted">Format: JPG, PNG, PDF, DOC, DOCX | Max: 10MB</div>
-            </label>
+        <h5>📍 Lokasi Kejadian</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Kecamatan <span class="required-mark">*</span></label>
+                    <input class="form-control" type="text" name="kec"
+                        placeholder="Nama Kecamatan"
+                        required>
+                    <small class="form-text text-muted">Kecamatan tempat kejadian</small>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>Kelurahan/Desa <span class="required-mark">*</span></label>
+                    <input class="form-control" type="text" name="kel"
+                        placeholder="Nama Kelurahan/Desa"
+                        required>
+                    <small class="form-text text-muted">Kelurahan atau desa tempat kejadian</small>
+                </div>
+            </div>
         </div>
 
-        <div class="file-info" id="file-info">
-            <strong>File terpilih:</strong> <span id="file-name"></span> (<span id="file-size"></span>)
+        <div class="form-group">
+            <label>Alamat Lengkap <span class="required-mark">*</span></label>
+            <textarea class="form-control" name="alamat_lengkap" rows="3"
+                placeholder="Alamat lengkap lokasi kejadian (RT/RW, nama jalan, patokan, dll)"
+                required></textarea>
+            <small class="form-text text-muted">Jelaskan alamat lengkap lokasi kejadian secara detail</small>
         </div>
     </div>
 
     <!-- Submit Button -->
     <div class="form-section text-center">
         <button type="submit" class="btn btn-submit" id="submit-btn">
-            <i class="icon-copy dw dw-diskette"></i> Simpan Laporan Kegiatan
+            <i class="icon-copy dw dw-diskette"></i> Simpan Data Kasus
         </button>
         <button type="reset" class="btn btn-secondary ml-2">
             <i class="icon-copy dw dw-refresh"></i> Reset Form
@@ -412,96 +270,231 @@ $nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
 
 </form>
 
-<!-- Recent Reports -->
+<!-- Recent Data Kasus -->
 <div class="card mt-4" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border-top: 4px solid #FFD700;">
     <div class="card-header" style="background: #1a1f3a; color: white; border-radius: 15px 15px 0 0;">
-        <h5 class="mb-0" style="color: #FFD700;"><i class="icon-copy dw dw-file"></i> Laporan Kegiatan Terbaru</h5>
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0" style="color: #FFD700;"><i class="icon-copy dw dw-file"></i> Data Kasus</h5>
+            <button type="button" class="btn btn-success btn-sm" id="btnExportExcel">
+                <i class="icon-copy fa fa-file-excel-o"></i> Export Excel
+            </button>
+        </div>
     </div>
     <div class="card-body">
+        <!-- Filter Section -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="filterKec" style="font-weight: 600;">Filter Kecamatan:</label>
+                    <select class="form-control" id="filterKec">
+                        <option value="">-- Semua Kecamatan --</option>
+                        <?php
+                        // Get unique kecamatan
+                        $query_kec = "SELECT DISTINCT kec FROM kasus WHERE kec IS NOT NULL AND kec != '' ORDER BY kec ASC";
+                        $result_kec = mysqli_query($db, $query_kec);
+                        while ($kec_row = mysqli_fetch_assoc($result_kec)):
+                        ?>
+                            <option value="<?php echo htmlspecialchars($kec_row['kec']); ?>">
+                                <?php echo htmlspecialchars($kec_row['kec']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="filterKel" style="font-weight: 600;">Filter Kelurahan:</label>
+                    <select class="form-control" id="filterKel">
+                        <option value="">-- Semua Kelurahan --</option>
+                        <?php
+                        // Get unique kelurahan
+                        $query_kel = "SELECT DISTINCT kel FROM kasus WHERE kel IS NOT NULL AND kel != '' ORDER BY kel ASC";
+                        $result_kel = mysqli_query($db, $query_kel);
+                        while ($kel_row = mysqli_fetch_assoc($result_kel)):
+                        ?>
+                            <option value="<?php echo htmlspecialchars($kel_row['kel']); ?>">
+                                <?php echo htmlspecialchars($kel_row['kel']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600;">&nbsp;</label>
+                    <button type="button" class="btn btn-secondary btn-block" id="btnResetFilter">
+                        <i class="icon-copy dw dw-refresh"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover" id="tableKasus">
                 <thead style="background: #f8f9fa;">
                     <tr>
                         <th width="50">No</th>
-                        <th>Tanggal</th>
-                        <th>Jenis Kegiatan</th>
-                        <th>Petugas</th>
-                        <th>Lokasi</th>
-                        <th width="100">Tersangka</th>
-                        <th width="120">Status</th>
+                        <th>Jenis Kasus</th>
+                        <th width="120">Tersangka</th>
+                        <th>Kecamatan</th>
+                        <th>Kelurahan</th>
+                        <th>Alamat</th>
+                        <th width="100">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbodyKasus">
                     <?php
-                    // Get recent reports (from laporan_samapta with asal_laporan = 'Ditresnarkoba Internal')
-                    $query_recent = "SELECT * FROM laporan_samapta 
-                                    WHERE asal_laporan = 'Ditresnarkoba Internal'
-                                    ORDER BY tanggal_lapor DESC 
-                                    LIMIT 5";
+                    // Get all data from kasus table
+                    $query_recent = "SELECT * FROM kasus ORDER BY id_kasus DESC";
                     $result_recent = mysqli_query($db, $query_recent);
 
                     $no = 1;
                     if (mysqli_num_rows($result_recent) > 0):
                         while ($row = mysqli_fetch_assoc($result_recent)):
-                            $status_class = 'secondary';
-                            if ($row['status_verifikasi'] == 'baru') $status_class = 'warning';
-                            elseif ($row['status_verifikasi'] == 'diproses') $status_class = 'info';
-                            elseif ($row['status_verifikasi'] == 'selesai') $status_class = 'success';
                     ?>
-                            <tr>
+                            <tr data-kec="<?php echo htmlspecialchars($row['kec']); ?>"
+                                data-kel="<?php echo htmlspecialchars($row['kel']); ?>">
                                 <td><?php echo $no++; ?></td>
-                                <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
-                                <td><strong><?php echo htmlspecialchars($row['jenis_kegiatan']); ?></strong></td>
-                                <td><?php echo htmlspecialchars($row['pangkat_petugas'] . ' ' . $row['nama_petugas']); ?></td>
-                                <td><?php echo htmlspecialchars($row['lokasi']); ?></td>
-                                <td class="text-center"><?php echo $row['jumlah_tersangka']; ?> orang</td>
+                                <td><strong><?php echo htmlspecialchars($row['kasus']); ?></strong></td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary"><?php echo $row['tersangka']; ?> orang</span>
+                                </td>
+                                <td><?php echo htmlspecialchars($row['kec']); ?></td>
+                                <td><?php echo htmlspecialchars($row['kel']); ?></td>
+                                <td><?php echo htmlspecialchars(substr($row['alamat_lengkap'], 0, 50)); ?>
+                                    <?php if (strlen($row['alamat_lengkap']) > 50) echo '...'; ?>
+                                </td>
                                 <td>
-                                    <span class="badge badge-<?php echo $status_class; ?>">
-                                        <?php echo ucfirst($row['status_verifikasi']); ?>
-                                    </span>
+                                    <button class="btn btn-sm btn-warning btn-edit-kasus"
+                                        data-id="<?php echo $row['id_kasus']; ?>"
+                                        data-kasus="<?php echo htmlspecialchars($row['kasus'], ENT_QUOTES); ?>"
+                                        data-tersangka="<?php echo $row['tersangka']; ?>"
+                                        data-kec="<?php echo htmlspecialchars($row['kec'], ENT_QUOTES); ?>"
+                                        data-kel="<?php echo htmlspecialchars($row['kel'], ENT_QUOTES); ?>"
+                                        data-alamat="<?php echo htmlspecialchars($row['alamat_lengkap'], ENT_QUOTES); ?>"
+                                        title="Edit">
+                                        <i class="icon-copy dw dw-edit2"></i>
+                                    </button>
                                 </td>
                             </tr>
                         <?php
                         endwhile;
                     else:
                         ?>
-                        <tr>
+                        <tr id="noDataRow">
                             <td colspan="7" class="text-center py-4 text-muted">
                                 <i class="icon-copy dw dw-file" style="font-size: 3rem; opacity: 0.3;"></i>
-                                <p class="mb-0 mt-2">Belum ada laporan kegiatan</p>
+                                <p class="mb-0 mt-2">Belum ada data kasus</p>
                             </td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
             </table>
         </div>
+
+        <div id="filterInfo" class="mt-2 text-muted" style="display: none;">
+            <small><i class="icon-copy dw dw-info"></i> Menampilkan <strong id="countFiltered">0</strong> dari <strong id="countTotal">0</strong> data</small>
+        </div>
     </div>
 </div>
 
+<!-- Modal Edit Kasus -->
+<div class="modal fade" id="modalEditKasus" tabindex="-1" role="dialog" aria-labelledby="modalEditKasusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1a1f3a; color: white;">
+                <h5 class="modal-title" id="modalEditKasusLabel" style="color: #FFD700;">
+                    <i class="icon-copy dw dw-edit2"></i> Edit Data Kasus
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: white;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="POST" id="formEditKasus">
+                <input type="hidden" name="action" value="edit">
+                <input type="hidden" name="id_kasus" id="edit_id_kasus">
+
+                <div class="modal-body">
+                    <!-- Informasi Kasus -->
+                    <div class="form-section" style="padding: 20px; margin-bottom: 0;">
+                        <h6 style="color: #1a1f3a; font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid #FFD700; padding-bottom: 8px;">
+                            🔍 Informasi Kasus
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jenis Kasus <span class="required-mark">*</span></label>
+                                    <input class="form-control" type="text" name="kasus" id="edit_kasus"
+                                        placeholder="Contoh: Penyalahgunaan Narkotika Golongan I"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jumlah Tersangka <span class="required-mark">*</span></label>
+                                    <div class="input-group">
+                                        <input class="form-control" type="number" name="tersangka" id="edit_tersangka"
+                                            value="0" min="0" required>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text">orang</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lokasi Kejadian -->
+                    <div class="form-section" style="padding: 20px; margin-bottom: 0;">
+                        <h6 style="color: #1a1f3a; font-weight: 700; margin-bottom: 15px; border-bottom: 2px solid #FFD700; padding-bottom: 8px;">
+                            📍 Lokasi Kejadian
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Kecamatan <span class="required-mark">*</span></label>
+                                    <input class="form-control" type="text" name="kec" id="edit_kec"
+                                        placeholder="Nama Kecamatan"
+                                        required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Kelurahan/Desa <span class="required-mark">*</span></label>
+                                    <input class="form-control" type="text" name="kel" id="edit_kel"
+                                        placeholder="Nama Kelurahan/Desa"
+                                        required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Alamat Lengkap <span class="required-mark">*</span></label>
+                            <textarea class="form-control" name="alamat_lengkap" id="edit_alamat_lengkap" rows="3"
+                                placeholder="Alamat lengkap lokasi kejadian (RT/RW, nama jalan, patokan, dll)"
+                                required></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="icon-copy dw dw-close"></i> Batal
+                    </button>
+                    <button type="submit" class="btn btn-submit" id="btnUpdateKasus">
+                        <i class="icon-copy dw dw-diskette"></i> Update Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
 <script>
-    // File input change handler
-    document.getElementById('file-input').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            const fileInfo = document.getElementById('file-info');
-            const fileName = document.getElementById('file-name');
-            const fileSize = document.getElementById('file-size');
-
-            fileName.textContent = file.name;
-            fileSize.textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
-            fileInfo.style.display = 'block';
-
-            // Validate file size
-            if (file.size > 10485760) {
-                alert('Ukuran file terlalu besar! Maksimal 10MB.');
-                e.target.value = '';
-                fileInfo.style.display = 'none';
-            }
-        }
-    });
-
     // Form submit handler
-    document.getElementById('form-laporan').addEventListener('submit', function(e) {
+    document.getElementById('form-kasus').addEventListener('submit', function(e) {
         const submitBtn = document.getElementById('submit-btn');
         submitBtn.innerHTML = '<i class="icon-copy dw dw-loading"></i> Menyimpan...';
         submitBtn.disabled = true;
@@ -512,8 +505,227 @@ $nama_petugas_default = isset($_SESSION['nama']) ? $_SESSION['nama'] : '';
         $('.alert').fadeOut('slow');
     }, 5000);
 
-    // Set default datetime to now
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.querySelector('input[name="tanggal_kegiatan"]').value = now.toISOString().slice(0, 16);
+    // Form validation
+    document.getElementById('form-kasus').addEventListener('submit', function(e) {
+        const tersangka = document.querySelector('input[name="tersangka"]').value;
+        if (tersangka < 0) {
+            e.preventDefault();
+            alert('Jumlah tersangka tidak boleh negatif!');
+            return false;
+        }
+    });
+
+    // Filter functionality
+    function filterTable() {
+        const filterKec = document.getElementById('filterKec').value.toLowerCase();
+        const filterKel = document.getElementById('filterKel').value.toLowerCase();
+        const tbody = document.getElementById('tbodyKasus');
+        const rows = tbody.getElementsByTagName('tr');
+
+        let visibleCount = 0;
+        let totalCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            // Skip no data row
+            if (row.id === 'noDataRow') continue;
+
+            totalCount++;
+
+            const kec = (row.getAttribute('data-kec') || '').toLowerCase();
+            const kel = (row.getAttribute('data-kel') || '').toLowerCase();
+
+            let showRow = true;
+
+            // Filter by kecamatan
+            if (filterKec && kec !== filterKec) {
+                showRow = false;
+            }
+
+            // Filter by kelurahan
+            if (filterKel && kel !== filterKel) {
+                showRow = false;
+            }
+
+            // Show/hide row
+            if (showRow) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+
+        // Update row numbers
+        updateRowNumbers();
+
+        // Show filter info
+        const filterInfo = document.getElementById('filterInfo');
+        const countFiltered = document.getElementById('countFiltered');
+        const countTotal = document.getElementById('countTotal');
+
+        if (filterKec || filterKel) {
+            filterInfo.style.display = 'block';
+            countFiltered.textContent = visibleCount;
+            countTotal.textContent = totalCount;
+        } else {
+            filterInfo.style.display = 'none';
+        }
+
+        // Show "no data" message if no rows visible
+        const noDataRow = document.getElementById('noDataRow');
+        if (visibleCount === 0 && totalCount > 0) {
+            if (!noDataRow) {
+                const newRow = tbody.insertRow();
+                newRow.id = 'noDataRowFiltered';
+                newRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4 text-muted">
+                        <i class="icon-copy dw dw-search" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mb-0 mt-2">Tidak ada data yang sesuai dengan filter</p>
+                    </td>
+                `;
+            }
+        } else {
+            const filteredNoDataRow = document.getElementById('noDataRowFiltered');
+            if (filteredNoDataRow) {
+                filteredNoDataRow.remove();
+            }
+        }
+    }
+
+    function updateRowNumbers() {
+        const tbody = document.getElementById('tbodyKasus');
+        const rows = tbody.getElementsByTagName('tr');
+        let num = 1;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            if (row.style.display !== 'none' && row.id !== 'noDataRow' && row.id !== 'noDataRowFiltered') {
+                const firstCell = row.getElementsByTagName('td')[0];
+                if (firstCell) {
+                    firstCell.textContent = num++;
+                }
+            }
+        }
+    }
+
+    // Event listeners for filters
+    document.getElementById('filterKec').addEventListener('change', filterTable);
+    document.getElementById('filterKel').addEventListener('change', filterTable);
+
+    // Reset filter
+    document.getElementById('btnResetFilter').addEventListener('click', function() {
+        document.getElementById('filterKec').value = '';
+        document.getElementById('filterKel').value = '';
+        filterTable();
+    });
+
+    // Export to Excel
+    document.getElementById('btnExportExcel').addEventListener('click', function() {
+        const table = document.getElementById('tableKasus');
+        const rows = table.querySelectorAll('tbody tr');
+
+        // Prepare data for export
+        const data = [];
+
+        // Add header
+        data.push(['No', 'Jenis Kasus', 'Jumlah Tersangka', 'Kecamatan', 'Kelurahan', 'Alamat Lengkap']);
+
+        // Add visible rows only
+        let rowNum = 1;
+        rows.forEach(row => {
+            if (row.style.display !== 'none' && row.id !== 'noDataRow' && row.id !== 'noDataRowFiltered') {
+                const cells = row.getElementsByTagName('td');
+                if (cells.length >= 6) {
+                    const jenis = cells[1].textContent.trim();
+                    const tersangka = cells[2].textContent.replace(' orang', '').trim();
+                    const kec = cells[3].textContent.trim();
+                    const kel = cells[4].textContent.trim();
+                    const alamat = row.querySelector('td:nth-child(6)').textContent.trim();
+
+                    data.push([
+                        rowNum++,
+                        jenis,
+                        tersangka,
+                        kec,
+                        kel,
+                        alamat
+                    ]);
+                }
+            }
+        });
+
+        if (data.length <= 1) {
+            alert('Tidak ada data untuk di-export!');
+            return;
+        }
+
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(data);
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 5 },  // No
+            { wch: 40 }, // Jenis Kasus
+            { wch: 15 }, // Tersangka
+            { wch: 20 }, // Kecamatan
+            { wch: 20 }, // Kelurahan
+            { wch: 50 }  // Alamat
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Data Kasus');
+
+        // Generate filename with date
+        const now = new Date();
+        const dateStr = now.getFullYear() + '-' +
+                       String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(now.getDate()).padStart(2, '0');
+        const filename = 'Data_Kasus_Ditresnarkoba_' + dateStr + '.xlsx';
+
+        // Save file
+        XLSX.writeFile(wb, filename);
+    });
+
+    // Initialize count on page load
+    window.addEventListener('load', function() {
+        const tbody = document.getElementById('tbodyKasus');
+        const rows = tbody.querySelectorAll('tr:not(#noDataRow)');
+        document.getElementById('countTotal').textContent = rows.length;
+    });
+
+    // Handle Edit Button Click
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-edit-kasus')) {
+            const btn = e.target.closest('.btn-edit-kasus');
+
+            // Get data from button attributes
+            const id = btn.getAttribute('data-id');
+            const kasus = btn.getAttribute('data-kasus');
+            const tersangka = btn.getAttribute('data-tersangka');
+            const kec = btn.getAttribute('data-kec');
+            const kel = btn.getAttribute('data-kel');
+            const alamat = btn.getAttribute('data-alamat');
+
+            // Fill form with data
+            document.getElementById('edit_id_kasus').value = id;
+            document.getElementById('edit_kasus').value = kasus;
+            document.getElementById('edit_tersangka').value = tersangka;
+            document.getElementById('edit_kec').value = kec;
+            document.getElementById('edit_kel').value = kel;
+            document.getElementById('edit_alamat_lengkap').value = alamat;
+
+            // Show modal
+            $('#modalEditKasus').modal('show');
+        }
+    });
+
+    // Handle Edit Form Submit
+    document.getElementById('formEditKasus').addEventListener('submit', function(e) {
+        const btnUpdate = document.getElementById('btnUpdateKasus');
+        btnUpdate.innerHTML = '<i class="icon-copy dw dw-loading"></i> Mengupdate...';
+        btnUpdate.disabled = true;
+    });
 </script>

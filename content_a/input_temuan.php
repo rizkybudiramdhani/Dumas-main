@@ -15,19 +15,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Proses tambah/update data temuan
     if ($action == 'add' || $action == 'update') {
         $id_temuan = isset($_POST['id_temuan']) ? mysqli_real_escape_string($db, $_POST['id_temuan']) : '';
-        $nama = mysqli_real_escape_string($db, $_POST['nama']);
+        $jenis = mysqli_real_escape_string($db, $_POST['jenis']);
         $jumlah = mysqli_real_escape_string($db, trim($_POST['jumlah']));
 
         if ($action == 'update' && !empty($id_temuan)) {
             // Update data yang sudah ada
-            $query = "UPDATE temuan SET nama = ?, jumlah = ? WHERE id_temuan = ?";
+            $query = "UPDATE temuan SET jenis = ?, jumlah = ? WHERE id_temuan = ?";
             $stmt = mysqli_prepare($db, $query);
-            mysqli_stmt_bind_param($stmt, "ssi", $nama, $jumlah, $id_temuan);
+            mysqli_stmt_bind_param($stmt, "ssi", $jenis, $jumlah, $id_temuan);
         } else {
             // Insert data baru
-            $query = "INSERT INTO temuan (nama, jumlah) VALUES (?, ?)";
+            $query = "INSERT INTO temuan (jenis, jumlah) VALUES (?, ?)";
             $stmt = mysqli_prepare($db, $query);
-            mysqli_stmt_bind_param($stmt, "ss", $nama, $jumlah);
+            mysqli_stmt_bind_param($stmt, "ss", $jenis, $jumlah);
         }
 
         if (mysqli_stmt_execute($stmt)) {
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Ambil semua data temuan untuk ditampilkan
-$query_temuan = "SELECT * FROM temuan ORDER BY nama ASC";
+$query_temuan = "SELECT * FROM temuan ORDER BY jenis ASC";
 $result_temuan = mysqli_query($db, $query_temuan);
 ?>
 
@@ -269,7 +269,7 @@ $result_temuan = mysqli_query($db, $query_temuan);
             <div class="col-md-12">
                 <div class="form-group">
                     <label>Nama Barang Bukti <span class="text-danger">*</span></label>
-                    <input class="form-control" type="text" name="nama" id="nama"
+                    <input class="form-control" type="text" name="jenis" id="jenis"
                            placeholder="Contoh: Sabu-sabu, Ganja, Ekstasi, dll" required>
                     <small class="form-text text-muted">Masukkan jenis/nama barang bukti</small>
                 </div>
@@ -319,15 +319,15 @@ $result_temuan = mysqli_query($db, $query_temuan);
                     ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><strong><?php echo htmlspecialchars($row['nama']); ?></strong></td>
+                            <td><strong><?php echo htmlspecialchars($row['jenis']); ?></strong></td>
                             <td><?php echo htmlspecialchars($row['jumlah']); ?></td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-edit btn-sm"
-                                        onclick="editTemuan(<?php echo $row['id_temuan']; ?>, '<?php echo htmlspecialchars($row['nama'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['jumlah'], ENT_QUOTES); ?>')">
+                                        onclick="editTemuan(<?php echo $row['id_temuan']; ?>, '<?php echo htmlspecialchars($row['jenis'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['jumlah'], ENT_QUOTES); ?>')">
                                     <i class="icon-copy dw dw-edit2"></i> Edit
                                 </button>
                                 <button type="button" class="btn btn-delete btn-sm"
-                                        onclick="deleteTemuan(<?php echo $row['id_temuan']; ?>, '<?php echo htmlspecialchars($row['nama'], ENT_QUOTES); ?>')">
+                                        onclick="deleteTemuan(<?php echo $row['id_temuan']; ?>, '<?php echo htmlspecialchars($row['jenis'], ENT_QUOTES); ?>')">
                                     <i class="icon-copy dw dw-delete-3"></i> Hapus
                                 </button>
                             </td>
@@ -357,9 +357,9 @@ $result_temuan = mysqli_query($db, $query_temuan);
     });
 
     // Fungsi untuk edit data temuan
-    function editTemuan(id, nama, jumlah) {
+    function editTemuan(id, jenis, jumlah) {
         document.getElementById('id_temuan').value = id;
-        document.getElementById('nama').value = nama;
+        document.getElementById('jenis').value = jenis;
         document.getElementById('jumlah').value = jumlah;
         document.getElementById('action').value = 'update';
         document.getElementById('btn-text').textContent = 'Update Data Temuan';
@@ -379,8 +379,8 @@ $result_temuan = mysqli_query($db, $query_temuan);
     }
 
     // Fungsi untuk hapus data temuan
-    function deleteTemuan(id, nama) {
-        if (confirm('Apakah Anda yakin ingin menghapus data temuan "' + nama + '"?')) {
+    function deleteTemuan(id, jenis) {
+        if (confirm('Apakah Anda yakin ingin menghapus data temuan "' + jenis + '"?')) {
             const form = document.createElement('form');
             form.method = 'POST';
             form.innerHTML = `

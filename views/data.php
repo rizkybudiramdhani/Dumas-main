@@ -6,25 +6,40 @@ include_once 'config/koneksi.php';
 if (!isset($db) || $db === false) {
     // Jika koneksi gagal, set $data_rinci ke default dan hentikan eksekusi query
     $data_rinci = [
-        'jumlah_laporan' => 0, 'tersangka_penyidikan' => 0, 'tersangka_rehabilitasi' => 0,
-        'bb_sabu' => 0, 'bb_ekstasi' => 0, 'bb_ganja' => 0, 'bb_pohon_ganja' => 0,
-        'bb_kokain' => 0, 'bb_heroin' => 0, 'bb_happy_five' => 0, 'bb_pil_alprazolam' => 0,
-        'bb_ketamin' => 0, 'bb_liquid_vape' => 0, 'last_updated' => date('Y-m-d H:i:s')
+        'jumlah_laporan' => 0,
+        'tersangka_penyidikan' => 0,
+        'tersangka_rehabilitasi' => 0,
+        'barang_bukti' => [],
+        'last_updated' => date('Y-m-d H:i:s')
     ];
 } else {
-    // Query data pengungkapan
-    $query_rinci = "SELECT * FROM temuan WHERE id_temuan  = 1";
-    $result_rinci = mysqli_query($db, $query_rinci);
-    $data_rinci = mysqli_fetch_assoc($result_rinci);
+    // Query jumlah laporan dari tabel lapmas
+    $query_laporan = "SELECT COUNT(*) as total_laporan FROM lapmas WHERE status NOT IN ('Ditolak')";
+    $result_laporan = mysqli_query($db, $query_laporan);
+    $data_laporan = mysqli_fetch_assoc($result_laporan);
+    
 
-    if (!$data_rinci) {
-        $data_rinci = [
-            'jumlah_laporan' => 0, 'tersangka_penyidikan' => 0, 'tersangka_rehabilitasi' => 0,
-            'bb_sabu' => 0, 'bb_ekstasi' => 0, 'bb_ganja' => 0, 'bb_pohon_ganja' => 0,
-            'bb_kokain' => 0, 'bb_heroin' => 0, 'bb_happy_five' => 0, 'bb_pil_alprazolam' => 0,
-            'bb_ketamin' => 0, 'bb_liquid_vape' => 0, 'last_updated' => date('Y-m-d H:i:s')
+    // Query untuk menghitung barang bukti berdasarkan jenis (dinamis)
+    $query_bb = "SELECT jenis, SUM(CAST(jumlah AS DECIMAL(10,2))) as total_jumlah FROM temuan WHERE jenis IS NOT NULL AND jenis != '' GROUP BY jenis ORDER BY jenis ASC";
+    $result_bb = mysqli_query($db, $query_bb);
+
+    // Array untuk menyimpan barang bukti dinamis
+    $barang_bukti = [];
+    while($row = mysqli_fetch_assoc($result_bb)) {
+        $barang_bukti[] = [
+            'jenis' => $row['jenis'],
+            'jumlah' => $row['total_jumlah']
         ];
     }
+
+    // Susun data_rinci
+    $data_rinci = [
+        'jumlah_laporan' => $data_laporan['total_laporan'] ?? 0,
+        'tersangka_penyidikan' => $data_tersangka['total_tersangka'] ?? 0,
+        'tersangka_rehabilitasi' => 0, // Sesuaikan jika ada data rehabilitasi
+        'barang_bukti' => $barang_bukti,
+        'last_updated' => date('Y-m-d H:i:s')
+    ];
 }
 ?>
 
@@ -134,8 +149,8 @@ if (!isset($db) || $db === false) {
                     
                     <h4 class="data-title border-bottom border-secondary pb-2 mb-4">A. Jumlah Laporan dan Tersangka</h4>
                     <div class="row mb-5">
-                        
-                        <div class="col-md-4 mb-3">
+
+                        <div class="col-md-6 mb-3">
                             <div class="data-box p-3 rounded d-flex justify-content-between align-items-center">
                                 <div>
                                     <p class="text-muted-light mb-1 small">Laporan Polisi</p>
@@ -146,11 +161,11 @@ if (!isset($db) || $db === false) {
                                 <i class="bi bi-file-earmark-bar-graph fs-2 text-muted-light"></i>
                             </div>
                         </div>
-                        
-                        <div class="col-md-4 mb-3">
+
+                        <div class="col-md-6 mb-3">
                             <div class="data-box p-3 rounded d-flex justify-content-between align-items-center">
                                 <div>
-                                    <p class="text-muted-light mb-1 small">Tersangka (Penyidikan)</p>
+                                    <p class="text-muted-light mb-1 small">Tersangka</p>
                                     <h4 class="fw-bold mb-0 text-primary">
                                         <?= number_format($data_rinci['tersangka_penyidikan']); ?>
                                     </h4>
@@ -158,66 +173,77 @@ if (!isset($db) || $db === false) {
                                 <i class="bi bi-person-fill fs-2 text-muted-light"></i>
                             </div>
                         </div>
-                        
-                        <div class="col-md-4 mb-3">
-                            <div class="data-box p-3 rounded d-flex justify-content-between align-items-center">
-                                <div>
-                                    <p class="text-muted-light mb-1 small">Tersangka (Rehabilitasi)</p>
-                                    <h4 class="fw-bold mb-0 text-primary">
-                                        <?= number_format($data_rinci['tersangka_rehabilitasi']); ?>
-                                    </h4>
-                                </div>
-                                <i class="bi bi-person-check-fill fs-2 text-muted-light"></i>
-                            </div>
-                        </div>
+
                     </div>
 
                     <h4 class="data-title border-bottom border-secondary pb-2 mb-4">B. Barang Bukti Narkotika</h4>
                     <div class="row">
-                        <div class="col-md-6">
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-capsule me-2 text-muted-light"></i>Sabu-sabu</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_sabu'], 2); ?> g</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-circle-fill me-2 text-muted-light"></i>Ekstasi</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_ekstasi']); ?> butir</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-flower1 me-2 text-muted-light"></i>Ganja</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_ganja'], 2); ?> g</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-tree me-2 text-muted-light"></i>Pohon Ganja</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_pohon_ganja']); ?> btg</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-capsule me-2 text-muted-light"></i>Kokain</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_kokain'], 2); ?> g</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-droplet me-2 text-muted-light"></i>Heroin</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_heroin'], 2); ?> g</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-emoji-dizzy me-2 text-muted-light"></i>Happy Five</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_happy_five']); ?> butir</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-capsule me-2 text-muted-light"></i>Alprazolam</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_pil_alprazolam']); ?> butir</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-droplet me-2 text-muted-light"></i>Ketamin</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_ketamin']); ?> g</strong>
-                            </div>
-                            <div class="data-row d-flex justify-content-between py-2 border-bottom border-light">
-                                <span><i class="bi bi-cloud me-2 text-muted-light"></i>Liquid Vape</span>
-                                <strong class="data-value"><?= number_format($data_rinci['bb_liquid_vape'], 2); ?> ml</strong>
-                            </div>
-                        </div>
+                        <?php
+                        // Function untuk menentukan ikon berdasarkan jenis narkoba
+                        function getIcon($jenis) {
+                            $jenis_lower = strtolower($jenis);
+                            if(strpos($jenis_lower, 'sabu') !== false) return 'bi-capsule';
+                            if(strpos($jenis_lower, 'ekstasi') !== false) return 'bi-circle-fill';
+                            if(strpos($jenis_lower, 'ganja') !== false && strpos($jenis_lower, 'pohon') === false) return 'bi-flower1';
+                            if(strpos($jenis_lower, 'pohon') !== false) return 'bi-tree';
+                            if(strpos($jenis_lower, 'kokain') !== false) return 'bi-capsule';
+                            if(strpos($jenis_lower, 'heroin') !== false) return 'bi-droplet';
+                            if(strpos($jenis_lower, 'happy') !== false) return 'bi-emoji-dizzy';
+                            if(strpos($jenis_lower, 'alprazolam') !== false) return 'bi-capsule';
+                            if(strpos($jenis_lower, 'ketamin') !== false) return 'bi-droplet';
+                            if(strpos($jenis_lower, 'vape') !== false || strpos($jenis_lower, 'liquid') !== false) return 'bi-cloud';
+                            return 'bi-capsule'; // default icon
+                        }
+
+                        // Function untuk menentukan satuan (semua dalam gram)
+                        function getSatuan() {
+                            return 'gram'; // semua dalam satuan gram
+                        }
+
+                        // Tampilkan barang bukti dinamis
+                        if(!empty($data_rinci['barang_bukti'])) {
+                            $total_items = count($data_rinci['barang_bukti']);
+                            $half = ceil($total_items / 2);
+
+                            // Kolom kiri
+                            echo '<div class="col-md-6">';
+                            for($i = 0; $i < $half; $i++) {
+                                if(isset($data_rinci['barang_bukti'][$i])) {
+                                    $item = $data_rinci['barang_bukti'][$i];
+                                    $icon = getIcon($item['jenis']);
+                                    $satuan = getSatuan();
+                                    $jumlah = number_format($item['jumlah'], 0);
+
+                                    echo '<div class="data-row d-flex justify-content-between py-2 border-bottom border-light">';
+                                    echo '<span><i class="bi '.$icon.' me-2 text-muted-light"></i>'.htmlspecialchars($item['jenis']).'</span>';
+                                    echo '<strong class="data-value">'.$jumlah.' '.$satuan.'</strong>';
+                                    echo '</div>';
+                                }
+                            }
+                            echo '</div>';
+
+                            // Kolom kanan
+                            echo '<div class="col-md-6">';
+                            for($i = $half; $i < $total_items; $i++) {
+                                if(isset($data_rinci['barang_bukti'][$i])) {
+                                    $item = $data_rinci['barang_bukti'][$i];
+                                    $icon = getIcon($item['jenis']);
+                                    $satuan = getSatuan();
+                                    $jumlah = number_format($item['jumlah'], 0);
+
+                                    echo '<div class="data-row d-flex justify-content-between py-2 border-bottom border-light">';
+                                    echo '<span><i class="bi '.$icon.' me-2 text-muted-light"></i>'.htmlspecialchars($item['jenis']).'</span>';
+                                    echo '<strong class="data-value">'.$jumlah.' '.$satuan.'</strong>';
+                                    echo '</div>';
+                                }
+                            }
+                            echo '</div>';
+                        } else {
+                            echo '<div class="col-12 text-center text-muted-light py-3">';
+                            echo '<i class="bi bi-info-circle me-2"></i>Belum ada data barang bukti';
+                            echo '</div>';
+                        }
+                        ?>
                     </div>
 
                     <div class="text-end mt-4 pt-3 border-top">

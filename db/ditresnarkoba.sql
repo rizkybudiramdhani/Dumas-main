@@ -45,6 +45,19 @@ CREATE TABLE IF NOT EXISTS `berita` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table ditresnarkoba.kasus
+CREATE TABLE IF NOT EXISTS `kasus` (
+  `id_kasus` int(11) NOT NULL AUTO_INCREMENT,
+  `tersangka` int(50) DEFAULT NULL,
+  `kasus` varchar(255) DEFAULT NULL,
+  `kec` varchar(255) DEFAULT NULL,
+  `kel` varchar(255) DEFAULT NULL,
+  `alamat_lengkap` varchar(255) DEFAULT '0',
+  PRIMARY KEY (`id_kasus`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table ditresnarkoba.lapbin
 CREATE TABLE IF NOT EXISTS `lapbin` (
   `id_lapbin` int(11) NOT NULL AUTO_INCREMENT,
@@ -58,6 +71,14 @@ CREATE TABLE IF NOT EXISTS `lapbin` (
   `petugas` varchar(255) DEFAULT NULL,
   `pangkat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_lapbin`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table ditresnarkoba.lapditres
+CREATE TABLE IF NOT EXISTS `lapditres` (
+  `id_lapditres` int(11) NOT NULL AUTO_INCREMENT,
+  PRIMARY KEY (`id_lapditres`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
@@ -74,7 +95,7 @@ CREATE TABLE IF NOT EXISTS `lapmas` (
   `status` enum('Baru','Diproses Ditresnarkoba','Diproses Ditsamapta','Diproses Ditbinmas','Selesai','Selesai Ditresnarkoba','Selesai Ditsamapta','Selesai Ditbinmas','Waiting','Ditolak') NOT NULL DEFAULT 'Baru',
   PRIMARY KEY (`id_lapmas`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -85,13 +106,13 @@ CREATE TABLE IF NOT EXISTS `lapsam` (
   `judul` varchar(255) DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `kegiatan` varchar(255) DEFAULT NULL,
-  `tanggal` int(11) DEFAULT NULL,
+  `tanggal` timestamp NULL DEFAULT NULL,
   `personil` int(50) DEFAULT NULL,
   `lokasi` varchar(255) DEFAULT NULL,
   `petugas` varchar(255) DEFAULT NULL,
   `pangkat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_lapsam`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
@@ -103,17 +124,17 @@ CREATE TABLE IF NOT EXISTS `respon` (
   `a_respon` varchar(255) DEFAULT NULL,
   `tanggal_respon` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_respon`)
-) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table ditresnarkoba.temuan
 CREATE TABLE IF NOT EXISTS `temuan` (
   `id_temuan` int(11) NOT NULL AUTO_INCREMENT,
-  `nama` varchar(255) DEFAULT NULL,
-  `jumlah` decimal(20,6) DEFAULT NULL,
+  `jenis` varchar(255) NOT NULL,
+  `jumlah` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_temuan`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Data exporting was unselected.
 
