@@ -17,15 +17,15 @@ if (isset($_POST['submit_laporan'])) {
     $lokasi = mysqli_real_escape_string($db, $_POST['lokasi']);
     $personil = (int)$_POST['personil'];
     $status = 'Baru';
-
     if (empty($error_message)) {
         $query = "INSERT INTO lapsam
                   (Id_akun, judul, status, kegiatan, tanggal, personil, lokasi, petugas, pangkat)
                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = mysqli_prepare($db, $query);
-        mysqli_stmt_bind_param($stmt, "isssiisss",
-            $id_akun, $judul, $status, $kegiatan, strtotime($tanggal), $personil, $lokasi, $nama_petugas_input, $pangkat_petugas
+        $tanggal_mysql = date('Y-m-d H:i:s', strtotime($tanggal));
+        mysqli_stmt_bind_param($stmt, "issssisss",
+            $id_akun, $judul, $status, $kegiatan, $tanggal_mysql, $personil, $lokasi, $nama_petugas_input, $pangkat_petugas
         );
 
         if (mysqli_stmt_execute($stmt)) {
@@ -225,9 +225,9 @@ if (isset($_POST['submit_laporan'])) {
             <!-- Lokasi -->
             <div class="col-md-12">
                 <div class="form-group">
-                    <label>📍 Lokasi <span class="text-danger">*</span></label>
+                    <label>📍 Lokasi Lengkap <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" name="lokasi"
-                           placeholder="Contoh: Jl. Gatot Subroto, Medan" required>
+                        placeholder="Contoh: Jl. Gatot Subroto, Kec. Medan Petisah, Kota Medan" required>
                 </div>
             </div>
 
@@ -289,7 +289,7 @@ if (isset($_POST['submit_laporan'])) {
                         while ($row = mysqli_fetch_assoc($result_recent)):
                     ?>
                         <tr>
-                            <td><?php echo date('d/m/Y H:i', $row['tanggal']); ?></td>
+                            <td><?php echo date('d/m/Y H:i', strtotime($row['tanggal']));?></td>
                             <td><?php echo htmlspecialchars($row['judul']); ?></td>
                             <td><?php echo htmlspecialchars(substr($row['lokasi'], 0, 30)); ?><?php echo strlen($row['lokasi']) > 30 ? '...' : ''; ?></td>
                             <td><?php echo $row['personil']; ?> orang</td>

@@ -11,13 +11,13 @@ $params = [];
 $types = '';
 
 if (!empty($filter_dari)) {
-    $query .= " AND DATE(FROM_UNIXTIME(tanggal)) >= ?";
+    $query .= " AND DATE(tanggal) >= ?";
     $params[] = $filter_dari;
     $types .= 's';
 }
 
 if (!empty($filter_sampai)) {
-    $query .= " AND DATE(FROM_UNIXTIME(tanggal)) <= ?";
+    $query .= " AND DATE(tanggal) <= ?";
     $params[] = $filter_sampai;
     $types .= 's';
 }
@@ -36,9 +36,8 @@ if (!empty($filter_jenis)) {
 
 $query .= " ORDER BY tanggal DESC";
 
-// Execute query
 $stmt = mysqli_prepare($db, $query);
-if (!empty($params)) {
+if (!empty($types)) {
     mysqli_stmt_bind_param($stmt, $types, ...$params);
 }
 mysqli_stmt_execute($stmt);
@@ -51,7 +50,7 @@ $query_stats = "SELECT
     SUM(CASE WHEN status = 'diproses' THEN 1 ELSE 0 END) as diproses,
     SUM(CASE WHEN status = 'selesai' THEN 1 ELSE 0 END) as selesai
 FROM lapsam
-WHERE DATE(FROM_UNIXTIME(tanggal)) BETWEEN ? AND ?";
+WHERE DATE(tanggal) BETWEEN ? AND ?";
 
 $stmt_stats = mysqli_prepare($db, $query_stats);
 mysqli_stmt_bind_param($stmt_stats, "ss", $filter_dari, $filter_sampai);
@@ -356,7 +355,7 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                     ?>
                         <tr>
                             <td><?php echo $no++; ?></td>
-                            <td><?php echo date('d/m/Y', $row['tanggal']); ?></td>
+                            <td><?php echo date('d/m/Y', strtotime($row['tanggal'])); ?></td>
                             <td>
                                 <strong><?php echo htmlspecialchars($row['pangkat']); ?></strong><br>
                                 <small><?php echo htmlspecialchars($row['petugas']); ?></small>
