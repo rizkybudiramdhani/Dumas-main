@@ -572,8 +572,15 @@ require_once __DIR__ . '/../config/koneksi.php';
 
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+
+                // Skip if href is just "#" or empty
+                if (!href || href === '#') {
+                    return;
+                }
+
                 e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
+                const target = document.querySelector(href);
                 if (target) {
 
                     const navbarHeight = document.querySelector('.navbar.fixed-top').offsetHeight;
@@ -593,6 +600,77 @@ require_once __DIR__ . '/../config/koneksi.php';
             btnLihatSemuaLaporan.addEventListener('click', function(e) {
                 e.preventDefault();
                 loadSemuaLaporan();
+            });
+        }
+
+        // Manual close button handlers untuk memastikan modal bisa ditutup
+        const modalSemuaLaporan = document.getElementById('modalSemuaLaporan');
+        const modalDetailLapmas = document.getElementById('modalDetailLapmas');
+
+        // Close button untuk Modal Semua Laporan
+        if (modalSemuaLaporan) {
+            const closeBtn = modalSemuaLaporan.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Hapus class show dan backdrop
+                    modalSemuaLaporan.classList.remove('show');
+                    modalSemuaLaporan.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    // Hapus backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                });
+            }
+        }
+
+        // Close button untuk Modal Detail Lapmas
+        if (modalDetailLapmas) {
+            const closeBtn = modalDetailLapmas.querySelector('.btn-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    // Hapus class show dan backdrop
+                    modalDetailLapmas.classList.remove('show');
+                    modalDetailLapmas.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    // Hapus backdrop
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                });
+            }
+        }
+
+        // Close modal saat klik backdrop (area di luar modal)
+        if (modalSemuaLaporan) {
+            modalSemuaLaporan.addEventListener('click', function(e) {
+                if (e.target === modalSemuaLaporan) {
+                    modalSemuaLaporan.classList.remove('show');
+                    modalSemuaLaporan.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            });
+        }
+
+        if (modalDetailLapmas) {
+            modalDetailLapmas.addEventListener('click', function(e) {
+                if (e.target === modalDetailLapmas) {
+                    modalDetailLapmas.classList.remove('show');
+                    modalDetailLapmas.style.display = 'none';
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
             });
         }
     });
@@ -647,8 +725,20 @@ require_once __DIR__ . '/../config/koneksi.php';
         let html = '<div class="laporan-list">';
 
         data.forEach((laporan, index) => {
-            const statusColor = getStatusColor(laporan.status);
-            const statusIcon = getStatusIcon(laporan.status);
+            const statusInfo = getStatusInfo(laporan.status);
+            const statusColor = statusInfo.color;
+            const statusIcon = statusInfo.icon;
+            const statusText = statusInfo.text;
+
+            // Prepare balasan data for modal
+            const balasanData = laporan.balasan ? JSON.stringify([{
+                respon: laporan.balasan,
+                tanggal_respon: laporan.tanggal_balasan,
+                Role: 'Ditresnarkoba'
+            }]) : '[]';
+
+            // Escape data balasan untuk HTML attribute
+            const escapedBalasanData = balasanData.replace(/"/g, '&quot;');
 
             html += `
                 <div class="laporan-card" style="animation-delay: ${index * 0.05}s">
@@ -690,10 +780,18 @@ require_once __DIR__ . '/../config/koneksi.php';
                         ` : ''}
                     </div>
                     <div class="laporan-footer">
-                        <a href="dash-user.php?page=detail-lapmas&id=${laporan.id_lapmas}" class="btn-detail">
+                        <button type="button" class="btn-detail btn-detail-lapmas"
+                                data-id="${laporan.id_lapmas}"
+                                data-judul="${escapeHtml(laporan.judul || '')}"
+                                data-desk="${escapeHtml(laporan.desk || '')}"
+                                data-lokasi="${escapeHtml(laporan.lokasi || '-')}"
+                                data-balasan="${escapedBalasanData}"
+                                data-status="${escapeHtml(statusText)}"
+                                data-warna="${statusColor}"
+                                data-tanggal="${formatDate(laporan.tanggal_lapor)}">
                             <i class="bi bi-eye-fill"></i>
                             Lihat Detail
-                        </a>
+                        </button>
                     </div>
                 </div>
             `;
@@ -703,34 +801,77 @@ require_once __DIR__ . '/../config/koneksi.php';
         content.innerHTML = html;
     }
 
-    function getStatusColor(status) {
+    function getStatusInfo(status) {
         switch (status) {
-            case 'Menunggu':
-                return '#FFD700';
-            case 'Diproses':
-                return '#0d6efd';
+            case 'Baru':
+                return {
+                    color: '#6c757d',
+                    icon: 'bi-file-earmark-plus',
+                    text: 'Laporan Baru'
+                };
+            case 'Waiting':
+                return {
+                    color: '#ffc107',
+                    icon: 'bi-hourglass-split',
+                    text: 'Waiting (Menunggu Final)'
+                };
+            case 'Diproses Ditresnarkoba':
+                return {
+                    color: '#0d6efd',
+                    icon: 'bi-gear-fill',
+                    text: 'Diproses Ditresnarkoba'
+                };
+            case 'Diproses Ditsamapta':
+                return {
+                    color: '#0dcaf0',
+                    icon: 'bi-gear-fill',
+                    text: 'Diproses Ditsamapta'
+                };
+            case 'Diproses Ditbinmas':
+                return {
+                    color: '#fd7e14',
+                    icon: 'bi-gear-fill',
+                    text: 'Diproses Ditbinmas'
+                };
+            case 'Selesai Ditsamapta':
+                return {
+                    color: '#0dcaf0',
+                    icon: 'bi-check-circle-fill',
+                    text: 'Selesai Ditsamapta'
+                };
+            case 'Selesai Ditbinmas':
+                return {
+                    color: '#fd7e14',
+                    icon: 'bi-check-circle-fill',
+                    text: 'Selesai Ditbinmas'
+                };
             case 'Selesai':
-                return '#28a745';
+                return {
+                    color: '#28a745',
+                    icon: 'bi-check-circle-fill',
+                    text: 'Selesai'
+                };
             case 'Ditolak':
-                return '#dc3545';
+                return {
+                    color: '#dc3545',
+                    icon: 'bi-x-circle-fill',
+                    text: 'Ditolak'
+                };
             default:
-                return '#6c757d';
+                return {
+                    color: '#ffc107',
+                    icon: 'bi-hourglass-split',
+                    text: 'Menunggu'
+                };
         }
     }
 
+    function getStatusColor(status) {
+        return getStatusInfo(status).color;
+    }
+
     function getStatusIcon(status) {
-        switch (status) {
-            case 'Menunggu':
-                return 'bi-hourglass-split';
-            case 'Diproses':
-                return 'bi-gear-fill';
-            case 'Selesai':
-                return 'bi-check-circle-fill';
-            case 'Ditolak':
-                return 'bi-x-circle-fill';
-            default:
-                return 'bi-circle-fill';
-        }
+        return getStatusInfo(status).icon;
     }
 
     function formatDate(dateString) {
@@ -867,6 +1008,8 @@ require_once __DIR__ . '/../config/koneksi.php';
         border-radius: 15px 15px 0 0;
         padding: 1.5rem;
         border-bottom: 3px solid #FFD700;
+        position: relative;
+        z-index: 1;
     }
 
     #modalSemuaLaporan .modal-title {
@@ -877,11 +1020,15 @@ require_once __DIR__ . '/../config/koneksi.php';
     #modalSemuaLaporan .btn-close {
         filter: brightness(0) invert(1);
         opacity: 1;
+        z-index: 1050;
+        position: relative;
+        pointer-events: auto;
     }
 
     #modalSemuaLaporan .btn-close:hover {
         transform: rotate(90deg);
         transition: transform 0.3s ease;
+        opacity: 0.8;
     }
 
     #modalSemuaLaporan .modal-body {
@@ -1043,6 +1190,7 @@ require_once __DIR__ . '/../config/koneksi.php';
         font-weight: 600;
         transition: all 0.3s ease;
         border: 2px solid #1a1f3a;
+        cursor: pointer;
     }
 
     .btn-detail:hover {
@@ -1052,6 +1200,27 @@ require_once __DIR__ . '/../config/koneksi.php';
     }
 
     .btn-detail i {
+        font-size: 1.1rem;
+    }
+
+    /* Override untuk button di modal Semua Laporan */
+    .laporan-footer .btn-detail.btn-detail-lapmas {
+        background-color: #1a1f3a;
+        color: white;
+        padding: 0.6rem 1.5rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        border: 2px solid #1a1f3a;
+    }
+
+    .laporan-footer .btn-detail.btn-detail-lapmas:hover {
+        background-color: white;
+        color: #1a1f3a;
+        transform: translateX(5px);
+        box-shadow: none;
+    }
+
+    .laporan-footer .btn-detail.btn-detail-lapmas i {
         font-size: 1.1rem;
     }
 
@@ -1127,6 +1296,8 @@ require_once __DIR__ . '/../config/koneksi.php';
         border-radius: 15px 15px 0 0;
         padding: 1.5rem;
         border-bottom: 3px solid #FFD700;
+        position: relative;
+        z-index: 1;
     }
 
     #modalDetailLapmas .modal-title {
@@ -1136,6 +1307,16 @@ require_once __DIR__ . '/../config/koneksi.php';
 
     #modalDetailLapmas .btn-close {
         filter: brightness(0) invert(1);
+        z-index: 1050;
+        position: relative;
+        pointer-events: auto;
+        opacity: 1;
+    }
+
+    #modalDetailLapmas .btn-close:hover {
+        opacity: 0.8;
+        transform: rotate(90deg);
+        transition: transform 0.3s ease;
     }
 
     #modalDetailLapmas .detail-section {
