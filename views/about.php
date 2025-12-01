@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div class="container">
+    <div class="container pt-3">
         <div class="row g-5 align-items-center">
             <div class="col-lg-7 py-5">
 
@@ -58,8 +58,8 @@
             </div>
 
             <div class="col-lg-5 wow fadeInUp" data-wow-delay="0.5s">
-                <img class="img-fluid mb-3" src="imgg/Ditresnarkoba.png" alt="Ditresnarkoba" style="max-width: 450px; height: auto;">
-                <img class="img-fluid mb-3" src="imgg/ditsam.jpg" alt="Ditsamapta" style="max-width: 450px; height: auto;">
+                <img class="img-fluid mb-3" src="imgg/Ditresnarkoba.jpeg" alt="Ditresnarkoba" style="max-width: 450px; height: auto;">
+                <img class="img-fluid mb-3" src="imgg/ditsam.jpeg" alt="Ditsamapta" style="max-width: 450px; height: auto;">
                 <img class="img-fluid" src="imgg/ditbin.jpeg" alt="Ditbinmas" style="max-width: 450px; height: auto;">
             </div>
         </div>

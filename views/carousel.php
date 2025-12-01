@@ -3,7 +3,7 @@
         <!-- Video Carousel Slides -->
         <div class="hero-item active">
             <video class="w-100 hero-video" muted playsinline preload="auto" autoplay data-video-index="0">
-                <source src="video/Ditbinmas.mp4" type="video/mp4">
+                <source src="video/ditresnarkoba1.mp4" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
             <div class="video-overlay"></div>
@@ -312,9 +312,12 @@
 
             // Array video yang akan diputar secara berurutan
             const videos = [
-                'video/Ditbinmas.mp4',
-                'video/Ditresnarkoba.mp4',
-                'video/Ditsamapta.mp4'
+                'video/ditsamapta1.mp4',
+                'video/ditbinmas1.mp4',
+                'video/ditsamapta2.mp4',
+                'video/ditbinmas2.mp4',
+                'video/ditsamapta3.mp4',
+                'video/ditbinmas3.mp4'
             ];
 
             let currentVideoIndex = 0;
