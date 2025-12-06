@@ -523,6 +523,118 @@ if ($hour < 12) {
     </div>
 </div>
 
+<!-- Data Kasus Narkoba Table -->
+<div class="card table-card mb-30">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">🚨 Data Daerah Rawan Narkoba</h4>
+                <p class="mb-0 small" style="opacity: 0.9;">Statistik kasus narkoba berdasarkan kecamatan</p>
+            </div>
+            <?php if ($role == 'Ditresnarkoba'): ?>
+            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-light btn-sm">
+                <i class="icon-copy dw dw-edit2"></i> Kelola Data
+            </a>
+            <?php endif; ?>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Filter Section -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="filterKecKasus" style="font-weight: 600;">Filter Kecamatan:</label>
+                    <select class="form-control" id="filterKecKasus">
+                        <option value="">-- Semua Kecamatan --</option>
+                        <?php
+                        // Get unique kecamatan for filter
+                        $query_kec_filter = "SELECT DISTINCT kec FROM kasus WHERE kec IS NOT NULL AND kec != '' ORDER BY kec ASC";
+                        $result_kec_filter = mysqli_query($db, $query_kec_filter);
+                        while ($kec_filter_row = mysqli_fetch_assoc($result_kec_filter)):
+                        ?>
+                            <option value="<?php echo htmlspecialchars($kec_filter_row['kec']); ?>">
+                                <?php echo htmlspecialchars($kec_filter_row['kec']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="sortKasusDashboard" style="font-weight: 600;">Urutkan Berdasarkan:</label>
+                    <select class="form-control" id="sortKasusDashboard">
+                        <option value="jumlah_desc">Jumlah Kasus (Terbanyak)</option>
+                        <option value="jumlah_asc">Jumlah Kasus (Tersedikit)</option>
+                        <option value="tersangka_desc">Jumlah Tersangka (Terbanyak)</option>
+                        <option value="tersangka_asc">Jumlah Tersangka (Tersedikit)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600;">&nbsp;</label>
+                    <button type="button" class="btn btn-secondary btn-block" id="btnResetFilterKasus">
+                        <i class="icon-copy dw dw-refresh"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover" id="kasus-table">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        <th class="text-center" width="50">No</th>
+                        <th width="150" class="text-center">Jumlah Kasus</th>
+                        <th width="150" class="text-center">Tersangka</th>
+                        <th>Kecamatan</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyKasusDashboard">
+                    <?php
+                    // Get kasus data sorted by jumlah kasus (terbanyak)
+                    $query_kasus = "SELECT * FROM kasus ORDER BY `jumlah kasus` DESC";
+                    $result_kasus = mysqli_query($db, $query_kasus);
+
+                    $no = 1;
+                    if (mysqli_num_rows($result_kasus) > 0):
+                        while ($row_kasus = mysqli_fetch_assoc($result_kasus)):
+                    ?>
+                            <tr data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>">
+                                <td class="text-center"><?php echo $no++; ?></td>
+                                <td class="text-center">
+                                    <span class="badge badge-info badge-custom" style="font-size: 0.9rem;">
+                                        <?php echo $row_kasus['jumlah kasus']; ?> kasus
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary badge-custom" style="font-size: 0.9rem;">
+                                        <?php echo $row_kasus['tersangka']; ?> orang
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="font-14 weight-600"><?php echo htmlspecialchars($row_kasus['kec']); ?></div>
+                                </td>
+                            </tr>
+                        <?php
+                        endwhile;
+                    else:
+                        ?>
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div style="opacity: 0.5;">
+                                    <i class="icon-copy dw dw-file" style="font-size: 3rem;"></i>
+                                    <p class="mt-3 mb-0">Belum ada data kasus</p>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <!-- ApexCharts Script -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -613,7 +725,7 @@ if ($hour < 12) {
 
     function initDashboardTable() {
     $(document).ready(function() {
-        // Initialize DataTable
+        // Initialize DataTable for Pengaduan
         var table = $('#pengaduan-table').DataTable({
             scrollCollapse: true,
             autoWidth: false,
@@ -641,6 +753,112 @@ if ($hour < 12) {
                 }
             },
             "pageLength": 10
+        });
+
+        // Initialize DataTable for Kasus - disable default DataTable to use custom filter
+        var kasusTable = $('#kasus-table').DataTable({
+            scrollCollapse: true,
+            autoWidth: false,
+            responsive: true,
+            paging: false, // Disable pagination to use custom filter
+            searching: false, // Disable search to use custom filter
+            info: false, // Disable info
+            columnDefs: [{
+                targets: 0,
+                orderable: false,
+            }],
+            "order": [[1, 'desc']] // Sort by Jumlah Kasus (column 1) descending
+        });
+
+        // Custom Filter and Sort for Kasus Table
+        function filterKasusTable() {
+            const filterKec = document.getElementById('filterKecKasus').value.toLowerCase();
+            const sortOption = document.getElementById('sortKasusDashboard').value;
+            const tbody = document.getElementById('tbodyKasusDashboard');
+            const rows = Array.from(tbody.getElementsByTagName('tr'));
+
+            let visibleCount = 0;
+
+            // Filter rows first
+            const filteredRows = [];
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+
+                // Skip no data row
+                if (!row.getAttribute('data-kec')) continue;
+
+                const kec = (row.getAttribute('data-kec') || '').toLowerCase();
+                let showRow = true;
+
+                // Filter by kecamatan
+                if (filterKec && kec !== filterKec) {
+                    showRow = false;
+                }
+
+                if (showRow) {
+                    row.style.display = '';
+                    filteredRows.push(row);
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+
+            // Sort filtered rows
+            if (sortOption && filteredRows.length > 0) {
+                filteredRows.sort((a, b) => {
+                    let valueA, valueB;
+
+                    if (sortOption.startsWith('jumlah_')) {
+                        // Get jumlah kasus from badge text
+                        valueA = parseInt(a.cells[1].textContent.replace(' kasus', '').trim()) || 0;
+                        valueB = parseInt(b.cells[1].textContent.replace(' kasus', '').trim()) || 0;
+                    } else if (sortOption.startsWith('tersangka_')) {
+                        // Get jumlah tersangka from badge text
+                        valueA = parseInt(a.cells[2].textContent.replace(' orang', '').trim()) || 0;
+                        valueB = parseInt(b.cells[2].textContent.replace(' orang', '').trim()) || 0;
+                    }
+
+                    if (sortOption.endsWith('_desc')) {
+                        return valueB - valueA; // Descending
+                    } else {
+                        return valueA - valueB; // Ascending
+                    }
+                });
+
+                // Reorder rows in DOM
+                filteredRows.forEach(row => tbody.appendChild(row));
+            }
+
+            // Update row numbers
+            updateKasusRowNumbers();
+        }
+
+        function updateKasusRowNumbers() {
+            const tbody = document.getElementById('tbodyKasusDashboard');
+            const rows = tbody.getElementsByTagName('tr');
+            let num = 1;
+
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                if (row.style.display !== 'none' && row.getAttribute('data-kec')) {
+                    const firstCell = row.getElementsByTagName('td')[0];
+                    if (firstCell) {
+                        firstCell.textContent = num++;
+                    }
+                }
+            }
+        }
+
+        // Event listeners for kasus filters
+        document.getElementById('filterKecKasus').addEventListener('change', filterKasusTable);
+        document.getElementById('sortKasusDashboard').addEventListener('change', filterKasusTable);
+
+        // Reset kasus filter
+        document.getElementById('btnResetFilterKasus').addEventListener('click', function() {
+            document.getElementById('filterKecKasus').value = '';
+            document.getElementById('sortKasusDashboard').value = 'jumlah_desc';
+            filterKasusTable();
         });
 
         // Make table rows clickable - menggunakan event delegation pada tbody

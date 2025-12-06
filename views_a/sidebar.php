@@ -237,10 +237,10 @@ if ($role == 'Ditbinmas') {
                     </a>
                     <ul class="submenu collapse" id="Ditresnarkoba-menu">
                         <li>
-                            <a href="dash.php?page=input-pengungkapan" class="<?php echo $current_page == 'input-pengungkapan' ? 'active' : ''; ?>">Input Pengungkapan</a>
+                            <a href="dash.php?page=input-pengungkapan" class="<?php echo $current_page == 'input-pengungkapan' ? 'active' : ''; ?>">Input BB Narkoba</a>
                         </li>
                         <li>
-                            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Kasus</a>
+                            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="<?php echo $current_page == 'input-laporan-Ditresnarkoba' ? 'active' : ''; ?>">Input Data Kasus Narkoba</a>
                         </li>
                     </ul>
                 </li>

@@ -142,6 +142,19 @@ if (isset($_POST['update_status'])) {
         transform: scale(1.1);
         box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
     }
+
+    .export-buttons a {
+        margin-left: 5px;
+        padding: 8px 15px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .export-buttons a:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
 </style>
 
 <!-- Page Header -->
@@ -260,8 +273,16 @@ if (isset($_POST['update_status'])) {
 
 <!-- Table -->
 <div class="card table-card mb-30">
-    <div class="card-header">
+    <div class="card-header d-flex justify-content-between align-items-center">
         <h4 class="mb-0"><i class="icon-copy dw dw-file" style="color: #FFD700;"></i> Daftar Pengaduan Masyarakat</h4>
+        <div class="export-buttons">
+            <a href="content_a/export_pengaduan_excel.php" class="btn btn-success btn-sm" target="_blank">
+                <i class="icon-copy fa fa-file-excel-o"></i> Export Excel
+            </a>
+            <a href="content_a/export_pengaduan_pdf.php" class="btn btn-danger btn-sm" target="_blank">
+                <i class="icon-copy fa fa-file-pdf-o"></i> Export PDF
+            </a>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">

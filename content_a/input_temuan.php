@@ -216,12 +216,12 @@ $result_temuan = mysqli_query($db, $query_temuan);
     <div class="row">
         <div class="col-md-6 col-sm-12">
             <div class="title">
-                <h4>Input Data Temuan Narkoba</h4>
+                <h4>Input Hasil Sitaan BB Narkoba</h4>
             </div>
             <nav aria-label="breadcrumb" role="navigation">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="dash.php">Home</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">Input Temuan</li>
+                    <li class="breadcrumb-item active" aria-current="page">Input BB</li>
                 </ol>
             </nav>
         </div>
@@ -254,13 +254,13 @@ $result_temuan = mysqli_query($db, $query_temuan);
 
 <!-- Info Box -->
 <div class="info-box">
-    <h4>📊 Data Temuan Narkoba</h4>
+    <h4>📊 Hasil Sitaan BB Narkoba</h4>
     <p>Form ini digunakan untuk menginput atau mengupdate data temuan barang bukti narkoba yang ditangani oleh Ditresnarkoba</p>
 </div>
 
 <!-- Form Input Temuan -->
 <div class="form-section">
-    <h5>➕ Tambah / Edit Data Temuan</h5>
+    <h5>➕ Tambah / Edit </h5>
     <form method="POST" id="form-temuan">
         <input type="hidden" name="action" id="action" value="add">
         <input type="hidden" name="id_temuan" id="id_temuan" value="">
@@ -270,7 +270,7 @@ $result_temuan = mysqli_query($db, $query_temuan);
                 <div class="form-group">
                     <label>Nama Barang Bukti <span class="text-danger">*</span></label>
                     <input class="form-control" type="text" name="jenis" id="jenis"
-                           placeholder="Contoh: Sabu-sabu, Ganja, Ekstasi, dll" required>
+                           placeholder="Contoh: Sabu, Ganja, Ekstasi, dll" required>
                     <small class="form-text text-muted">Masukkan jenis/nama barang bukti</small>
                 </div>
             </div>
@@ -288,7 +288,7 @@ $result_temuan = mysqli_query($db, $query_temuan);
 
         <div class="text-center">
             <button type="submit" class="btn btn-save" id="btn-submit">
-                <i class="icon-copy dw dw-diskette"></i> <span id="btn-text">Simpan Data Temuan</span>
+                <i class="icon-copy dw dw-diskette"></i> <span id="btn-text">Simpan Data</span>
             </button>
             <button type="button" class="btn btn-secondary ml-2" id="btn-cancel" onclick="resetForm()" style="display: none;">
                 <i class="icon-copy dw dw-cancel"></i> Batal Edit
@@ -299,7 +299,7 @@ $result_temuan = mysqli_query($db, $query_temuan);
 
 <!-- Tabel Daftar Temuan -->
 <div class="form-section">
-    <h5>📋 Daftar Data Temuan</h5>
+    <h5>📋 Daftar BB Narkoba</h5>
     <?php if (mysqli_num_rows($result_temuan) > 0): ?>
         <div class="table-responsive">
             <table class="table table-temuan table-hover">
