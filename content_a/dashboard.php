@@ -270,6 +270,32 @@ if ($hour < 12) {
         transform: scale(1.1);
         box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
     }
+
+    /* Feedback Badge Styles */
+    .d-flex.gap-2 {
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    /* Modal Styles */
+    #modalFeedback .modal-content {
+        border-radius: 15px;
+        border: none;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    #modalFeedback .modal-header {
+        border-radius: 15px 15px 0 0;
+    }
+
+    #modalFeedback .card {
+        transition: all 0.2s ease;
+    }
+
+    #modalFeedback .card:hover {
+        transform: translateX(5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
 </style>
 
 <!-- Welcome Card -->
@@ -357,82 +383,220 @@ if ($hour < 12) {
 
 </div>
 
-<!-- Charts & Quick Actions Row -->
-<div class="row">
+<!-- Alert Card for Top 5 Critical Areas -->
+<?php
+// Get top 5 kecamatan with most cases
+$query_top5 = "SELECT * FROM kasus ORDER BY `jumlah kasus` DESC LIMIT 5";
+$result_top5 = mysqli_query($db, $query_top5);
+$top5_areas = [];
+while ($top5_row = mysqli_fetch_assoc($result_top5)) {
+    $top5_areas[] = $top5_row['kec'];
+}
+?>
 
-    <!-- Grafik Laporan Per Bulan -->
-    <div class="col-xl-8 col-lg-8 col-md-12 mb-20">
-        <div class="card chart-card">
-            <div class="card-body pd-20">
-                <div class="d-flex flex-wrap justify-content-between align-items-center pb-3">
-                    <div>
-                        <h5 class="mb-0" style="color: #1a1f3a; font-weight: 700;">📊 Grafik Laporan Per Bulan</h5>
-                        <p class="mb-0 text-muted small" style="font-weight: 600;">Statistik 6 bulan terakhir</p>
+<?php if (count($top5_areas) > 0): ?>
+<div class="alert alert-danger mb-30" style="border-radius: 15px; border-left: 5px solid #dc2626; background: #fee2e2; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);">
+    <div class="d-flex align-items-start">
+        <div style="font-size: 2rem; margin-right: 15px;">⚠️</div>
+        <div style="flex: 1;">
+            <h5 style="color: #991b1b; font-weight: 700; margin-bottom: 10px;">
+                <i class="icon-copy dw dw-warning"></i> DAERAH PRIORITAS TINGGI - TINDAKAN SEGERA DIPERLUKAN
+            </h5>
+            <p style="color: #7f1d1d; margin-bottom: 10px; font-weight: 600;">
+                Berikut adalah 5 kecamatan dengan jumlah kasus TERBANYAK yang memerlukan perhatian dan tindakan segera dari semua unit:
+            </p>
+            <div class="row">
+                <?php
+                mysqli_data_seek($result_top5, 0); // Reset pointer
+                $priority_no = 1;
+                while ($top5 = mysqli_fetch_assoc($result_top5)):
+                ?>
+                <div class="col-md-4 mb-2">
+                    <div style="background: white; padding: 10px; border-radius: 8px; border-left: 3px solid #dc2626;">
+                        <div style="color: #dc2626; font-weight: 700; font-size: 0.75rem;">PRIORITAS #<?php echo $priority_no++; ?></div>
+                        <div style="color: #1a1f3a; font-weight: 600;"><?php echo htmlspecialchars($top5['kec']); ?></div>
+                        <div style="color: #dc2626; font-size: 0.85rem;">
+                            <strong><?php echo $top5['jumlah kasus']; ?></strong> kasus |
+                            <strong><?php echo $top5['tersangka']; ?></strong> tersangka
+                        </div>
                     </div>
-                    
                 </div>
-                <div id="chart-pengaduan" style="height: 350px;"></div>
+                <?php endwhile; ?>
             </div>
+            <small style="color: #7f1d1d; font-style: italic;">
+                <i class="icon-copy dw dw-info"></i> Koordinasi dan respon cepat dari Ditbinmas dan Ditsamapta sangat diperlukan untuk daerah-daerah ini.
+            </small>
         </div>
     </div>
+</div>
+<?php endif; ?>
 
-    <!-- Quick Actions & User Stats -->
-    <div class="col-xl-4 col-lg-4 col-md-12 mb-20">
-
-        <!-- Total Pengguna Card -->
-        <div class="card mb-20" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border: none; background: #1a1f3a;">
-            <div class="card-body text-center pd-20">
-                <div class="widget-icon mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #FFD700;">
-                    <i class="icon-copy dw dw-user1" style="font-size: 40px; color: #1a1f3a;"></i>
-                </div>
-                <h2 class="weight-700 mb-2" style="color: #FFD700; font-size: 3rem;"><?php echo $total_users; ?></h2>
-                <p class="font-16 mb-3" style="color: #ffffff; font-weight: 600;">Total Masyarakat Terdaftar</p>
+<!-- Data Kasus Narkoba Table -->
+<div class="card table-card mb-30">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h4 class="mb-0">🚨 Data Daerah Rawan Narkoba</h4>
+                <p class="mb-0 small" style="opacity: 0.9;">Statistik kasus narkoba berdasarkan kecamatan</p>
             </div>
+            <?php if ($role == 'Ditresnarkoba'): ?>
+            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-light btn-sm">
+                <i class="icon-copy dw dw-edit2"></i> Kelola Data
+            </a>
+            <?php endif; ?>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="card" style="border-radius: 15px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); border: none;">
-            <div class="card-body pd-20">
-                <h5 class="mb-3" style="color: #1a1f3a; font-weight: 700;">⚡ Quick Actions</h5>
-                <div class="row">
-                    <div class="col-6 mb-3">
-                        <a href="dash.php?page=input-pengaduan" class="quick-action-btn d-block text-decoration-none">
-                            <div class="quick-action-icon">
-                                <i class="icon-copy dw dw-add-file"></i>
-                            </div>
-                            <div class="text-dark font-14 weight-500">Buat Laporan</div>
-                        </a>
-                    </div>
-                    <div class="col-6 mb-3">
-                        <a href="dash.php?page=lihat-pengaduan" class="quick-action-btn d-block text-decoration-none">
-                            <div class="quick-action-icon">
-                                <i class="icon-copy dw dw-list"></i>
-                            </div>
-                            <div class="text-dark font-14 weight-500">Lihat Semua</div>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="dash.php?page=input-berita" class="quick-action-btn d-block text-decoration-none">
-                            <div class="quick-action-icon">
-                                <i class="icon-copy dw dw-newspaper"></i>
-                            </div>
-                            <div class="text-dark font-14 weight-500">Tulis Berita</div>
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="dash.php?page=profile" class="quick-action-btn d-block text-decoration-none">
-                            <div class="quick-action-icon">
-                                <i class="icon-copy dw dw-user1"></i>
-                            </div>
-                            <div class="text-dark font-14 weight-500">Profile</div>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+    <div class="card-body">
+        <!-- Filter Section -->
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="filterKecKasus" style="font-weight: 600;">Filter Kecamatan:</label>
+                    <select class="form-control" id="filterKecKasus">
+                        <option value="">-- Semua Kecamatan --</option>
+                        <?php
+                        // Get unique kecamatan for filter
+                        $query_kec_filter = "SELECT DISTINCT kec FROM kasus WHERE kec IS NOT NULL AND kec != '' ORDER BY kec ASC";
+                        $result_kec_filter = mysqli_query($db, $query_kec_filter);
+                        while ($kec_filter_row = mysqli_fetch_assoc($result_kec_filter)):
+                        ?>
+                            <option value="<?php echo htmlspecialchars($kec_filter_row['kec']); ?>">
+                                <?php echo htmlspecialchars($kec_filter_row['kec']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="sortKasusDashboard" style="font-weight: 600;">Urutkan Berdasarkan:</label>
+                    <select class="form-control" id="sortKasusDashboard">
+                        <option value="jumlah_desc">Jumlah Kasus (Terbanyak)</option>
+                        <option value="jumlah_asc">Jumlah Kasus (Tersedikit)</option>
+                        <option value="tersangka_desc">Jumlah Tersangka (Terbanyak)</option>
+                        <option value="tersangka_asc">Jumlah Tersangka (Tersedikit)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label style="font-weight: 600;">&nbsp;</label>
+                    <button type="button" class="btn btn-secondary btn-block" id="btnResetFilterKasus">
+                        <i class="icon-copy dw dw-refresh"></i> Reset Filter
+                    </button>
+                </div>
+            </div>
+        </div>
 
+        <div class="table-responsive">
+            <table class="table table-hover" id="kasus-table">
+                <thead style="background: #f8f9fa;">
+                    <tr>
+                        <th class="text-center" width="50">No</th>
+                        <th width="150" class="text-center">Jumlah Kasus</th>
+                        <th width="150" class="text-center">Tersangka</th>
+                        <th>Kecamatan</th>
+                        <th width="200" class="text-center">Respon Unit</th>
+                        <th width="120" class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyKasusDashboard">
+                    <?php
+                    // Get kasus data sorted by jumlah kasus (terbanyak)
+                    $query_kasus = "SELECT * FROM kasus ORDER BY `jumlah kasus` DESC";
+                    $result_kasus = mysqli_query($db, $query_kasus);
+
+                    $no = 1;
+                    if (mysqli_num_rows($result_kasus) > 0):
+                        while ($row_kasus = mysqli_fetch_assoc($result_kasus)):
+                            // Get feedback count for this kecamatan
+                            $kec_name = $row_kasus['kec'];
+
+                            // Check if this kecamatan is in top 5
+                            $is_priority = in_array($kec_name, $top5_areas);
+
+                            $query_feedback = "SELECT unit, COUNT(*) as count FROM feedback_kasus WHERE kec = ? GROUP BY unit";
+                            $stmt_feedback = mysqli_prepare($db, $query_feedback);
+                            mysqli_stmt_bind_param($stmt_feedback, "s", $kec_name);
+                            mysqli_stmt_execute($stmt_feedback);
+                            $result_feedback = mysqli_stmt_get_result($stmt_feedback);
+
+                            $feedback_ditbinmas = 0;
+                            $feedback_ditsamapta = 0;
+                            while ($feedback_row = mysqli_fetch_assoc($result_feedback)) {
+                                if ($feedback_row['unit'] == 'Ditbinmas') {
+                                    $feedback_ditbinmas = $feedback_row['count'];
+                                } else if ($feedback_row['unit'] == 'Ditsamapta') {
+                                    $feedback_ditsamapta = $feedback_row['count'];
+                                }
+                            }
+                    ?>
+                            <tr data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" <?php if ($is_priority): ?>style="background: #fef2f2; border-left: 4px solid #dc2626;"<?php endif; ?>>
+                                <td class="text-center"><?php echo $no++; ?></td>
+                                <td class="text-center">
+                                    <span class="badge badge-info badge-custom" style="font-size: 0.9rem;">
+                                        <?php echo $row_kasus['jumlah kasus']; ?> kasus
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge badge-primary badge-custom" style="font-size: 0.9rem;">
+                                        <?php echo $row_kasus['tersangka']; ?> orang
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="font-14 weight-600"><?php echo htmlspecialchars($row_kasus['kec']); ?></div>
+                                        <?php if ($is_priority): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7rem; padding: 4px 8px; background: #dc2626;">
+                                            <i class="icon-copy dw dw-fire"></i> PRIORITAS
+                                        </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <?php if ($feedback_ditbinmas > 0): ?>
+                                        <span class="badge badge-success" style="font-size: 0.75rem; padding: 5px 10px;">
+                                            <i class="icon-copy dw dw-group"></i> Ditbinmas (<?php echo $feedback_ditbinmas; ?>)
+                                        </span>
+                                        <?php endif; ?>
+
+                                        <?php if ($feedback_ditsamapta > 0): ?>
+                                        <span class="badge badge-warning" style="font-size: 0.75rem; padding: 5px 10px; color: #1a1f3a;">
+                                            <i class="icon-copy dw dw-shield"></i> Ditsamapta (<?php echo $feedback_ditsamapta; ?>)
+                                        </span>
+                                        <?php endif; ?>
+
+                                        <?php if ($feedback_ditbinmas == 0 && $feedback_ditsamapta == 0): ?>
+                                        <span class="badge badge-secondary" style="font-size: 0.75rem; padding: 5px 10px;">
+                                            <i class="icon-copy dw dw-warning"></i> Belum ada respon
+                                        </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-info view-feedback-btn" data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" style="border-radius: 8px;">
+                                        <i class="icon-copy dw dw-eye"></i> Lihat
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php
+                        endwhile;
+                    else:
+                        ?>
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div style="opacity: 0.5;">
+                                    <i class="icon-copy dw dw-file" style="font-size: 3rem;"></i>
+                                    <p class="mt-3 mb-0">Belum ada data kasus</p>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <!-- Recent Laporan Table -->
@@ -523,114 +687,82 @@ if ($hour < 12) {
     </div>
 </div>
 
-<!-- Data Kasus Narkoba Table -->
-<div class="card table-card mb-30">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">🚨 Data Daerah Rawan Narkoba</h4>
-                <p class="mb-0 small" style="opacity: 0.9;">Statistik kasus narkoba berdasarkan kecamatan</p>
+<!-- Modal Detail Feedback -->
+<div class="modal fade" id="modalFeedback" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #1a1f3a; color: white;">
+                <h5 class="modal-title" id="modalFeedbackTitle">
+                    <i class="icon-copy dw dw-chat3"></i> Detail Respon Unit
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-            <?php if ($role == 'Ditresnarkoba'): ?>
-            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-light btn-sm">
-                <i class="icon-copy dw dw-edit2"></i> Kelola Data
-            </a>
-            <?php endif; ?>
-        </div>
-    </div>
-    <div class="card-body">
-        <!-- Filter Section -->
-        <div class="row mb-3">
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="filterKecKasus" style="font-weight: 600;">Filter Kecamatan:</label>
-                    <select class="form-control" id="filterKecKasus">
-                        <option value="">-- Semua Kecamatan --</option>
-                        <?php
-                        // Get unique kecamatan for filter
-                        $query_kec_filter = "SELECT DISTINCT kec FROM kasus WHERE kec IS NOT NULL AND kec != '' ORDER BY kec ASC";
-                        $result_kec_filter = mysqli_query($db, $query_kec_filter);
-                        while ($kec_filter_row = mysqli_fetch_assoc($result_kec_filter)):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($kec_filter_row['kec']); ?>">
-                                <?php echo htmlspecialchars($kec_filter_row['kec']); ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 style="color: #1a1f3a; font-weight: 700;">Kecamatan: <span id="feedbackKecamatan"></span></h6>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label for="sortKasusDashboard" style="font-weight: 600;">Urutkan Berdasarkan:</label>
-                    <select class="form-control" id="sortKasusDashboard">
-                        <option value="jumlah_desc">Jumlah Kasus (Terbanyak)</option>
-                        <option value="jumlah_asc">Jumlah Kasus (Tersedikit)</option>
-                        <option value="tersangka_desc">Jumlah Tersangka (Terbanyak)</option>
-                        <option value="tersangka_asc">Jumlah Tersangka (Tersedikit)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="form-group">
-                    <label style="font-weight: 600;">&nbsp;</label>
-                    <button type="button" class="btn btn-secondary btn-block" id="btnResetFilterKasus">
-                        <i class="icon-copy dw dw-refresh"></i> Reset Filter
-                    </button>
-                </div>
-            </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="table table-hover" id="kasus-table">
-                <thead style="background: #f8f9fa;">
-                    <tr>
-                        <th class="text-center" width="50">No</th>
-                        <th width="150" class="text-center">Jumlah Kasus</th>
-                        <th width="150" class="text-center">Tersangka</th>
-                        <th>Kecamatan</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyKasusDashboard">
-                    <?php
-                    // Get kasus data sorted by jumlah kasus (terbanyak)
-                    $query_kasus = "SELECT * FROM kasus ORDER BY `jumlah kasus` DESC";
-                    $result_kasus = mysqli_query($db, $query_kasus);
+                <!-- List Feedback -->
+                <div id="feedbackList"></div>
 
-                    $no = 1;
-                    if (mysqli_num_rows($result_kasus) > 0):
-                        while ($row_kasus = mysqli_fetch_assoc($result_kasus)):
-                    ?>
-                            <tr data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>">
-                                <td class="text-center"><?php echo $no++; ?></td>
-                                <td class="text-center">
-                                    <span class="badge badge-info badge-custom" style="font-size: 0.9rem;">
-                                        <?php echo $row_kasus['jumlah kasus']; ?> kasus
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge badge-primary badge-custom" style="font-size: 0.9rem;">
-                                        <?php echo $row_kasus['tersangka']; ?> orang
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="font-14 weight-600"><?php echo htmlspecialchars($row_kasus['kec']); ?></div>
-                                </td>
-                            </tr>
-                        <?php
-                        endwhile;
-                    else:
-                        ?>
-                        <tr>
-                            <td colspan="4" class="text-center py-5">
-                                <div style="opacity: 0.5;">
-                                    <i class="icon-copy dw dw-file" style="font-size: 3rem;"></i>
-                                    <p class="mt-3 mb-0">Belum ada data kasus</p>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                <!-- Form Tambah Feedback (hanya untuk Ditbinmas dan Ditsamapta) -->
+                <?php if ($role == 'Ditbinmas' || $role == 'Ditsamapta'): ?>
+                <div class="card mt-3" style="border: 2px solid #FFD700; border-radius: 10px;">
+                    <div class="card-body" style="background: #f8f9fa;">
+                        <h6 style="color: #1a1f3a; font-weight: 700; margin-bottom: 15px;">
+                            <i class="icon-copy dw dw-add"></i> Tambah Respon
+                        </h6>
+                        <form id="formAddFeedback">
+                            <input type="hidden" id="feedbackKecInput" name="kecamatan">
+                            <input type="hidden" name="unit" value="<?php echo $role; ?>">
+
+                            <div class="form-group">
+                                <label style="font-weight: 600;">Jenis Tindakan:</label>
+                                <select class="form-control" name="jenis_tindakan" required>
+                                    <option value="">-- Pilih Jenis Tindakan --</option>
+                                    <?php if ($role == 'Ditsamapta'): ?>
+                                    <option value="Patroli Rutin">Patroli Rutin</option>
+                                    <option value="Patroli Khusus">Patroli Khusus</option>
+                                    <option value="Pemantauan Wilayah">Pemantauan Wilayah</option>
+                                    <option value="Operasi Gabungan">Operasi Gabungan</option>
+                                    <option value="Razia">Razia</option>
+                                    <?php elseif ($role == 'Ditbinmas'): ?>
+                                    <option value="Sosialisasi">Sosialisasi</option>
+                                    <option value="Bimbingan Masyarakat">Bimbingan Masyarakat</option>
+                                    <option value="Penyuluhan di Sekolah">Penyuluhan di Sekolah</option>
+                                    <option value="Pembinaan Kelurahan">Pembinaan Kelurahan</option>
+                                    <option value="Pelatihan Kader Anti Narkoba">Pelatihan Kader Anti Narkoba</option>
+                                    <?php endif; ?>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600;">Keterangan Tindakan:</label>
+                                <textarea class="form-control" name="keterangan" rows="3" placeholder="Jelaskan detail tindakan yang dilakukan..." required></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="font-weight: 600;">Status Tindakan:</label>
+                                <select class="form-control" name="status" required>
+                                    <option value="Direncanakan">Direncanakan</option>
+                                    <option value="Sedang Berlangsung">Sedang Berlangsung</option>
+                                    <option value="Selesai">Selesai</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block" style="background: #1a1f3a; border: none; border-radius: 8px;">
+                                <i class="icon-copy dw dw-diskette"></i> Simpan Respon
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <?php endif; ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
         </div>
     </div>
 </div>
@@ -881,6 +1013,200 @@ if ($hour < 12) {
                 window.location.href = 'dash.php?page=dashboard&action=delete&id=' + id;
             }
         });
+
+        // ==================================
+        // FEEDBACK INTERACTION HANDLERS
+        // ==================================
+
+        // Handle view feedback button click
+        $(document).on('click', '.view-feedback-btn', function(e) {
+            e.preventDefault();
+            const kecamatan = $(this).data('kec');
+
+            // Set kecamatan in modal
+            $('#feedbackKecamatan').text(kecamatan);
+            $('#feedbackKecInput').val(kecamatan);
+
+            // Load feedback for this kecamatan
+            loadFeedback(kecamatan);
+
+            // Show modal
+            $('#modalFeedback').modal('show');
+        });
+
+        // Load feedback function
+        function loadFeedback(kecamatan) {
+            $('#feedbackList').html('<div class="text-center py-3"><i class="fa fa-spinner fa-spin"></i> Memuat data...</div>');
+
+            $.ajax({
+                url: 'content_a/feedback_handler.php',
+                type: 'GET',
+                data: {
+                    action: 'get_feedback',
+                    kecamatan: kecamatan
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        displayFeedback(response.data);
+                    } else {
+                        $('#feedbackList').html('<div class="alert alert-danger">Gagal memuat data: ' + response.message + '</div>');
+                    }
+                },
+                error: function() {
+                    $('#feedbackList').html('<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>');
+                }
+            });
+        }
+
+        // Display feedback function
+        function displayFeedback(feedbacks) {
+            if (feedbacks.length === 0) {
+                $('#feedbackList').html('<div class="alert alert-info"><i class="icon-copy dw dw-info"></i> Belum ada respon untuk kecamatan ini</div>');
+                return;
+            }
+
+            let html = '';
+            feedbacks.forEach(function(feedback) {
+                // Status badge
+                let statusBadge = '';
+                if (feedback.status === 'Direncanakan') {
+                    statusBadge = '<span class="badge badge-secondary" style="font-size: 0.75rem;">Direncanakan</span>';
+                } else if (feedback.status === 'Sedang Berlangsung') {
+                    statusBadge = '<span class="badge badge-warning" style="font-size: 0.75rem; color: #1a1f3a;">Sedang Berlangsung</span>';
+                } else if (feedback.status === 'Selesai') {
+                    statusBadge = '<span class="badge badge-success" style="font-size: 0.75rem;">Selesai</span>';
+                }
+
+                // Unit badge
+                let unitBadge = '';
+                let unitIcon = '';
+                if (feedback.unit === 'Ditbinmas') {
+                    unitBadge = '<span class="badge badge-success" style="font-size: 0.75rem;"><i class="icon-copy dw dw-group"></i> Ditbinmas</span>';
+                    unitIcon = 'dw dw-group';
+                } else if (feedback.unit === 'Ditsamapta') {
+                    unitBadge = '<span class="badge badge-warning" style="font-size: 0.75rem; color: #1a1f3a;"><i class="icon-copy dw dw-shield"></i> Ditsamapta</span>';
+                    unitIcon = 'dw dw-shield';
+                }
+
+                // Format date
+                const date = new Date(feedback.tanggal_respon);
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                html += `
+                    <div class="card mb-3" style="border-left: 4px solid ${feedback.unit === 'Ditbinmas' ? '#16a34a' : '#ea580c'};">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    ${unitBadge}
+                                    ${statusBadge}
+                                </div>
+                                <small class="text-muted">${formattedDate}</small>
+                            </div>
+                            <h6 style="color: #1a1f3a; font-weight: 700; margin-top: 10px;">
+                                <i class="icon-copy ${unitIcon}"></i> ${feedback.jenis_tindakan}
+                            </h6>
+                            <p class="mb-2" style="color: #495057;">${feedback.keterangan}</p>
+                            ${feedback.nama_user ? '<small class="text-muted">Oleh: ' + feedback.nama_user + '</small>' : ''}
+
+                            <?php if ($role == 'Ditbinmas' || $role == 'Ditsamapta'): ?>
+                            <div class="mt-3">
+                                <button class="btn btn-sm btn-danger delete-feedback-btn" data-id="${feedback.id}" style="border-radius: 5px;">
+                                    <i class="icon-copy dw dw-delete-3"></i> Hapus
+                                </button>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                `;
+            });
+
+            $('#feedbackList').html(html);
+        }
+
+        // Handle form submission
+        $('#formAddFeedback').on('submit', function(e) {
+            e.preventDefault();
+
+            const formData = $(this).serialize() + '&action=add_feedback';
+            const submitBtn = $(this).find('button[type="submit"]');
+            submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan...');
+
+            $.ajax({
+                url: 'content_a/feedback_handler.php',
+                type: 'POST',
+                data: formData,
+                dataType: 'json',
+                success: function(response) {
+                    submitBtn.prop('disabled', false).html('<i class="icon-copy dw dw-diskette"></i> Simpan Respon');
+
+                    if (response.success) {
+                        alert(response.message);
+                        $('#formAddFeedback')[0].reset();
+
+                        // Reload feedback
+                        const kecamatan = $('#feedbackKecInput').val();
+                        loadFeedback(kecamatan);
+
+                        // Reload page to update badge counts
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        alert('Gagal: ' + response.message);
+                    }
+                },
+                error: function() {
+                    submitBtn.prop('disabled', false).html('<i class="icon-copy dw dw-diskette"></i> Simpan Respon');
+                    alert('Terjadi kesalahan saat menyimpan data');
+                }
+            });
+        });
+
+        // Handle delete feedback
+        $(document).on('click', '.delete-feedback-btn', function(e) {
+            e.preventDefault();
+
+            if (!confirm('Apakah Anda yakin ingin menghapus respon ini?')) {
+                return;
+            }
+
+            const feedbackId = $(this).data('id');
+            const kecamatan = $('#feedbackKecInput').val();
+
+            $.ajax({
+                url: 'content_a/feedback_handler.php',
+                type: 'POST',
+                data: {
+                    action: 'delete_feedback',
+                    feedback_id: feedbackId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        loadFeedback(kecamatan);
+
+                        // Reload page to update badge counts
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        alert('Gagal: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Terjadi kesalahan saat menghapus data');
+                }
+            });
+        });
+
     });
     } // End of initDashboardTable()
 </script>
