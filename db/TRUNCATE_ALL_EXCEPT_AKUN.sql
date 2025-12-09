@@ -1,0 +1,14 @@
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE `berita`;
+TRUNCATE TABLE `feedback_kasus`;
+TRUNCATE TABLE `kasus`;
+TRUNCATE TABLE `lapbin`;
+TRUNCATE TABLE `lapditres`;
+TRUNCATE TABLE `lapmas`;
+TRUNCATE TABLE `lapsam`;
+TRUNCATE TABLE `respon`;
+TRUNCATE TABLE `temuan`;
+
+SET FOREIGN_KEY_CHECKS = 1;
