@@ -20,7 +20,249 @@ require_once __DIR__ . '/../config/koneksi.php';
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav mx-auto p-4 p-lg-0">
+                <!-- Konten Mobile - Hanya muncul di layar kecil -->
+                <div class="d-lg-none">
+                    <?php if (isset($_SESSION['Id_akun'])): ?>
+                        <!-- User Info -->
+                        <div class="nav-item px-3 py-2 border-bottom border-secondary">
+                            <span class="text-white d-flex align-items-center">
+                                <i class="bi bi-person-circle me-2 fs-4"></i>
+                                <strong><?php echo htmlspecialchars($_SESSION['nama']); ?></strong>
+                            </span>
+                        </div>
 
+                        <!-- Notifikasi -->
+                        <div class="nav-item px-3 py-3 border-bottom border-secondary">
+                            <button class="btn btn-notification-mobile w-100 position-relative text-start" type="button" id="notificationDropdownMobile" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bell-fill me-2"></i>
+                                <span>Notifikasi</span>
+                                <?php
+                                if (isset($db) && $db):
+                                    $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
+                                    $unread_count = 0;
+                                    if (strpos($user_role, 'Ditsamapta') === false && strpos($user_role, 'Ditbinmas') === false && strpos($user_role, 'Ditresnarkoba') === false):
+                                        $user_id = $_SESSION['Id_akun'];
+                                        $query_count = "SELECT COUNT(*) as total FROM lapmas
+                                                        WHERE Id_akun = ?
+                                                        AND status IN ( 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
+                                        $stmt_count = mysqli_prepare($db, $query_count);
+                                        mysqli_stmt_bind_param($stmt_count, "i", $user_id);
+                                        mysqli_stmt_execute($stmt_count);
+                                        $result_count = mysqli_stmt_get_result($stmt_count);
+                                        $unread_count = mysqli_fetch_assoc($result_count)['total'];
+                                    elseif (strpos($user_role, 'Ditsamapta') !== false):
+                                        $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
+                                                    WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                    AND is_notif_Ditsamapta = 1";
+                                        $result_count = mysqli_query($db, $query_count);
+                                        $unread_count = mysqli_fetch_assoc($result_count)['total'];
+                                    elseif (strpos($user_role, 'Ditbinmas') !== false):
+                                        $query_count = "SELECT COUNT(*) as total FROM tabel_laporan
+                                                    WHERE status_laporan = 'diproses_Ditresnarkoba'
+                                                    AND is_notif_Ditbinmas = 1";
+                                        $result_count = mysqli_query($db, $query_count);
+                                        $unread_count = mysqli_fetch_assoc($result_count)['total'];
+                                    endif;
+
+                                    if ($unread_count > 0):
+                                ?>
+                                        <span class="badge bg-danger rounded-pill"><?php echo $unread_count; ?></span>
+                                <?php
+                                    endif;
+                                endif;
+                                ?>
+                            </button>
+
+                            <ul class="dropdown-menu dropdown-menu-end notification-dropdown" aria-labelledby="notificationDropdownMobile">
+                                <?php
+                                $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
+
+                                if (strpos($user_role, 'Ditsamapta') !== false || strpos($user_role, 'Ditbinmas') !== false):
+                                ?>
+                                    <li class="dropdown-header">
+                                        <strong><i class="bi bi-exclamation-circle-fill me-1"></i> Laporan Baru untuk Ditindaklanjuti</strong>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                <?php
+                                else:
+                                ?>
+                                    <li class="dropdown-header">
+                                        <strong><i class="bi bi-chat-dots-fill me-2"></i>Pesan dan Balasan</strong>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+
+                                    <?php
+                                    if (isset($db) && $db):
+                                        $user_id = $_SESSION['Id_akun'];
+                                        $query_notif = "SELECT
+                                                l.id_lapmas,
+                                                l.judul,
+                                                l.desk,
+                                                l.lokasi,
+                                                l.status,
+                                                l.tanggal_lapor
+                                            FROM lapmas l
+                                            WHERE l.Id_akun = ?
+                                            AND (l.status = 'Diproses Ditresnarkoba'
+                                                OR l.status = 'selesai')
+                                            ORDER BY l.tanggal_lapor DESC
+                                            LIMIT 5
+                                        ";
+
+                                        $stmt_notif = mysqli_prepare($db, $query_notif);
+                                        mysqli_stmt_bind_param($stmt_notif, "i", $user_id);
+                                        mysqli_stmt_execute($stmt_notif);
+                                        $result_notif = mysqli_stmt_get_result($stmt_notif);
+
+                                        if (mysqli_num_rows($result_notif) > 0):
+                                            while ($notif = mysqli_fetch_assoc($result_notif)):
+                                                $status = $notif['status'] ?? 'Baru';
+                                                switch($status) {
+                                                    case 'Baru':
+                                                        $icon_class = 'bi-file-earmark-plus';
+                                                        $icon_bg = 'background: #6c757d;';
+                                                        $status_text = 'Laporan Baru';
+                                                        break;
+                                                    case 'Waiting':
+                                                        $icon_class = 'bi-hourglass-split';
+                                                        $icon_bg = 'background: #ffc107;';
+                                                        $status_text = 'Waiting (Menunggu Final)';
+                                                        break;
+                                                    case 'Diproses Ditresnarkoba':
+                                                        $icon_class = 'bi-gear-fill';
+                                                        $icon_bg = 'background: #0d6efd;';
+                                                        $status_text = 'Diproses Ditresnarkoba';
+                                                        break;
+                                                    case 'Diproses Ditsamapta':
+                                                        $icon_class = 'bi-gear-fill';
+                                                        $icon_bg = 'background: #0dcaf0;';
+                                                        $status_text = 'Diproses Ditsamapta';
+                                                        break;
+                                                    case 'Diproses Ditbinmas':
+                                                        $icon_class = 'bi-gear-fill';
+                                                        $icon_bg = 'background: #fd7e14;';
+                                                        $status_text = 'Diproses Ditbinmas';
+                                                        break;
+                                                    case 'Selesai Ditsamapta':
+                                                        $icon_class = 'bi-check-circle-fill';
+                                                        $icon_bg = 'background: #0dcaf0;';
+                                                        $status_text = 'Selesai Ditsamapta';
+                                                        break;
+                                                    case 'Selesai Ditbinmas':
+                                                        $icon_class = 'bi-check-circle-fill';
+                                                        $icon_bg = 'background: #fd7e14;';
+                                                        $status_text = 'Selesai Ditbinmas';
+                                                        break;
+                                                    case 'Selesai':
+                                                        $icon_class = 'bi-check-circle-fill';
+                                                        $icon_bg = 'background: #28a745;';
+                                                        $status_text = 'Selesai';
+                                                        break;
+                                                    case 'Ditolak':
+                                                        $icon_class = 'bi-x-circle-fill';
+                                                        $icon_bg = 'background: #dc3545;';
+                                                        $status_text = 'Ditolak';
+                                                        break;
+                                                    default:
+                                                        $icon_class = 'bi-hourglass-split';
+                                                        $icon_bg = 'background: #ffc107;';
+                                                        $status_text = 'Menunggu';
+                                                }
+
+                                                $query_respon = "
+                                                    SELECT r.respon, r.a_respon, r.tanggal_respon, a.Role, l.status
+                                                    FROM respon r
+                                                    LEFT JOIN akun a ON r.a_respon = a.Id_akun
+                                                    LEFT JOIN lapmas l ON r.id_lapmas = l.id_lapmas
+                                                    WHERE r.id_lapmas = ?
+                                                    AND a.Role = 'Ditresnarkoba'
+                                                    AND (l.status = 'Diproses Ditresnarkoba' OR l.status = 'Selesai')
+                                                    ORDER BY r.tanggal_respon ASC
+                                                ";
+                                                $stmt_respon = mysqli_prepare($db, $query_respon);
+                                                mysqli_stmt_bind_param($stmt_respon, "i", $notif['id_lapmas']);
+                                                mysqli_stmt_execute($stmt_respon);
+                                                $result_respon = mysqli_stmt_get_result($stmt_respon);
+
+                                                $semua_balasan = [];
+                                                while ($respon_row = mysqli_fetch_assoc($result_respon)) {
+                                                    $semua_balasan[] = $respon_row;
+                                                }
+                                        ?>
+                                                <li>
+                                                    <div class="dropdown-item notification-item-custom">
+                                                        <div class="d-flex align-items-start justify-content-between">
+                                                            <div class="d-flex align-items-start flex-grow-1">
+                                                                <div class="notification-icon" style="<?php echo $icon_bg; ?>">
+                                                                    <i class="bi <?php echo $icon_class; ?>"></i>
+                                                                </div>
+                                                                <div class="notification-content">
+                                                                    <div class="notification-title">
+                                                                        <?php echo htmlspecialchars(substr($notif['judul'], 0, 30)); ?>
+                                                                        <?php if (strlen($notif['judul']) > 30) echo '...'; ?>
+                                                                    </div>
+                                                                    <div class="notification-text">
+                                                                        <span class="badge" style="background-color: <?php echo str_replace('background: ', '', $icon_bg); ?>; font-size: 0.65rem;">
+                                                                            <?php echo $status_text; ?>
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="notification-time">
+                                                                        <i class="bi bi-calendar3"></i>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <button type="button" class="btn btn-sm btn-detail-lapmas"
+                                                                    data-id="<?php echo $notif['id_lapmas']; ?>"
+                                                                    data-judul="<?php echo htmlspecialchars($notif['judul'] ?? '', ENT_QUOTES); ?>"
+                                                                    data-desk="<?php echo htmlspecialchars($notif['desk'] ?? '', ENT_QUOTES); ?>"
+                                                                    data-lokasi="<?php echo htmlspecialchars($notif['lokasi'] ?? '-', ENT_QUOTES); ?>"
+                                                                    data-balasan="<?php echo htmlspecialchars(json_encode($semua_balasan), ENT_QUOTES); ?>"
+                                                                    data-status="<?php echo htmlspecialchars($status_text ?? 'Baru', ENT_QUOTES); ?>"
+                                                                    data-warna="<?php echo str_replace('background: ', '', $icon_bg ?? 'background: #6c757d'); ?>"
+                                                                    data-tanggal="<?php echo date('d M Y, H:i', strtotime($notif['tanggal_lapor'])); ?>">
+                                                                <i class="bi bi-eye"></i> Detail
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            <?php
+                                            endwhile;
+                                        else:
+                                            ?>
+                                            <li class="dropdown-item text-center text-muted py-3">
+                                                <i class="bi bi-inbox" style="font-size: 2rem;"></i><br>
+                                                Belum ada laporan
+                                            </li>
+                                    <?php
+                                        endif;
+                                    endif;
+                                    ?>
+                                <?php endif; ?>
+
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-center text-primary" href="#" id="btnLihatSemuaLaporanMobile">
+                                        <strong>Lihat Semua Laporan</strong>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Logout Button -->
+                        <div class="nav-item px-3 py-3">
+                            <a href="logout.php" class="btn btn-outline-light w-100">
+                                <i class="bi bi-box-arrow-right me-2"></i> LOGOUT
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <!-- Guest User - Login Button -->
+                        <div class="nav-item px-3 py-3">
+                            <a href="login.php" class="btn btn-primary w-100">
+                                <i class="bi bi-box-arrow-in-right me-2"></i> LOGIN
+                            </a>
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <div class="d-none d-lg-flex align-items-center">
@@ -295,7 +537,7 @@ require_once __DIR__ . '/../config/koneksi.php';
 </div>
 
 <style>
-    /* Notification Button Styling */
+    /* Notification Button Styling - Desktop */
     .btn-notification {
         background: transparent;
         border: 2px solid white;
@@ -309,6 +551,33 @@ require_once __DIR__ . '/../config/koneksi.php';
         font-size: 1.2rem;
         transition: all 0.3s ease;
         position: relative;
+    }
+
+    /* Notification Button Styling - Mobile */
+    .btn-notification-mobile {
+        background: #0d6efd;
+        border: 2px solid #0d6efd;
+        color: white;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .btn-notification-mobile:hover {
+        background: #0b5ed7;
+        border-color: #0b5ed7;
+        color: white;
+    }
+
+    .btn-notification-mobile .badge {
+        position: absolute;
+        top: 8px;
+        right: 12px;
     }
 
     .btn-notification:hover {
@@ -594,10 +863,19 @@ require_once __DIR__ . '/../config/koneksi.php';
             });
         });
 
-        // Modal Lihat Semua Laporan
+        // Modal Lihat Semua Laporan - Desktop
         const btnLihatSemuaLaporan = document.getElementById('btnLihatSemuaLaporan');
         if (btnLihatSemuaLaporan) {
             btnLihatSemuaLaporan.addEventListener('click', function(e) {
+                e.preventDefault();
+                loadSemuaLaporan();
+            });
+        }
+
+        // Modal Lihat Semua Laporan - Mobile
+        const btnLihatSemuaLaporanMobile = document.getElementById('btnLihatSemuaLaporanMobile');
+        if (btnLihatSemuaLaporanMobile) {
+            btnLihatSemuaLaporanMobile.addEventListener('click', function(e) {
                 e.preventDefault();
                 loadSemuaLaporan();
             });
