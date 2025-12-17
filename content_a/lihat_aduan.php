@@ -182,11 +182,20 @@ if (isset($_POST['update_status'])) {
 <!-- Stats Cards -->
 <div class="row pb-10">
     <?php
-    // Get statistics
-    $query_total = "SELECT COUNT(*) as total FROM lapmas";
-    $query_baru = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
-    $query_diproses = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Diproses%'";
-    $query_selesai = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Selesai%'";
+    // Get statistics (filtered by assigned_to for role-based access)
+    // Ditresnarkoba bisa lihat semua, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+    if ($role == 'Ditresnarkoba') {
+        $query_total = "SELECT COUNT(*) as total FROM lapmas";
+        $query_baru = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
+        $query_diproses = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Diproses%'";
+        $query_selesai = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Selesai%'";
+    } else {
+        // Filter berdasarkan role menggunakan FIND_IN_SET
+        $query_total = "SELECT COUNT(*) as total FROM lapmas WHERE FIND_IN_SET('$role', assigned_to) > 0";
+        $query_baru = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru' AND FIND_IN_SET('$role', assigned_to) > 0";
+        $query_diproses = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Diproses%' AND FIND_IN_SET('$role', assigned_to) > 0";
+        $query_selesai = "SELECT COUNT(*) as total FROM lapmas WHERE status LIKE '%Selesai%' AND FIND_IN_SET('$role', assigned_to) > 0";
+    }
 
     $total = mysqli_fetch_assoc(mysqli_query($db, $query_total))['total'];
     $baru = mysqli_fetch_assoc(mysqli_query($db, $query_baru))['total'];
@@ -246,13 +255,22 @@ if (isset($_POST['update_status'])) {
 <!-- Filter Section -->
 <div class="filter-section">
     <div class="row align-items-end">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="font-weight-600">Filter Status:</label>
             <select class="form-control" id="filter-status">
                 <option value="">Semua Status</option>
                 <option value="baru">Baru</option>
                 <option value="diproses">Diproses</option>
                 <option value="selesai">Selesai</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="font-weight-600">Diarahkan Ke:</label>
+            <select class="form-control" id="filter-assigned">
+                <option value="">Semua Unit</option>
+                <option value="Ditresnarkoba">Ditresnarkoba</option>
+                <option value="Ditsamapta">Ditsamapta</option>
+                <option value="Ditbinmas">Ditbinmas</option>
             </select>
         </div>
         <div class="col-md-3">
@@ -263,7 +281,7 @@ if (isset($_POST['update_status'])) {
             <label class="font-weight-600">Sampai Tanggal:</label>
             <input type="date" class="form-control" id="filter-sampai">
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <button class="btn btn-primary btn-block" onclick="filterData()">
                 <i class="icon-copy dw dw-search"></i> Filter
             </button>
@@ -291,21 +309,38 @@ if (isset($_POST['update_status'])) {
                     <tr>
                         <th width="50">No</th>
                         <th>Judul</th>
-                        
+
                         <th>Kontak</th>
                         <th>Lokasi</th>
                         <th width="110">Tanggal</th>
+                        <th width="150">Diarahkan Ke</th>
                         <th width="100">Status</th>
                         <th width="60">Hapus</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    $query = "SELECT l.*, a.Nama as nama_user, a.Nomor_hp as nomor_hp
-                             FROM lapmas l 
-                             LEFT JOIN akun a ON l.Id_akun = a.Id_akun
-                             ORDER BY l.tanggal_lapor DESC";
-                    $result = mysqli_query($db, $query);
+                    // Get laporan (filtered by assigned_to for role-based access)
+                    // Ditresnarkoba bisa lihat semua, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+                    // Support multiple assignments (comma-separated)
+                    if ($role == 'Ditresnarkoba') {
+                        $query = "SELECT l.*, a.Nama as nama_user, a.Nomor_hp as nomor_hp
+                                 FROM lapmas l
+                                 LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                 ORDER BY l.tanggal_lapor DESC";
+                        $stmt = mysqli_prepare($db, $query);
+                    } else {
+                        // Gunakan FIND_IN_SET untuk mendukung multiple assignments
+                        $query = "SELECT l.*, a.Nama as nama_user, a.Nomor_hp as nomor_hp
+                                 FROM lapmas l
+                                 LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                 WHERE FIND_IN_SET(?, l.assigned_to) > 0
+                                 ORDER BY l.tanggal_lapor DESC";
+                        $stmt = mysqli_prepare($db, $query);
+                        mysqli_stmt_bind_param($stmt, "s", $role);
+                    }
+                    mysqli_stmt_execute($stmt);
+                    $result = mysqli_stmt_get_result($stmt);
 
                     $no = 1;
                     while ($row = mysqli_fetch_assoc($result)):
@@ -331,10 +366,30 @@ if (isset($_POST['update_status'])) {
                                 <strong><?php echo htmlspecialchars($row['judul']); ?></strong>
                                 <br><small class="text-muted"><?php echo substr(htmlspecialchars($row['desk']), 0, 50); ?>...</small>
                             </td>
-                            
+
                             <td><?php echo htmlspecialchars($row['nomor_hp']); ?></td>
                             <td><?php echo htmlspecialchars($row['lokasi']); ?></td>
                             <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
+                            <td>
+                                <?php
+                                // Split assigned_to by comma for display (support multiple assignments)
+                                $assigned_units = explode(',', $row['assigned_to']);
+                                foreach ($assigned_units as $unit):
+                                    $unit = trim($unit); // Trim any whitespace
+                                    $badge_class = 'badge-secondary';
+
+                                    // Set badge color based on unit
+                                    if ($unit == 'Ditresnarkoba') {
+                                        $badge_class = 'badge-danger';
+                                    } elseif ($unit == 'Ditsamapta') {
+                                        $badge_class = 'badge-primary';
+                                    } elseif ($unit == 'Ditbinmas') {
+                                        $badge_class = 'badge-success';
+                                    }
+                                ?>
+                                <span class="badge <?php echo $badge_class; ?> mr-1 mb-1" style="font-size: 0.75rem;"><?php echo htmlspecialchars($unit); ?></span>
+                                <?php endforeach; ?>
+                            </td>
                             <td>
                                 <span class="badge badge-<?php echo $status_class; ?> status-badge">
                                     <?php echo ucfirst($status_display); ?>
@@ -422,7 +477,7 @@ if (isset($_POST['update_status'])) {
             autoWidth: false,
             responsive: true,
             columnDefs: [{
-                targets: [0, 6],
+                targets: [0, 7],
                 orderable: false,
             }],
             "lengthMenu": [
@@ -476,24 +531,40 @@ if (isset($_POST['update_status'])) {
         }
 
         var status = $('#filter-status').val();
+        var assigned = $('#filter-assigned').val();
         var dari = $('#filter-dari').val();
         var sampai = $('#filter-sampai').val();
 
-        table.column(6).search(status).draw();
+        // Clear previous search filters
+        $.fn.dataTable.ext.search = [];
 
+        // Filter by status (column 7)
+        table.column(7).search(status);
+
+        // Add custom filter for date range and assigned_to
         $.fn.dataTable.ext.search.push(
             function(settings, data, dataIndex) {
+                // Filter by date (column 5)
                 var date = new Date(data[5]);
                 var startDate = dari ? new Date(dari) : null;
                 var endDate = sampai ? new Date(sampai) : null;
 
-                if ((startDate === null && endDate === null) ||
+                var dateMatch = (startDate === null && endDate === null) ||
                     (startDate === null && date <= endDate) ||
                     (startDate <= date && endDate === null) ||
-                    (startDate <= date && date <= endDate)) {
-                    return true;
+                    (startDate <= date && date <= endDate);
+
+                if (!dateMatch) return false;
+
+                // Filter by assigned_to (column 6) - support multiple assignments
+                if (assigned !== '') {
+                    var assignedData = data[6]; // Get assigned_to column content
+                    if (assignedData.indexOf(assigned) === -1) {
+                        return false;
+                    }
                 }
-                return false;
+
+                return true;
             }
         );
 

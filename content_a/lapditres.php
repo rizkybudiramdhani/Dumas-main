@@ -4,13 +4,23 @@ $filter_dari = isset($_GET['dari']) ? $_GET['dari'] : date('Y-m-d', strtotime('-
 $filter_sampai = isset($_GET['sampai']) ? $_GET['sampai'] : date('Y-m-d');
 $filter_status = isset($_GET['status']) ? $_GET['status'] : '';
 
-// Build query with filters - Only show Ditresnarkoba related reports
+// Build query with filters - Filter by assigned_to (role-based access)
+// Ditresnarkoba bisa lihat semua laporan, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+// Support multiple assignments (comma-separated)
 $query = "SELECT l.*, a.Nama AS nama_pelapor
           FROM lapmas l
           LEFT JOIN akun a ON l.Id_akun = a.Id_akun
-          WHERE (l.status LIKE '%Ditresnarkoba%' OR l.status = 'Baru' OR l.status = 'Waiting')";
+          WHERE 1=1";
+
 $params = [];
 $types = '';
+
+// Filter berdasarkan role - Gunakan FIND_IN_SET untuk mendukung multiple assignments
+if ($role != 'Ditresnarkoba') {
+    $query .= " AND FIND_IN_SET(?, l.assigned_to) > 0";
+    $params[] = $role;
+    $types .= 's';
+}
 
 if (!empty($filter_dari)) {
     $query .= " AND DATE(l.tanggal_lapor) >= ?";
@@ -34,24 +44,38 @@ $query .= " ORDER BY l.tanggal_lapor DESC";
 
 // Execute query
 $stmt = mysqli_prepare($db, $query);
-if (!empty($params)) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-}
+mysqli_stmt_bind_param($stmt, $types, ...$params);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
-// Get statistics
-$query_stats = "SELECT
-    COUNT(*) as total,
-    SUM(CASE WHEN status = 'Baru' THEN 1 ELSE 0 END) as baru,
-    SUM(CASE WHEN status = 'Diproses Ditresnarkoba' THEN 1 ELSE 0 END) as diproses,
-    SUM(CASE WHEN status = 'Selesai Ditresnarkoba' THEN 1 ELSE 0 END) as selesai
-FROM lapmas
-WHERE (status LIKE '%Ditresnarkoba%' OR status = 'Baru' OR status = 'Waiting')
-AND DATE(tanggal_lapor) BETWEEN ? AND ?";
+// Get statistics (filtered by assigned_to)
+// Ditresnarkoba bisa lihat semua, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+// Support multiple assignments (comma-separated)
+if ($role == 'Ditresnarkoba') {
+    $query_stats = "SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'Baru' THEN 1 ELSE 0 END) as baru,
+        SUM(CASE WHEN status = 'Diproses Ditresnarkoba' THEN 1 ELSE 0 END) as diproses,
+        SUM(CASE WHEN status = 'Selesai Ditresnarkoba' THEN 1 ELSE 0 END) as selesai
+    FROM lapmas
+    WHERE DATE(tanggal_lapor) BETWEEN ? AND ?";
 
-$stmt_stats = mysqli_prepare($db, $query_stats);
-mysqli_stmt_bind_param($stmt_stats, "ss", $filter_dari, $filter_sampai);
+    $stmt_stats = mysqli_prepare($db, $query_stats);
+    mysqli_stmt_bind_param($stmt_stats, "ss", $filter_dari, $filter_sampai);
+} else {
+    // Gunakan FIND_IN_SET untuk mendukung multiple assignments
+    $query_stats = "SELECT
+        COUNT(*) as total,
+        SUM(CASE WHEN status = 'Baru' THEN 1 ELSE 0 END) as baru,
+        SUM(CASE WHEN status = 'Diproses Ditresnarkoba' THEN 1 ELSE 0 END) as diproses,
+        SUM(CASE WHEN status = 'Selesai Ditresnarkoba' THEN 1 ELSE 0 END) as selesai
+    FROM lapmas
+    WHERE FIND_IN_SET(?, assigned_to) > 0
+    AND DATE(tanggal_lapor) BETWEEN ? AND ?";
+
+    $stmt_stats = mysqli_prepare($db, $query_stats);
+    mysqli_stmt_bind_param($stmt_stats, "sss", $role, $filter_dari, $filter_sampai);
+}
 mysqli_stmt_execute($stmt_stats);
 $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 ?>
@@ -176,29 +200,58 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
         letter-spacing: 0.5px;
     }
 
+    /* Status Baru */
     .status-baru {
         background: #FFD700;
         color: #1a1f3a;
     }
 
-    .status-diproses {
-        background: #17a2b8;
-        color: white;
-    }
-
-    .status-selesai {
-        background: #28a745;
-        color: white;
-    }
-
-    .status-ditolak {
+    /* Status Diproses */
+    .status-diproses-ditresnarkoba {
         background: #dc3545;
         color: white;
     }
 
+    .status-diproses-ditsamapta {
+        background: #1E40AF;
+        color: white;
+    }
+
+    .status-diproses-ditbinmas {
+        background: #28a745;
+        color: white;
+    }
+
+    /* Status Selesai */
+    .status-selesai {
+        background: #16a34a;
+        color: white;
+    }
+
+    .status-selesai-ditresnarkoba {
+        background: #b91c1c;
+        color: white;
+    }
+
+    .status-selesai-ditsamapta {
+        background: #1e3a8a;
+        color: white;
+    }
+
+    .status-selesai-ditbinmas {
+        background: #15803d;
+        color: white;
+    }
+
+    /* Status Lainnya */
     .status-waiting {
-        background: #ffc107;
-        color: #1a1f3a;
+        background: #f59e0b;
+        color: white;
+    }
+
+    .status-ditolak {
+        background: #7f1d1d;
+        color: white;
     }
 </style>
 
@@ -318,8 +371,9 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                         <th>Judul</th>
                         <th>Pelapor</th>
                         <th>Lokasi</th>
+                        <th>Diarahkan Ke</th>
                         <th>Status</th>
-                        <th width="80">Aksi</th>
+                        <th width="150">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -327,16 +381,49 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                     $no = 1;
                     if (mysqli_num_rows($result) > 0):
                         while ($row = mysqli_fetch_assoc($result)):
-                            // Determine status class
+                            // Determine status class - Support all status types
                             $status_class = 'status-baru';
-                            if ($row['status'] == 'Diproses Ditresnarkoba') {
-                                $status_class = 'status-diproses';
-                            } elseif ($row['status'] == 'Selesai Ditresnarkoba') {
-                                $status_class = 'status-selesai';
-                            } elseif ($row['status'] == 'Waiting') {
-                                $status_class = 'status-waiting';
-                            } elseif ($row['status'] == 'Ditolak') {
-                                $status_class = 'status-ditolak';
+
+                            switch ($row['status']) {
+                                case 'Baru':
+                                    $status_class = 'status-baru';
+                                    break;
+
+                                // Status Diproses
+                                case 'Diproses Ditresnarkoba':
+                                    $status_class = 'status-diproses-ditresnarkoba';
+                                    break;
+                                case 'Diproses Ditsamapta':
+                                    $status_class = 'status-diproses-ditsamapta';
+                                    break;
+                                case 'Diproses Ditbinmas':
+                                    $status_class = 'status-diproses-ditbinmas';
+                                    break;
+
+                                // Status Selesai
+                                case 'Selesai':
+                                    $status_class = 'status-selesai';
+                                    break;
+                                case 'Selesai Ditresnarkoba':
+                                    $status_class = 'status-selesai-ditresnarkoba';
+                                    break;
+                                case 'Selesai Ditsamapta':
+                                    $status_class = 'status-selesai-ditsamapta';
+                                    break;
+                                case 'Selesai Ditbinmas':
+                                    $status_class = 'status-selesai-ditbinmas';
+                                    break;
+
+                                // Status Lainnya
+                                case 'Waiting':
+                                    $status_class = 'status-waiting';
+                                    break;
+                                case 'Ditolak':
+                                    $status_class = 'status-ditolak';
+                                    break;
+
+                                default:
+                                    $status_class = 'status-baru';
                             }
                     ?>
                         <tr>
@@ -349,6 +436,26 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                             <td><?php echo htmlspecialchars($row['nama_pelapor']); ?></td>
                             <td><?php echo htmlspecialchars(substr($row['lokasi'], 0, 30)); ?><?php echo strlen($row['lokasi']) > 30 ? '...' : ''; ?></td>
                             <td>
+                                <?php
+                                // Split assigned_to by comma for display (support multiple assignments)
+                                $assigned_units = explode(',', $row['assigned_to']);
+                                foreach ($assigned_units as $unit):
+                                    $unit = trim($unit); // Trim any whitespace
+                                    $badge_class = 'badge-secondary';
+
+                                    // Set badge color based on unit
+                                    if ($unit == 'Ditresnarkoba') {
+                                        $badge_class = 'badge-danger';
+                                    } elseif ($unit == 'Ditsamapta') {
+                                        $badge_class = 'badge-primary';
+                                    } elseif ($unit == 'Ditbinmas') {
+                                        $badge_class = 'badge-success';
+                                    }
+                                ?>
+                                <span class="badge <?php echo $badge_class; ?> mr-1 mb-1"><?php echo htmlspecialchars($unit); ?></span>
+                                <?php endforeach; ?>
+                            </td>
+                            <td>
                                 <span class="status-badge <?php echo $status_class; ?>">
                                     <?php echo htmlspecialchars($row['status']); ?>
                                 </span>
@@ -357,6 +464,22 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
                                 <a href="dash.php?page=detail-pengaduan&id=<?php echo $row['id_lapmas']; ?>" class="btn btn-sm btn-info" title="Lihat Detail">
                                     <i class="dw dw-eye"></i>
                                 </a>
+
+                                <?php if ($role == 'Ditresnarkoba' && $row['status'] == 'Baru'): ?>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-sm btn-warning dropdown-toggle" data-toggle="dropdown" title="Disposisi Laporan">
+                                        <i class="dw dw-share"></i>
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item disposisi-btn" href="#" data-id="<?php echo $row['id_lapmas']; ?>" data-target="Ditsamapta">
+                                            <i class="dw dw-right-arrow"></i> Ke Ditsamapta
+                                        </a>
+                                        <a class="dropdown-item disposisi-btn" href="#" data-id="<?php echo $row['id_lapmas']; ?>" data-target="Ditbinmas">
+                                            <i class="dw dw-right-arrow"></i> Ke Ditbinmas
+                                        </a>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php
@@ -408,4 +531,36 @@ $stats = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_stats));
 
         XLSX.writeFile(wb, filename);
     }
+
+    // Handle Disposisi Laporan
+    $(document).on('click', '.disposisi-btn', function(e) {
+        e.preventDefault();
+
+        var id = $(this).data('id');
+        var target = $(this).data('target');
+        var targetText = target === 'Ditsamapta' ? 'Ditsamapta' : 'Ditbinmas';
+
+        if (confirm('Yakin ingin mengarahkan laporan ini ke ' + targetText + '?')) {
+            $.ajax({
+                url: 'content_a/disposisi_laporan.php',
+                method: 'POST',
+                data: {
+                    id_lapmas: id,
+                    assigned_to: target
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert('Laporan berhasil diarahkan ke ' + targetText);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Terjadi kesalahan saat memproses disposisi');
+                }
+            });
+        }
+    });
 </script>

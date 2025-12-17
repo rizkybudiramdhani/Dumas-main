@@ -44,7 +44,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                         $user_id = $_SESSION['Id_akun'];
                                         $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                         WHERE Id_akun = ?
-                                                        AND status IN ( 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
+                                                        AND status = 'Selesai'";
                                         $stmt_count = mysqli_prepare($db, $query_count);
                                         mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                         mysqli_stmt_execute($stmt_count);
@@ -87,7 +87,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 else:
                                 ?>
                                     <li class="dropdown-header">
-                                        <strong><i class="bi bi-chat-dots-fill me-2"></i>Pesan dan Balasan</strong>
+                                        <strong><i class="bi bi-check-circle-fill me-2 text-success"></i>Laporan Selesai</strong>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
 
@@ -103,8 +103,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                                 l.tanggal_lapor
                                             FROM lapmas l
                                             WHERE l.Id_akun = ?
-                                            AND (l.status = 'Diproses Ditresnarkoba'
-                                                OR l.status = 'selesai')
+                                            AND l.status = 'Selesai'
                                             ORDER BY l.tanggal_lapor DESC
                                             LIMIT 5
                                         ";
@@ -281,12 +280,12 @@ require_once __DIR__ . '/../config/koneksi.php';
                             if (isset($db) && $db):
                                 $user_role = isset($_SESSION['role']) ? strtolower($_SESSION['role']) : '';
                                 $unread_count = 0;
-                                // Untuk user biasa - notifikasi laporan dengan status update
+                                // Untuk user biasa - notifikasi laporan dengan status Selesai saja
                                 if (strpos($user_role, 'Ditsamapta') === false && strpos($user_role, 'Ditbinmas') === false && strpos($user_role, 'Ditresnarkoba') === false):
                                     $user_id = $_SESSION['Id_akun'];
                                     $query_count = "SELECT COUNT(*) as total FROM lapmas
                                                     WHERE Id_akun = ?
-                                                    AND status IN ( 'Diproses Ditresnarkoba', 'Selesai', 'Ditolak')";
+                                                    AND status = 'Selesai'";
                                     $stmt_count = mysqli_prepare($db, $query_count);
                                     mysqli_stmt_bind_param($stmt_count, "i", $user_id);
                                     mysqli_stmt_execute($stmt_count);
@@ -339,7 +338,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                             else:
                             ?>
                                 <li class="dropdown-header">
-                                    <strong><i class="bi bi-chat-dots-fill me-2"></i>Pesan dan Balasan</strong>
+                                    <strong><i class="bi bi-check-circle-fill me-2 text-success"></i>Laporan Selesai</strong>
                                 </li>
                                 <li>
                                     <hr class="dropdown-divider">
@@ -349,7 +348,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 if (isset($db) && $db):
                                     $user_id = $_SESSION['Id_akun'];
 
-                                    // Ambil semua laporan user (dengan status)
+                                    // Ambil laporan user dengan status Selesai saja
                                     $query_notif = "SELECT
                                             l.id_lapmas,
                                             l.judul,
@@ -359,8 +358,7 @@ require_once __DIR__ . '/../config/koneksi.php';
                                             l.tanggal_lapor
                                         FROM lapmas l
                                         WHERE l.Id_akun = ?
-                                        AND (l.status = 'Diproses Ditresnarkoba' 
-                                            OR l.status = 'selesai')
+                                        AND l.status = 'Selesai'
                                         ORDER BY l.tanggal_lapor DESC
                                         LIMIT 5
                                     ";
@@ -766,20 +764,23 @@ require_once __DIR__ . '/../config/koneksi.php';
                 const cleanWarna = (warna || '#6c757d').replace(';', '');
                 if (statusBadge) statusBadge.style.backgroundColor = cleanWarna;
 
-                // Tampilkan balasan jika ada
+                // Tampilkan balasan HANYA jika status adalah "Selesai"
                 const sectionBalasan = document.getElementById('sectionBalasan');
                 const detailBalasan = document.getElementById('detailBalasan');
+
+                // Cek apakah status adalah "Selesai"
+                const isSelesai = status && status.toLowerCase().includes('selesai');
 
                 try {
                     const balasanArray = JSON.parse(balasan);
 
-                    if (balasanArray && Array.isArray(balasanArray) && balasanArray.length > 0) {
+                    if (isSelesai && balasanArray && Array.isArray(balasanArray) && balasanArray.length > 0) {
                         sectionBalasan.style.display = 'block';
 
                         // Data sudah difilter dari database (hanya Ditresnarkoba dengan status tertentu)
                         let balasanHTML = '';
                         balasanArray.forEach((item, index) => {
-                            const timBadge = '<span class="badge bg-primary me-2">Ditresnarkoba</span>';
+                            const timBadge = '<span class="badge bg-success me-2">Ditresnarkoba</span>';
 
                             const tanggalBalasan = item.tanggal_respon ? new Date(item.tanggal_respon).toLocaleDateString('id-ID', {
                                 day: '2-digit',
@@ -810,7 +811,8 @@ require_once __DIR__ . '/../config/koneksi.php';
                     }
                 } catch (e) {
                     // Jika bukan JSON array, tampilkan sebagai text biasa (fallback)
-                    if (balasan && balasan.trim() !== '' && balasan !== 'null' && balasan !== 'NULL') {
+                    // Tetap hanya tampilkan jika status Selesai
+                    if (isSelesai && balasan && balasan.trim() !== '' && balasan !== 'null' && balasan !== 'NULL') {
                         sectionBalasan.style.display = 'block';
                         detailBalasan.textContent = balasan;
                     } else {
@@ -1028,11 +1030,14 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 ${formatDate(laporan.tanggal_lapor)}
                             </p>
                         </div>
-                        <div>
+                        <div class="position-relative">
                             <span class="status-badge" style="background-color: ${statusColor};">
                                 <i class="bi ${statusIcon}"></i>
                                 ${escapeHtml(laporan.status)}
                             </span>
+                            ${laporan.status === 'Selesai' ? `
+                                <span class="notification-dot" style="position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background: #dc3545; border: 2px solid white; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                            ` : ''}
                         </div>
                     </div>
                     <div class="laporan-body">
@@ -1043,11 +1048,11 @@ require_once __DIR__ . '/../config/koneksi.php';
                                 <strong>Lokasi:</strong> ${escapeHtml(laporan.lokasi)}
                             </p>
                         ` : ''}
-                        ${laporan.balasan ? `
+                        ${laporan.status === 'Selesai' && laporan.balasan ? `
                             <div class="laporan-balasan">
                                 <div class="balasan-header">
-                                    <i class="bi bi-chat-left-text-fill"></i>
-                                    <strong>Balasan Admin:</strong>
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <strong>Balasan Admin (Laporan Selesai):</strong>
                                 </div>
                                 <p class="balasan-text">${escapeHtml(laporan.balasan)}</p>
                                 <small class="balasan-date">
@@ -1657,5 +1662,51 @@ require_once __DIR__ . '/../config/koneksi.php';
         font-weight: 700;
         color: white;
         font-size: 0.95rem;
+    }
+
+    /* Pulse animation for notification dot */
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(1.2);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .notification-dot {
+        box-shadow: 0 0 10px rgba(220, 53, 69, 0.8);
+    }
+
+    /* Highlight balasan for completed reports */
+    .laporan-balasan {
+        background: linear-gradient(135deg, #f0fff4 0%, #e8f5e9 100%);
+        border: 2px solid #28a745;
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 15px;
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .balasan-header i.bi-check-circle-fill {
+        color: #28a745;
+        font-size: 1.2rem;
     }
 </style>

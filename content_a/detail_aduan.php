@@ -187,26 +187,66 @@ if (isset($_SESSION['form_success']) && $_SESSION['form_success'] === true) {
     unset($_SESSION['form_success']); // Hapus setelah ditampilkan
 }
 
-// Status badge class
-$status_class = 'secondary';
+// Status badge class - Support all status types with detailed colors
+$status_class = 'status-baru';
 $status_icon = 'dw-file';
 $status_laporan = isset($laporan['status']) ? $laporan['status'] : 'Baru';
 
-if ($status_laporan == 'Baru') {
-    $status_class = 'warning';
-    $status_icon = 'dw-inbox';
-} elseif ($status_laporan == 'Waiting') {
-    $status_class = 'warning';
-    $status_icon = 'dw-hourglass';
-} elseif (strpos($status_laporan, 'Diproses Ditresnarkoba') !== false) {
-    $status_class = 'info';
-    $status_icon = 'dw-loading';
-} elseif (strpos(strtolower($status_laporan), 'selesai') !== false) {
-    $status_class = 'success';
-    $status_icon = 'dw-checked';
-} elseif (strpos($status_laporan, 'Ditolak') !== false) {
-    $status_class = 'danger';
-    $status_icon = 'dw-cancel';
+switch ($status_laporan) {
+    case 'Baru':
+        $status_class = 'status-baru';
+        $status_icon = 'dw-inbox';
+        break;
+
+    // Status Diproses
+    case 'Diproses Ditresnarkoba':
+        $status_class = 'status-diproses-ditresnarkoba';
+        $status_icon = 'dw-loading';
+        break;
+    case 'Diproses Ditsamapta':
+        $status_class = 'status-diproses-ditsamapta';
+        $status_icon = 'dw-loading';
+        break;
+    case 'Diproses Ditbinmas':
+        $status_class = 'status-diproses-ditbinmas';
+        $status_icon = 'dw-loading';
+        break;
+    case 'Diproses Multiple Unit':
+        $status_class = 'status-diproses-multiple';
+        $status_icon = 'dw-loading';
+        break;
+
+    // Status Selesai
+    case 'Selesai':
+        $status_class = 'status-selesai';
+        $status_icon = 'dw-checked';
+        break;
+    case 'Selesai Ditresnarkoba':
+        $status_class = 'status-selesai-ditresnarkoba';
+        $status_icon = 'dw-checked';
+        break;
+    case 'Selesai Ditsamapta':
+        $status_class = 'status-selesai-ditsamapta';
+        $status_icon = 'dw-checked';
+        break;
+    case 'Selesai Ditbinmas':
+        $status_class = 'status-selesai-ditbinmas';
+        $status_icon = 'dw-checked';
+        break;
+
+    // Status Lainnya
+    case 'Waiting':
+        $status_class = 'status-waiting';
+        $status_icon = 'dw-hourglass';
+        break;
+    case 'Ditolak':
+        $status_class = 'status-ditolak';
+        $status_icon = 'dw-cancel';
+        break;
+
+    default:
+        $status_class = 'status-baru';
+        $status_icon = 'dw-file';
 }
 
 // Parse images
@@ -264,11 +304,73 @@ if (!empty($laporan['nama_pelapor'])) {
     .status-badge-large {
         padding: 10px 20px;
         border-radius: 25px;
-        font-weight: 600;
+        font-weight: 700;
         font-size: 1rem;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Status Badge Colors - Enhanced */
+    /* Status Baru */
+    .status-baru {
+        background: #FFD700 !important;
+        color: #1a1f3a !important;
+    }
+
+    /* Status Diproses */
+    .status-diproses-ditresnarkoba {
+        background: #dc3545 !important;
+        color: white !important;
+    }
+
+    .status-diproses-ditsamapta {
+        background: #1E40AF !important;
+        color: white !important;
+    }
+
+    .status-diproses-ditbinmas {
+        background: #28a745 !important;
+        color: white !important;
+    }
+
+    .status-diproses-multiple {
+        background: #9333ea !important;
+        color: white !important;
+    }
+
+    /* Status Selesai */
+    .status-selesai {
+        background: #16a34a !important;
+        color: white !important;
+    }
+
+    .status-selesai-ditresnarkoba {
+        background: #b91c1c !important;
+        color: white !important;
+    }
+
+    .status-selesai-ditsamapta {
+        background: #1e3a8a !important;
+        color: white !important;
+    }
+
+    .status-selesai-ditbinmas {
+        background: #15803d !important;
+        color: white !important;
+    }
+
+    /* Status Lainnya */
+    .status-waiting {
+        background: #f59e0b !important;
+        color: white !important;
+    }
+
+    .status-ditolak {
+        background: #7f1d1d !important;
+        color: white !important;
     }
 
     .badge-warning {
@@ -624,6 +726,81 @@ if (!empty($laporan['nama_pelapor'])) {
         z-index: 10000;
     }
 
+    /* Disposisi Buttons Styling */
+    .disposisi-buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .btn-disposisi {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-disposisi:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-disposisi i {
+        font-size: 1.2rem;
+        transition: transform 0.3s ease;
+    }
+
+    .btn-disposisi:hover i {
+        transform: translateX(5px);
+    }
+
+    .btn-ditsamapta {
+        background: #1E40AF;
+        color: white;
+    }
+
+    .btn-ditsamapta:hover {
+        background: #1a3694;
+        color: white;
+    }
+
+    .btn-ditbinmas {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-ditbinmas:hover {
+        background: #218838;
+        color: white;
+    }
+
+    .btn-disposisi:active {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Update Status Button Styling */
+    button[name="update_status"]:hover {
+        background: #FFD700 !important;
+        color: #1E40AF !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(30, 64, 175, 0.3);
+    }
+
+    button[name="update_status"]:active {
+        transform: translateY(0);
+        box-shadow: 0 3px 12px rgba(30, 64, 175, 0.2);
+    }
+
     @media print {
 
         .action-buttons,
@@ -694,9 +871,9 @@ if (!empty($laporan['nama_pelapor'])) {
             </div>
         </div>
         <div class="col-md-4 text-right">
-            <span class="status-badge-large badge-<?php echo $status_class; ?>">
+            <span class="status-badge-large <?php echo $status_class; ?>">
                 <i class="dw <?php echo $status_icon; ?>"></i>
-                <?php echo ucfirst(isset($laporan['status']) ? $laporan['status'] : 'Baru'); ?>
+                <?php echo htmlspecialchars(isset($laporan['status']) ? $laporan['status'] : 'Baru'); ?>
             </span>
         </div>
     </div>
@@ -705,6 +882,136 @@ if (!empty($laporan['nama_pelapor'])) {
 <div class="row">
     <!-- Left Column -->
     <div class="col-md-8">
+
+        <!-- Timeline Status -->
+        <div class="detail-card">
+            <div class="info-section">
+                <h5>📊 Timeline Status</h5>
+                <div class="timeline">
+                    <!-- Laporan Dibuat -->
+                    <div class="timeline-item">
+                        <div class="timeline-badge bg-warning">
+                            <i class="dw dw-inbox"></i>
+                        </div>
+                        <strong>Laporan Dibuat</strong>
+                        <div class="small text-muted">
+                            <i class="dw dw-calendar1"></i>
+                            <?php echo date('d M Y, H:i', strtotime($laporan['tanggal_lapor'])); ?> WIB
+                        </div>
+                        <div class="mt-2">Status: <span class="badge badge-warning">Baru</span></div>
+                    </div>
+
+                    <?php
+                    // Ambil timeline dari tabel respon
+                    $query_timeline = "SELECT DISTINCT
+                                        r.id_respon,
+                                        r.respon,
+                                        r.a_respon,
+                                        r.tanggal_respon,
+                                        a.Nama as nama_petugas,
+                                        a.Role as role_petugas
+                                    FROM respon r
+                                    LEFT JOIN akun a ON r.a_respon = a.Id_akun
+                                    WHERE r.id_lapmas = ?
+                                    GROUP BY r.id_respon
+                                    ORDER BY r.tanggal_respon ASC";
+
+                    $stmt_timeline = mysqli_prepare($db, $query_timeline);
+                    mysqli_stmt_bind_param($stmt_timeline, "i", $id_laporan);
+                    mysqli_stmt_execute($stmt_timeline);
+                    $result_timeline = mysqli_stmt_get_result($stmt_timeline);
+
+                    if (mysqli_num_rows($result_timeline) > 0):
+                        while ($timeline = mysqli_fetch_assoc($result_timeline)):
+                            // Determine badge color and icon based on role
+                            $badge_color = 'secondary';
+                            $badge_icon = 'dw-loading';
+                            $timeline_bg = 'bg-secondary';
+                            $role_badge = '';
+
+                            if ($timeline['role_petugas'] == 'Ditresnarkoba') {
+                                $badge_color = 'danger';
+                                $badge_icon = 'dw-checked';
+                                $timeline_bg = 'bg-danger';
+                                $role_badge = '<span class="badge badge-danger ml-2">Ditresnarkoba</span>';
+                            } elseif ($timeline['role_petugas'] == 'Ditsamapta') {
+                                $badge_color = 'primary';
+                                $badge_icon = 'dw-checked';
+                                $timeline_bg = 'bg-primary';
+                                $role_badge = '<span class="badge badge-primary ml-2">Ditsamapta</span>';
+                            } elseif ($timeline['role_petugas'] == 'Ditbinmas') {
+                                $badge_color = 'success';
+                                $badge_icon = 'dw-checked';
+                                $timeline_bg = 'bg-success';
+                                $role_badge = '<span class="badge badge-success ml-2">Ditbinmas</span>';
+                            }
+                    ?>
+                        <div class="timeline-item">
+                            <div class="timeline-badge <?php echo $timeline_bg; ?>">
+                                <i class="dw <?php echo $badge_icon; ?>"></i>
+                            </div>
+                            <strong>Tanggapan Tim</strong>
+                            <?php echo $role_badge; ?>
+                            <div class="small text-muted mt-1">
+                                <i class="dw dw-user1"></i> <?php echo htmlspecialchars($timeline['nama_petugas'] ?? 'Admin'); ?>
+                            </div>
+                            <div class="small text-muted">
+                                <i class="dw dw-calendar1"></i>
+                                <?php echo date('d M Y, H:i', strtotime($timeline['tanggal_respon'])); ?> WIB
+                            </div>
+                            <?php if (!empty($timeline['respon'])): ?>
+                                <div class="mt-2 p-2 bg-light rounded">
+                                    <small><i class="dw dw-chat"></i> <?php echo nl2br(htmlspecialchars($timeline['respon'])); ?></small>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php
+                        endwhile;
+                    endif;
+
+                    // Tampilkan status akhir jika ada
+                    $current_status = $laporan['status'];
+                    if ($current_status == 'Waiting'):
+                    ?>
+                        <div class="timeline-item">
+                            <div class="timeline-badge bg-warning">
+                                <i class="dw dw-hourglass"></i>
+                            </div>
+                            <strong>Waiting</strong>
+                            <span class="badge badge-warning ml-2">Menunggu Verifikasi Final</span>
+                            <div class="small text-muted mt-1">
+                                <i class="dw dw-info"></i> Ditsamapta & Ditbinmas telah selesai, menunggu Ditresnarkoba
+                            </div>
+                        </div>
+                    <?php
+                    elseif ($current_status == 'Selesai'):
+                    ?>
+                        <div class="timeline-item">
+                            <div class="timeline-badge bg-success">
+                                <i class="dw dw-checked"></i>
+                            </div>
+                            <strong>Selesai</strong>
+                            <span class="badge badge-success ml-2">Laporan Selesai</span>
+                            <div class="small text-muted mt-1">
+                                <i class="dw dw-info"></i> Laporan telah diselesaikan
+                            </div>
+                        </div>
+                    <?php
+                    elseif ($current_status == 'Ditolak'):
+                    ?>
+                        <div class="timeline-item">
+                            <div class="timeline-badge bg-danger">
+                                <i class="dw dw-cancel"></i>
+                            </div>
+                            <strong>Ditolak</strong>
+                            <span class="badge badge-danger ml-2">Laporan Ditolak</span>
+                        </div>
+                    <?php
+                    endif;
+                    ?>
+                </div>
+            </div>
+        </div>
 
         <!-- Isi Laporan -->
         <div class="detail-card">
@@ -854,154 +1161,78 @@ if (!empty($laporan['nama_pelapor'])) {
                         <?php echo date('d M Y', strtotime($laporan['tanggal_lapor'])); ?>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Status Timeline -->
-        <div class="detail-card">
-            <div class="info-section">
-                <h5>📊 Timeline Status</h5>
-                <div class="timeline">
-                    <!-- Laporan Dibuat -->
-                    <div class="timeline-item">
-                        <div class="timeline-badge bg-warning">
-                            <i class="dw dw-inbox"></i>
-                        </div>
-                        <strong>Laporan Dibuat</strong>
-                        <div class="small text-muted">
-                            <i class="dw dw-calendar1"></i>
-                            <?php echo date('d M Y, H:i', strtotime($laporan['tanggal_lapor'])); ?> WIB
-                        </div>
-                        <div class="mt-2">Status: <span class="badge badge-warning">Baru</span></div>
-                    </div>
+                <div class="info-item">
+                    <div class="info-label">Ditangani Oleh</div>
+                    <div class="info-value">
+                        <?php
+                        // Split assigned_to by comma for display (support multiple assignments)
+                        $assigned_units = explode(',', $laporan['assigned_to']);
+                        foreach ($assigned_units as $unit):
+                            $unit = trim($unit); // Trim any whitespace
+                            $assigned_badge_class = 'badge-secondary';
 
-                    <?php
-                    // Ambil timeline dari tabel respon
-                    $query_timeline = "SELECT DISTINCT
-                                        r.id_respon,
-                                        r.respon,
-                                        r.a_respon,
-                                        r.tanggal_respon,
-                                        a.Nama as nama_petugas,
-                                        a.Role as role_petugas
-                                    FROM respon r
-                                    LEFT JOIN akun a ON r.a_respon = a.Id_akun
-                                    WHERE r.id_lapmas = ?
-                                    GROUP BY r.id_respon
-                                    ORDER BY r.tanggal_respon ASC";
-
-                    $stmt_timeline = mysqli_prepare($db, $query_timeline);
-                    mysqli_stmt_bind_param($stmt_timeline, "i", $id_laporan);
-                    mysqli_stmt_execute($stmt_timeline);
-                    $result_timeline = mysqli_stmt_get_result($stmt_timeline);
-
-                    if (mysqli_num_rows($result_timeline) > 0):
-                        while ($timeline = mysqli_fetch_assoc($result_timeline)):
-                            // Determine badge color and icon based on role
-                            $badge_color = 'secondary';
-                            $badge_icon = 'dw-loading';
-                            $timeline_bg = 'bg-secondary';
-                            $role_badge = '';
-
-                            if ($timeline['role_petugas'] == 'Ditresnarkoba') {
-                                $badge_color = 'danger';
-                                $badge_icon = 'dw-checked';
-                                $timeline_bg = 'bg-danger';
-                                $role_badge = '<span class="badge badge-danger ml-2">Ditresnarkoba</span>';
-                            } elseif ($timeline['role_petugas'] == 'Ditsamapta') {
-                                $badge_color = 'primary';
-                                $badge_icon = 'dw-checked';
-                                $timeline_bg = 'bg-primary';
-                                $role_badge = '<span class="badge badge-primary ml-2">Ditsamapta</span>';
-                            } elseif ($timeline['role_petugas'] == 'Ditbinmas') {
-                                $badge_color = 'success';
-                                $badge_icon = 'dw-checked';
-                                $timeline_bg = 'bg-success';
-                                $role_badge = '<span class="badge badge-success ml-2">Ditbinmas</span>';
+                            // Set badge color based on unit
+                            if ($unit == 'Ditresnarkoba') {
+                                $assigned_badge_class = 'badge-danger';
+                            } elseif ($unit == 'Ditsamapta') {
+                                $assigned_badge_class = 'badge-primary';
+                            } elseif ($unit == 'Ditbinmas') {
+                                $assigned_badge_class = 'badge-success';
                             }
-                    ?>
-                        <div class="timeline-item">
-                            <div class="timeline-badge <?php echo $timeline_bg; ?>">
-                                <i class="dw <?php echo $badge_icon; ?>"></i>
-                            </div>
-                            <strong>Tanggapan Tim</strong>
-                            <?php echo $role_badge; ?>
-                            <div class="small text-muted mt-1">
-                                <i class="dw dw-user1"></i> <?php echo htmlspecialchars($timeline['nama_petugas'] ?? 'Admin'); ?>
-                            </div>
-                            <div class="small text-muted">
-                                <i class="dw dw-calendar1"></i>
-                                <?php echo date('d M Y, H:i', strtotime($timeline['tanggal_respon'])); ?> WIB
-                            </div>
-                            <?php if (!empty($timeline['respon'])): ?>
-                                <div class="mt-2 p-2 bg-light rounded">
-                                    <small><i class="dw dw-chat"></i> <?php echo nl2br(htmlspecialchars($timeline['respon'])); ?></small>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    <?php
-                        endwhile;
-                    endif;
-
-                    // Tampilkan status akhir jika ada
-                    $current_status = $laporan['status'];
-                    if ($current_status == 'Waiting'):
-                    ?>
-                        <div class="timeline-item">
-                            <div class="timeline-badge bg-warning">
-                                <i class="dw dw-hourglass"></i>
-                            </div>
-                            <strong>Waiting</strong>
-                            <span class="badge badge-warning ml-2">Menunggu Verifikasi Final</span>
-                            <div class="small text-muted mt-1">
-                                <i class="dw dw-info"></i> Ditsamapta & Ditbinmas telah selesai, menunggu Ditresnarkoba
-                            </div>
-                        </div>
-                    <?php
-                    elseif ($current_status == 'Selesai'):
-                    ?>
-                        <div class="timeline-item">
-                            <div class="timeline-badge bg-success">
-                                <i class="dw dw-checked"></i>
-                            </div>
-                            <strong>Selesai</strong>
-                            <span class="badge badge-success ml-2">Laporan Selesai</span>
-                            <div class="small text-muted mt-1">
-                                <i class="dw dw-info"></i> Laporan telah diselesaikan
-                            </div>
-                        </div>
-                    <?php
-                    elseif ($current_status == 'Ditolak'):
-                    ?>
-                        <div class="timeline-item">
-                            <div class="timeline-badge bg-danger">
-                                <i class="dw dw-cancel"></i>
-                            </div>
-                            <strong>Ditolak</strong>
-                            <span class="badge badge-danger ml-2">Laporan Ditolak</span>
-                        </div>
-                    <?php
-                    endif;
-                    ?>
+                        ?>
+                        <span class="badge <?php echo $assigned_badge_class; ?> mr-2">
+                            <?php echo htmlspecialchars($unit); ?>
+                        </span>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Update Status (Only for Admin/Petugas) -->
+        <!-- Disposisi Laporan (Only for Ditresnarkoba with status Baru) -->
+        <?php if ($role == 'Ditresnarkoba' && $laporan['status'] == 'Baru'): ?>
         <div class="detail-card no-print">
             <div class="info-section">
-                <h5>⚙️ Update Status</h5>
+                <h5>🔀 Disposisi Laporan</h5>
+                <p class="text-muted mb-3">Arahkan laporan ini ke unit yang sesuai dengan instruksi dan status</p>
+
+                <div class="disposisi-buttons">
+                    <button type="button" class="btn btn-disposisi btn-disposisikan" data-toggle="modal" data-target="#modalDisposisi">
+                        <i class="dw dw-share"></i>
+                        <span>Disposisikan</span>
+                    </button>
+                </div>
+
+                <div class="alert alert-info mt-3" style="background: #e3f2fd; border-left: 4px solid #1E40AF; color: #495057;">
+                    <i class="dw dw-info"></i> <strong>Info:</strong> Anda dapat memberikan instruksi dan mengubah status laporan saat disposisi. Anda tetap dapat memonitor laporan ini setelah disposisi.
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <!-- Update Status & Tanggapan (Untuk semua role admin) -->
+        <?php if ($laporan['status'] != 'Baru') :?>
+        <div class="detail-card no-print">
+            <div class="info-section">
+                <h5>⚙️ Update Status & Tanggapan</h5>
+                <p class="text-muted mb-3" style="font-size: 0.9rem;">
+                    Berikan update progress dan tanggapan terhadap laporan ini
+                </p>
+
                 <form method="POST">
                     <div class="form-group">
-                        <label class="font-weight-600">Status Baru</label>
-                        <select class="form-control" name="status_baru" required>
+                        <label class="font-weight-600" style="color: #1E40AF;">
+                            <i class="dw dw-checked"></i> Status Baru
+                        </label>
+                        <select class="form-control" name="status_baru" required style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;">
                             <?php
                             $session_role = isset($_SESSION['role']) ? $_SESSION['role'] : '';
                             $current_status = isset($laporan['status']) ? $laporan['status'] : 'Baru';
-                            echo "<script>console.log('current_status: " . addslashes($current_status) . "');</script>";
 
-                            // Ditresnarkoba - Aktor pertama
+                            // Ditresnarkoba - Bisa mengubah status global
                             if (strpos($session_role, 'Ditresnarkoba') !== false) {
+                                echo '<option value="" disabled selected>-- Pilih Status --</option>';
                                 echo '<option value="Baru" ' . ($current_status == 'Baru' ? 'selected' : '') . '>Baru</option>';
                                 echo '<option value="Diproses Ditresnarkoba" ' . ($current_status == 'Diproses Ditresnarkoba' ? 'selected' : '') . '>Diproses Ditresnarkoba</option>';
 
@@ -1016,80 +1247,102 @@ if (!empty($laporan['nama_pelapor'])) {
                                 echo '<option value="Ditolak" ' . ($current_status == 'Ditolak' ? 'selected' : '') . '>Ditolak</option>';
                             }
 
-                            // Ditsamapta - Aktor kedua (bisa akses jika sudah diproses_Ditresnarkoba)
+                            // Ditsamapta - Bisa mengubah status Ditsamapta
                             if (strpos($session_role, 'Ditsamapta') !== false) {
-                                // Cek apakah sudah diproses Ditresnarkoba
-                                $bisa_akses = ($current_status == 'Diproses Ditresnarkoba' ||
+                                // Cek apakah sudah diproses atau assigned ke Ditsamapta
+                                $bisa_akses = ($laporan['assigned_to'] == 'Ditsamapta' ||
+                                              strpos($laporan['assigned_to'], 'Ditsamapta') !== false ||
+                                              $current_status == 'Diproses Ditresnarkoba' ||
                                               $current_status == 'Diproses Ditsamapta' ||
-                                              $current_status == 'Diproses Ditbinmas' ||
+                                              $current_status == 'Diproses Multiple Unit' ||
                                               $current_status == 'Selesai Ditsamapta' ||
-                                              $current_status == 'Selesai Ditbinmas');
+                                              strpos($current_status, 'Ditsamapta') !== false);
 
                                 if ($bisa_akses) {
+                                    echo '<option value="" disabled selected>-- Pilih Status --</option>';
+
                                     // Hanya tampilkan "diproses" jika belum selesai Ditsamapta
                                     if ($current_status != 'Selesai Ditsamapta') {
                                         echo '<option value="Diproses Ditsamapta" ' . ($current_status == 'Diproses Ditsamapta' ? 'selected' : '') . '>Diproses Ditsamapta</option>';
                                     }
+
                                     // Hanya bisa selesai jika sudah diproses Ditsamapta
                                     if ($current_status == 'Diproses Ditsamapta') {
-                                        echo '<option value="Selesai Ditsamapta" ' . ($current_status == 'Selesai Ditsamapta' ? 'selected' : '') . '>Selesai Ditsamapta</option>';
+                                        echo '<option value="Selesai Ditsamapta">Selesai Ditsamapta</option>';
                                     }
+
                                     if ($current_status == 'Selesai Ditsamapta') {
                                         echo '<option value="Selesai Ditsamapta" selected disabled>Selesai Ditsamapta</option>';
                                     }
                                 } else {
-                                    echo '<option value="" disabled selected>Belum dapat diproses (tunggu Ditresnarkoba)</option>';
+                                    echo '<option value="" disabled selected>Belum dapat diproses (tunggu assignment dari Ditresnarkoba)</option>';
                                 }
                             }
 
-                            // Ditbinmas - Aktor kedua (bisa akses jika sudah diproses_Ditresnarkoba)
+                            // Ditbinmas - Bisa mengubah status Ditbinmas
                             if (strpos($session_role, 'Ditbinmas') !== false) {
-                                // Cek apakah sudah diproses Ditresnarkoba
-                                $bisa_akses = ($current_status == 'Diproses Ditresnarkoba' ||
-                                              $current_status == 'Diproses Ditsamapta' ||
+                                // Cek apakah sudah diproses atau assigned ke Ditbinmas
+                                $bisa_akses = ($laporan['assigned_to'] == 'Ditbinmas' ||
+                                              strpos($laporan['assigned_to'], 'Ditbinmas') !== false ||
+                                              $current_status == 'Diproses Ditresnarkoba' ||
                                               $current_status == 'Diproses Ditbinmas' ||
-                                              $current_status == 'Selesai Ditsamapta' ||
-                                              $current_status == 'Selesai Ditbinmas');
+                                              $current_status == 'Diproses Multiple Unit' ||
+                                              $current_status == 'Selesai Ditbinmas' ||
+                                              strpos($current_status, 'Ditbinmas') !== false);
 
                                 if ($bisa_akses) {
+                                    echo '<option value="" disabled selected>-- Pilih Status --</option>';
+
                                     // Hanya tampilkan "diproses" jika belum selesai Ditbinmas
                                     if ($current_status != 'Selesai Ditbinmas') {
                                         echo '<option value="Diproses Ditbinmas" ' . ($current_status == 'Diproses Ditbinmas' ? 'selected' : '') . '>Diproses Ditbinmas</option>';
                                     }
+
                                     // Hanya bisa selesai jika sudah diproses Ditbinmas
                                     if ($current_status == 'Diproses Ditbinmas') {
-                                        echo '<option value="Selesai Ditbinmas" ' . ($current_status == 'Selesai Ditbinmas' ? 'selected' : '') . '>Selesai Ditbinmas</option>';
+                                        echo '<option value="Selesai Ditbinmas">Selesai Ditbinmas</option>';
                                     }
+
                                     if ($current_status == 'Selesai Ditbinmas') {
                                         echo '<option value="Selesai Ditbinmas" selected disabled>Selesai Ditbinmas</option>';
                                     }
                                 } else {
-                                    echo '<option value="" disabled selected>Belum dapat diproses (tunggu Ditresnarkoba)</option>';
+                                    echo '<option value="" disabled selected>Belum dapat diproses (tunggu assignment dari Ditresnarkoba)</option>';
                                 }
                             }
                             ?>
                         </select>
                         <small class="form-text text-muted">
                             <?php if (strpos($session_role, 'Ditsamapta') !== false || strpos($session_role, 'Ditbinmas') !== false): ?>
-                                <i class="bi bi-info-circle"></i> Anda dapat mengambil laporan ini setelah Ditresnarkoba memproses terlebih dahulu
+                                <i class="dw dw-info"></i> Anda dapat memproses laporan setelah di-assign oleh Ditresnarkoba
                             <?php endif; ?>
                         </small>
                     </div>
 
                     <div class="form-group">
-                        <label class="font-weight-600">Tanggapan/Keterangan</label>
-                        <textarea class="form-control" name="respon" rows="4"
-                            placeholder="Berikan tanggapan atau keterangan..."
-                            required><?php echo htmlspecialchars(isset($laporan['respon']) ? $laporan['respon'] : ''); ?></textarea>
+                        <label class="font-weight-600" style="color: #1E40AF;">
+                            <i class="dw dw-chat"></i> Tanggapan/Keterangan <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" name="respon" rows="5" required
+                                  placeholder="Berikan tanggapan atau keterangan progress laporan..."
+                                  style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;"></textarea>
+                        <small class="form-text text-muted">
+                            <i class="dw dw-info"></i> Tanggapan akan terlihat di Timeline dan Ditresnarkoba dapat memonitor progress
+                        </small>
                     </div>
 
-                    <button type="submit" name="update_status" class="btn btn-primary btn-block">
-                        <i class="dw dw-diskette"></i> Update Status
+                    <button type="submit" name="update_status" class="btn btn-primary btn-block"
+                            style="background: #1E40AF; border: none; border-radius: 10px; padding: 12px; font-weight: 600; transition: all 0.3s ease;">
+                        <i class="dw dw-diskette"></i> Update Status & Kirim Tanggapan
                     </button>
                 </form>
+
+                <div class="alert alert-warning mt-3" style="background: #fff3cd; border-left: 4px solid #FFD700; color: #856404; font-size: 0.85rem;">
+                    <i class="dw dw-warning"></i> <strong>Penting:</strong> Update status akan tercatat dalam timeline dan semua admin dapat melihatnya.
+                </div>
             </div>
         </div>
-
+        <?php endif; ?>
     </div>
 </div>
 
@@ -1097,6 +1350,82 @@ if (!empty($laporan['nama_pelapor'])) {
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <span class="lightbox-close">&times;</span>
     <img src="" id="lightbox-img" alt="Preview">
+</div>
+
+<!-- Modal Disposisi -->
+<div class="modal fade" id="modalDisposisi" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header" style="background: #1E40AF; color: white; border-radius: 15px 15px 0 0; border-bottom: 3px solid #FFD700;">
+                <h5 class="modal-title" style="color: #FFD700; font-weight: 700;">
+                    <i class="dw dw-share"></i> Form Disposisi Laporan
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" style="color: white; opacity: 1;">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="formDisposisi">
+                    <input type="hidden" id="disposisi_id_lapmas" value="<?php echo $id_laporan; ?>">
+                    <input type="hidden" id="disposisi_target_unit" value="">
+
+                    <div class="alert" id="disposisiAlert" style="display: none; border-radius: 10px;"></div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1E40AF;">
+                            <i class="dw dw-building"></i> Diarahkan Ke
+                        </label>
+                        <div class="checkbox-container" style="border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; background: #f8f9fa;">
+                            <div class="checkbox-item" style="margin-bottom: 10px;">
+                                <label class="custom-checkbox" style="cursor: pointer; display: flex; align-items: center;">
+                                    <input type="checkbox" name="assigned_to[]" value="Ditsamapta" id="checkbox_ditsamapta" style="display: none;">
+                                    <span class="checkmark" id="checkmark_ditsamapta" style="display: inline-block; width: 20px; height: 20px; border: 2px solid #1E40AF; border-radius: 4px; margin-right: 10px; position: relative; background: white; transition: all 0.3s ease; cursor: pointer;"></span>
+                                    <span class="checkbox-label" style="font-weight: 600; color: #1E40AF; cursor: pointer;">Ditsamapta</span>
+                                </label>
+                            </div>
+                            <div class="checkbox-item">
+                                <label class="custom-checkbox" style="cursor: pointer; display: flex; align-items: center;">
+                                    <input type="checkbox" name="assigned_to[]" value="Ditbinmas" id="checkbox_ditbinmas" style="display: none;">
+                                    <span class="checkmark" id="checkmark_ditbinmas" style="display: inline-block; width: 20px; height: 20px; border: 2px solid #28a745; border-radius: 4px; margin-right: 10px; position: relative; background: white; transition: all 0.3s ease; cursor: pointer;"></span>
+                                    <span class="checkbox-label" style="font-weight: 600; color: #28a745; cursor: pointer;">Ditbinmas</span>
+                                </label>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Pilih unit yang akan menangani laporan ini (bisa pilih lebih dari satu)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1E40AF;">
+                            <i class="dw dw-checked"></i> Status Laporan
+                        </label>
+                        <select class="form-control" id="disposisi_status" required style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;">
+                            <option value="">-- Pilih Status --</option>
+                            <option value="Diproses">Diproses (Status Umum)</option>
+                        </select>
+                        <small class="form-text text-muted">Status akan otomatis disesuaikan dengan unit tujuan</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1E40AF;">
+                            <i class="dw dw-chat"></i> Instruksi/Tanggapan <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="disposisi_tanggapan" rows="5" required
+                                  placeholder="Berikan instruksi atau catatan untuk unit yang dituju..."
+                                  style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;"></textarea>
+                        <small class="form-text text-muted">Instruksi ini akan disimpan dalam timeline laporan</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid #e9ecef; padding: 20px 30px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 10px; padding: 10px 20px;">
+                    <i class="dw dw-cancel"></i> Batal
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitDisposisi()" id="btnSubmitDisposisi" style="background: #1E40AF; border: none; border-radius: 10px; padding: 10px 25px; font-weight: 600;">
+                    <i class="dw dw-send"></i> Kirim Disposisi
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1186,4 +1515,150 @@ if (!empty($laporan['nama_pelapor'])) {
             }
         }
     });
+
+    // Function untuk set target unit disposisi
+    function setTargetUnit(unit) {
+        document.getElementById('disposisi_target_unit').value = unit;
+        document.getElementById('disposisi_unit_display').value = unit;
+
+        // Update display color based on unit
+        const displayField = document.getElementById('disposisi_unit_display');
+        if (unit === 'Ditsamapta') {
+            displayField.style.borderColor = '#1E40AF';
+            displayField.style.color = '#1E40AF';
+        } else {
+            displayField.style.borderColor = '#28a745';
+            displayField.style.color = '#28a745';
+        }
+
+        // Reset form
+        document.getElementById('disposisi_status').value = '';
+        document.getElementById('disposisi_tanggapan').value = '';
+        document.getElementById('disposisiAlert').style.display = 'none';
+    }
+
+    // Function untuk submit disposisi
+    function submitDisposisi() {
+        const idLapmas = document.getElementById('disposisi_id_lapmas').value;
+        const status = document.getElementById('disposisi_status').value;
+        const tanggapan = document.getElementById('disposisi_tanggapan').value.trim();
+
+        // Get checked checkboxes
+        const checkedBoxes = document.querySelectorAll('input[name="assigned_to[]"]:checked');
+        const selectedOptions = Array.from(checkedBoxes).map(cb => cb.value);
+
+        // Validation
+        if (selectedOptions.length === 0) {
+            showDisposisiAlert('Pilih unit tujuan terlebih dahulu', 'danger');
+            return;
+        }
+
+        if (!status) {
+            showDisposisiAlert('Pilih status laporan', 'danger');
+            return;
+        }
+
+        if (!tanggapan) {
+            showDisposisiAlert('Instruksi/tanggapan wajib diisi', 'danger');
+            return;
+        }
+
+        // Disable button
+        const btnSubmit = document.getElementById('btnSubmitDisposisi');
+        const originalHTML = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="dw dw-loading" style="animation: spin 1s linear infinite;"></i> Memproses...';
+
+        // Determine final status based on units
+        let finalStatus = status;
+        if (status === 'Diproses') {
+            if (selectedOptions.length === 1) {
+                finalStatus = 'Diproses ' + selectedOptions[0];
+            } else {
+                finalStatus = 'Diproses ke ' + selectedOptions.join(' dan ');
+            }
+        }
+
+        // Prepare form data for multiple selections
+        const formData = new URLSearchParams();
+        formData.append('id_lapmas', idLapmas);
+        selectedOptions.forEach(unit => formData.append('assigned_to[]', unit));
+        formData.append('status', finalStatus);
+        formData.append('tanggapan', tanggapan);
+
+        // AJAX request
+        fetch('content_a/disposisi_laporan.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: formData.toString()
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showDisposisiAlert('Disposisi berhasil dikirim!', 'success');
+
+                setTimeout(() => {
+                    window.location.href = 'dash.php?page=laporan-Ditresnarkoba';
+                }, 1500);
+            } else {
+                showDisposisiAlert(data.message, 'danger');
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalHTML;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showDisposisiAlert('Terjadi kesalahan saat memproses disposisi', 'danger');
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalHTML;
+        });
+    }
+
+    // Function untuk show alert di modal
+    function showDisposisiAlert(message, type) {
+        const alert = document.getElementById('disposisiAlert');
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'block';
+        alert.innerHTML = `<i class="dw dw-${type === 'success' ? 'checked' : 'warning'}"></i> ${message}`;
+
+        if (type === 'success') {
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+    }
+
+    // Handle custom checkbox changes
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle checkbox changes for Ditsamapta
+        const ditsamaptaCheckmark = document.getElementById('checkmark_ditsamapta');
+        const ditsamaptaCheckbox = document.getElementById('checkbox_ditsamapta');
+
+        if (ditsamaptaCheckbox && ditsamaptaCheckmark) {
+            ditsamaptaCheckbox.addEventListener('change', function() {
+                ditsamaptaCheckmark.style.background = this.checked ? '#1E40AF' : 'white';
+                ditsamaptaCheckmark.innerHTML = this.checked ? '<i class="dw dw-checked" style="color: white; font-size: 12px;"></i>' : '';
+            });
+        }
+
+        // Handle checkbox changes for Ditbinmas
+        const ditbinmasCheckmark = document.getElementById('checkmark_ditbinmas');
+        const ditbinmasCheckbox = document.getElementById('checkbox_ditbinmas');
+
+        if (ditbinmasCheckbox && ditbinmasCheckmark) {
+            ditbinmasCheckbox.addEventListener('change', function() {
+                ditbinmasCheckmark.style.background = this.checked ? '#28a745' : 'white';
+                ditbinmasCheckmark.innerHTML = this.checked ? '<i class="dw dw-checked" style="color: white; font-size: 12px;"></i>' : '';
+            });
+        }
+    });
 </script>
+
+<style>
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>

@@ -47,11 +47,9 @@ CREATE TABLE IF NOT EXISTS `berita` (
   `desk` varchar(255) DEFAULT NULL,
   `tanggal` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_berita`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table ditresnarkoba.berita: ~0 rows (approximately)
-INSERT INTO `berita` (`id_berita`, `judul`, `gambar`, `link`, `desk`, `tanggal`) VALUES
-	(1, 'tes1', '1763825535_Screenshot (10).png', 'https://google.com', 'tes1dasdadsassaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', '2025-11-22 16:32:16');
 
 -- Dumping structure for table ditresnarkoba.feedback_kasus
 CREATE TABLE IF NOT EXISTS `feedback_kasus` (
@@ -68,19 +66,9 @@ CREATE TABLE IF NOT EXISTS `feedback_kasus` (
   KEY `kec` (`kec`),
   KEY `unit` (`unit`),
   KEY `status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.feedback_kasus: ~8 rows (approximately)
-INSERT INTO `feedback_kasus` (`id`, `kec`, `unit`, `jenis_tindakan`, `keterangan`, `status`, `tanggal_respon`, `updated_at`, `user_id`) VALUES
-	(1, 'Kecamatan Contoh', 'Ditsamapta', 'Patroli Rutin', 'Melakukan patroli rutin di area rawan narkoba setiap hari Senin-Jumat pukul 19.00-22.00', 'Sedang Berlangsung', '2024-12-01 08:00:00', NULL, NULL),
-	(2, 'Kecamatan Contoh', 'Ditbinmas', 'Sosialisasi dan Bimbingan', 'Mengadakan sosialisasi bahaya narkoba di sekolah-sekolah dan kelurahan', 'Sedang Berlangsung', '2024-12-02 09:00:00', NULL, NULL),
-	(3, 'Kecamatan Contoh', 'Ditsamapta', 'Patroli Rutin', 'Melakukan patroli rutin di area rawan narkoba setiap hari Senin-Jumat pukul 19.00-22.00', 'Sedang Berlangsung', '2024-12-01 08:00:00', NULL, NULL),
-	(4, 'Kecamatan Contoh', 'Ditbinmas', 'Sosialisasi dan Bimbingan', 'Mengadakan sosialisasi bahaya narkoba di sekolah-sekolah dan kelurahan', 'Sedang Berlangsung', '2024-12-02 09:00:00', NULL, NULL),
-	(5, 'Kecamatan Contoh', 'Ditsamapta', 'Patroli Rutin', 'Melakukan patroli rutin di area rawan narkoba setiap hari Senin-Jumat pukul 19.00-22.00', 'Sedang Berlangsung', '2024-12-01 08:00:00', NULL, NULL),
-	(6, 'Kecamatan Contoh', 'Ditbinmas', 'Sosialisasi dan Bimbingan', 'Mengadakan sosialisasi bahaya narkoba di sekolah-sekolah dan kelurahan', 'Sedang Berlangsung', '2024-12-02 09:00:00', NULL, NULL),
-	(7, 'Kecamatan Contoh', 'Ditsamapta', 'Patroli Rutin', 'Melakukan patroli rutin di area rawan narkoba setiap hari Senin-Jumat pukul 19.00-22.00', 'Sedang Berlangsung', '2024-12-01 08:00:00', NULL, NULL),
-	(8, 'Kecamatan Contoh', 'Ditbinmas', 'Sosialisasi dan Bimbingan', 'Mengadakan sosialisasi bahaya narkoba di sekolah-sekolah dan kelurahan', 'Sedang Berlangsung', '2024-12-02 09:00:00', NULL, NULL),
-	(9, 'Deli serdang', 'Ditsamapta', 'Patroli Khusus', 'ss', 'Sedang Berlangsung', '2025-12-09 17:48:27', NULL, 2);
+-- Dumping data for table ditresnarkoba.feedback_kasus: ~0 rows (approximately)
 
 -- Dumping structure for table ditresnarkoba.kasus
 CREATE TABLE IF NOT EXISTS `kasus` (
@@ -89,12 +77,31 @@ CREATE TABLE IF NOT EXISTS `kasus` (
   `jumlah kasus` int(50) DEFAULT NULL,
   `kec` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_kasus`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.kasus: ~2 rows (approximately)
+-- Dumping data for table ditresnarkoba.kasus: ~30 rows (approximately)
 INSERT INTO `kasus` (`id_kasus`, `tersangka`, `jumlah kasus`, `kec`) VALUES
-	(1, 10, 11, 'Deli serdang'),
-	(2, 22, 11, 'Deli serdang');
+	(1, 3, 1, 'Medan Tembung'),
+	(2, 9, 3, 'Medan Denai'),
+	(3, 5, 3, 'Medan Marelan'),
+	(4, 6, 4, 'Medan Helvetia'),
+	(5, 2, 2, 'Medan Kota'),
+	(6, 6, 2, 'Medan Baru'),
+	(7, 7, 4, 'Medan Sunggal'),
+	(8, 7, 3, 'Medan Belawan'),
+	(9, 9, 5, 'Medan Labuhan'),
+	(10, 10, 23, 'Medan Amplas'),
+	(11, 5, 2, 'Medan Area'),
+	(12, 2, 2, 'Medan Johor'),
+	(13, 1, 1, 'Medan Polonia'),
+	(14, 12, 24, 'Medan Selayang'),
+	(15, 4, 2, 'Medan Tuntungan'),
+	(16, 3, 1, 'Medan Maimun'),
+	(17, 5, 2, 'Medan Petisah'),
+	(18, 2, 1, 'Medan Perjuangan'),
+	(19, 4, 3, 'Medan Timur'),
+	(20, 1, 1, 'Medan Barat'),
+	(21, 6, 2, 'Medan Deli');
 
 -- Dumping structure for table ditresnarkoba.lapbin
 CREATE TABLE IF NOT EXISTS `lapbin` (
@@ -109,11 +116,9 @@ CREATE TABLE IF NOT EXISTS `lapbin` (
   `petugas` varchar(255) DEFAULT NULL,
   `pangkat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_lapbin`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- Dumping data for table ditresnarkoba.lapbin: ~0 rows (approximately)
-INSERT INTO `lapbin` (`id_lapbin`, `Id_akun`, `judul`, `status`, `materi`, `tanggal`, `personil`, `lokasi`, `petugas`, `pangkat`) VALUES
-	(1, 1, 'b', 'Baru', 'b', '2025-11-23 12:46:00', 12, 'b', 'Tomy Adrian', 'IPDA');
 
 -- Dumping structure for table ditresnarkoba.lapditres
 CREATE TABLE IF NOT EXISTS `lapditres` (
@@ -132,17 +137,17 @@ CREATE TABLE IF NOT EXISTS `lapmas` (
   `lokasi` varchar(2255) DEFAULT NULL,
   `upload` varchar(255) DEFAULT NULL,
   `tanggal_lapor` varchar(255) DEFAULT NULL,
-  `status` enum('Baru','Diproses Ditresnarkoba','Diproses Ditsamapta','Diproses Ditbinmas','Selesai','Selesai Ditresnarkoba','Selesai Ditsamapta','Selesai Ditbinmas','Waiting','Ditolak') NOT NULL DEFAULT 'Baru',
+  `status` enum('Baru','Diproses Ditresnarkoba','Diproses Ditsamapta','Diproses Ditbinmas','Diproses Multiple Unit','Selesai','Selesai Ditresnarkoba','Selesai Ditsamapta','Selesai Ditbinmas','Waiting','Ditolak') NOT NULL DEFAULT 'Baru',
+  `assigned_to` varchar(50) DEFAULT 'Ditresnarkoba',
   PRIMARY KEY (`id_lapmas`),
   KEY `idx_status` (`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.lapmas: ~4 rows (approximately)
-INSERT INTO `lapmas` (`id_lapmas`, `Id_akun`, `judul`, `desk`, `lokasi`, `upload`, `tanggal_lapor`, `status`) VALUES
-	(8, 5, 'c', 'c', 'c', '', '2025-11-23 01:17:46', 'Diproses Ditresnarkoba'),
-	(9, 4, 'd', 'd', 'd', '', '2025-11-23 18:57:34', 'Diproses Ditresnarkoba'),
-	(11, 4, 'tes', 'tes', 'tes', '', '2025-11-24 19:21:19', 'Diproses Ditsamapta'),
-	(12, 4, 's', 's', 's', '', '2025-11-25 08:18:47', 'Selesai');
+-- Dumping data for table ditresnarkoba.lapmas: ~3 rows (approximately)
+INSERT INTO `lapmas` (`id_lapmas`, `Id_akun`, `judul`, `desk`, `lokasi`, `upload`, `tanggal_lapor`, `status`, `assigned_to`) VALUES
+	(2, 4, 'tess', 'tess', 'tess', '', '2025-12-11 21:02:32', 'Diproses Ditsamapta', 'Ditsamapta'),
+	(3, 4, 'tes2', 'tes2', 'tes2', '', '2025-12-11 21:51:38', 'Diproses Multiple Unit', 'Ditsamapta,Ditbinmas'),
+	(4, 4, 'tes 3', 'tes 3', 'tes 3', '', '2025-12-12 07:31:06', 'Diproses Ditbinmas', 'Ditsamapta,Ditbinmas');
 
 -- Dumping structure for table ditresnarkoba.lapsam
 CREATE TABLE IF NOT EXISTS `lapsam` (
@@ -157,21 +162,9 @@ CREATE TABLE IF NOT EXISTS `lapsam` (
   `petugas` varchar(255) DEFAULT NULL,
   `pangkat` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_lapsam`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.lapsam: ~9 rows (approximately)
-INSERT INTO `lapsam` (`id_lapsam`, `Id_akun`, `judul`, `status`, `kegiatan`, `tanggal`, `personil`, `lokasi`, `petugas`, `pangkat`) VALUES
-	(1, 2, 'e', 'Baru', 'sasdasdasd', '0000-00-00 00:00:00', 1, 'e', 'Reza Ahlim', 'Briptu'),
-	(2, 2, 'tes dis', 'Baru', 'tes', '0000-00-00 00:00:00', 2, 'tes dis', 'Reza Ahlim', 'Kombes'),
-	(3, 2, 'tes dis', 'Baru', 'tes', '0000-00-00 00:00:00', 2, 'tes dis', 'Reza Ahlim', 'Kombes'),
-	(4, 2, 'tes dis', 'Baru', 'tes', '0000-00-00 00:00:00', 2, 'tes dis', 'Reza Ahlim', 'Kombes'),
-	(5, 2, 'tes dis', 'Baru', 'tes', '0000-00-00 00:00:00', 2, 'tes dis', 'Reza Ahlim', 'Kombes'),
-	(6, 2, 'tes dis 2', 'Baru', 'tes 2', '0000-00-00 00:00:00', 2, 'tes dis 2', 'Reza Ahlim', 'Kombes'),
-	(7, 2, 'tes dis 2', 'Baru', 'tes 2', '0000-00-00 00:00:00', 2, 'tes dis 2', 'Reza Ahlim', 'Kombes'),
-	(8, 2, 'tes dis 2', 'Baru', 'tes 2', '0000-00-00 00:00:00', 2, 'tes dis 2', 'Reza Ahlim', 'Kombes'),
-	(9, 2, 'tes dis 2', 'Baru', 'tes 2', '0000-00-00 00:00:00', 2, 'tes dis 2', 'Reza Ahlim', 'Kombes'),
-	(10, 2, 'tes 3', 'Baru', 'tes 3', '0000-00-00 00:00:00', 1, 'tes 3', 'Reza Ahlim', 'Kompol'),
-	(11, 2, 'tes 3', 'Baru', 'tes 3', '2025-11-26 02:47:00', 1, 'tes 3', 'Reza Ahlim', 'Kompol');
+-- Dumping data for table ditresnarkoba.lapsam: ~0 rows (approximately)
 
 -- Dumping structure for table ditresnarkoba.respon
 CREATE TABLE IF NOT EXISTS `respon` (
@@ -181,18 +174,15 @@ CREATE TABLE IF NOT EXISTS `respon` (
   `a_respon` varchar(255) DEFAULT NULL,
   `tanggal_respon` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id_respon`)
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.respon: ~8 rows (approximately)
+-- Dumping data for table ditresnarkoba.respon: ~3 rows (approximately)
 INSERT INTO `respon` (`id_respon`, `id_lapmas`, `respon`, `a_respon`, `tanggal_respon`) VALUES
-	(15, 9, 'ok', '3', '2025-11-23 13:24:40'),
-	(21, 4, 'ok sep', '3', '2025-11-23 13:44:26'),
-	(22, 9, 'ok meluncur', '2', '2025-11-23 15:44:51'),
-	(23, 9, 'ok siap', '1', '2025-11-23 18:01:20'),
-	(24, 9, 'ok, mantap', '3', '2025-11-23 18:20:54'),
-	(25, 8, 'tes', '3', '2025-11-24 01:33:26'),
-	(26, 12, 'ok', '1', '2025-11-25 01:21:37'),
-	(27, 12, 'ok, selesai', '3', '2025-11-25 01:22:02');
+	(1, 2, 'lanjutkan ditsamapta', '3', '2025-12-11 14:13:33'),
+	(2, 2, 'sedang diproses pak', '2', '2025-12-11 14:26:20'),
+	(3, 3, 'lanjutkan', '3', '2025-12-11 15:18:25'),
+	(4, 4, 'tes 3', '3', '2025-12-12 00:45:15'),
+	(5, 4, 'baik pak', '1', '2025-12-12 01:18:10');
 
 -- Dumping structure for table ditresnarkoba.temuan
 CREATE TABLE IF NOT EXISTS `temuan` (
@@ -200,11 +190,9 @@ CREATE TABLE IF NOT EXISTS `temuan` (
   `jenis` varchar(255) NOT NULL,
   `jumlah` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id_temuan`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Dumping data for table ditresnarkoba.temuan: ~1 rows (approximately)
-INSERT INTO `temuan` (`id_temuan`, `jenis`, `jumlah`) VALUES
-	(2, 'ganja', '100 gram');
+-- Dumping data for table ditresnarkoba.temuan: ~0 rows (approximately)
 
 /*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;

@@ -212,6 +212,71 @@ if ($hour < 12) {
         font-size: 0.75rem;
     }
 
+    /* Status Badge Styles - Enhanced */
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    /* Status Baru */
+    .status-baru {
+        background: #FFD700;
+        color: #1a1f3a;
+    }
+
+    /* Status Diproses */
+    .status-diproses-ditresnarkoba {
+        background: #dc3545;
+        color: white;
+    }
+
+    .status-diproses-ditsamapta {
+        background: #1E40AF;
+        color: white;
+    }
+
+    .status-diproses-ditbinmas {
+        background: #28a745;
+        color: white;
+    }
+
+    /* Status Selesai */
+    .status-selesai {
+        background: #16a34a;
+        color: white;
+    }
+
+    .status-selesai-ditresnarkoba {
+        background: #b91c1c;
+        color: white;
+    }
+
+    .status-selesai-ditsamapta {
+        background: #1e3a8a;
+        color: white;
+    }
+
+    .status-selesai-ditbinmas {
+        background: #15803d;
+        color: white;
+    }
+
+    /* Status Lainnya */
+    .status-waiting {
+        background: #f59e0b;
+        color: white;
+    }
+
+    .status-ditolak {
+        background: #7f1d1d;
+        color: white;
+    }
+
     /* Quick Actions */
     .quick-action-btn {
         border-radius: 10px;
@@ -295,6 +360,91 @@ if ($hour < 12) {
     #modalFeedback .card:hover {
         transform: translateX(5px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Mobile Responsive Styles */
+    @media (max-width: 768px) {
+        /* Card Header Adjustments */
+        .table-card .card-header {
+            padding: 15px;
+        }
+
+        .table-card .card-header h4 {
+            font-size: 1.1rem;
+        }
+
+        .table-card .card-header p {
+            font-size: 0.8rem;
+        }
+
+        /* Welcome Card Mobile */
+        .welcome-card {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.3rem;
+        }
+
+        /* Stats Card Mobile */
+        .stats-number {
+            font-size: 2rem;
+        }
+
+        .stats-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 25px;
+        }
+
+        /* Alert Card Mobile */
+        .alert {
+            font-size: 0.9rem;
+        }
+
+        /* Table Responsive */
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+
+        /* Badge Responsive */
+        .badge-custom {
+            font-size: 0.7rem !important;
+            padding: 5px 10px;
+        }
+
+        .status-badge {
+            font-size: 0.75rem !important;
+            padding: 4px 10px;
+        }
+
+        /* Button Adjustments */
+        .btn-sm {
+            font-size: 0.85rem;
+            padding: 8px 12px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        /* Extra small devices */
+        .table-card .card-header h4 {
+            font-size: 1rem;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.1rem;
+        }
+
+        .stats-number {
+            font-size: 1.8rem;
+        }
+
+        /* Hide some columns on very small screens */
+        #pengaduan-table th:nth-child(3),
+        #pengaduan-table td:nth-child(3) {
+            display: none;
+        }
     }
 </style>
 
@@ -432,15 +582,48 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
 <?php endif; ?>
 
 <!-- Data Kasus Narkoba Table -->
+<?php
+// Check for duplicate kecamatan (only for Ditresnarkoba)
+$has_duplicates = false;
+$duplicate_count = 0;
+if ($role == 'Ditresnarkoba') {
+    $query_duplicates = "SELECT kec, COUNT(*) as count FROM kasus GROUP BY kec HAVING count > 1";
+    $result_duplicates = mysqli_query($db, $query_duplicates);
+    $duplicate_count = mysqli_num_rows($result_duplicates);
+    $has_duplicates = $duplicate_count > 0;
+}
+?>
+
+<?php if ($has_duplicates): ?>
+<div class="alert alert-warning mb-20" style="border-radius: 15px; border-left: 5px solid #f59e0b; background: #fef3c7; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);">
+    <div class="d-flex align-items-start justify-content-between">
+        <div style="flex: 1;">
+            <h6 style="color: #92400e; font-weight: 700; margin-bottom: 10px;">
+                <i class="icon-copy dw dw-warning"></i> Data Duplicate Terdeteksi
+            </h6>
+            <p style="color: #78350f; margin-bottom: 10px;">
+                Ditemukan <strong><?php echo $duplicate_count; ?> kecamatan</strong> dengan data lebih dari satu. Gabungkan data untuk menghindari duplikasi.
+            </p>
+            <small style="color: #78350f; font-style: italic;">
+                <i class="icon-copy dw dw-info"></i> Saat digabung, jumlah kasus dan tersangka akan dijumlahkan otomatis.
+            </small>
+        </div>
+        <button type="button" class="btn btn-warning ml-3" id="btnMergeDuplicates" style="border-radius: 10px; padding: 10px 20px; font-weight: 600; white-space: nowrap;">
+            <i class="icon-copy dw dw-merge"></i> Gabung Data Duplicate
+        </button>
+    </div>
+</div>
+<?php endif; ?>
+
 <div class="card table-card mb-30">
     <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <h4 class="mb-0">🚨 Data Daerah Rawan Narkoba</h4>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+            <div class="mb-3 mb-md-0">
+                <h4 class="mb-1">🚨 Data Daerah Rawan Narkoba</h4>
                 <p class="mb-0 small" style="opacity: 0.9;">Statistik kasus narkoba berdasarkan kecamatan</p>
             </div>
             <?php if ($role == 'Ditresnarkoba'): ?>
-            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-light btn-sm">
+            <a href="dash.php?page=input-laporan-Ditresnarkoba" class="btn btn-light btn-sm w-100 w-md-auto">
                 <i class="icon-copy dw dw-edit2"></i> Kelola Data
             </a>
             <?php endif; ?>
@@ -449,7 +632,7 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
     <div class="card-body">
         <!-- Filter Section -->
         <div class="row mb-3">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="form-group">
                     <label for="filterKecKasus" style="font-weight: 600;">Filter Kecamatan:</label>
                     <select class="form-control" id="filterKecKasus">
@@ -467,7 +650,7 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="form-group">
                     <label for="sortKasusDashboard" style="font-weight: 600;">Urutkan Berdasarkan:</label>
                     <select class="form-control" id="sortKasusDashboard">
@@ -478,7 +661,18 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                     </select>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label for="itemsPerPageKasus" style="font-weight: 600;">Tampilkan:</label>
+                    <select class="form-control" id="itemsPerPageKasus">
+                        <option value="5">5 data per halaman</option>
+                        <option value="10" selected>10 data per halaman</option>
+                        <option value="25">25 data per halaman</option>
+                        <option value="all">Semua data</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-md-3">
                 <div class="form-group">
                     <label style="font-weight: 600;">&nbsp;</label>
                     <button type="button" class="btn btn-secondary btn-block" id="btnResetFilterKasus">
@@ -575,9 +769,19 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                                     </div>
                                 </td>
                                 <td class="text-center">
-                                    <button class="btn btn-sm btn-info view-feedback-btn" data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" style="border-radius: 8px;">
-                                        <i class="icon-copy dw dw-eye"></i> Lihat
-                                    </button>
+                                    <div class="d-flex justify-content-center gap-2" style="gap: 5px;">
+                                        <button class="btn btn-sm btn-info view-feedback-btn" data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" style="border-radius: 8px;" title="Lihat Detail">
+                                            <i class="icon-copy dw dw-eye"></i>
+                                        </button>
+                                        <?php if ($role == 'Ditresnarkoba'): ?>
+                                        <button class="btn btn-sm btn-warning edit-kasus-btn" data-id="<?php echo $row_kasus['id_kasus']; ?>" data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" data-kasus="<?php echo $row_kasus['jumlah kasus']; ?>" data-tersangka="<?php echo $row_kasus['tersangka']; ?>" style="border-radius: 8px; color: white;" title="Edit Data">
+                                            <i class="icon-copy dw dw-edit2"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-kasus-btn" data-id="<?php echo $row_kasus['id_kasus']; ?>" data-kec="<?php echo htmlspecialchars($row_kasus['kec']); ?>" style="border-radius: 8px;" title="Hapus Data">
+                                            <i class="icon-copy dw dw-delete-3"></i>
+                                        </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                         <?php
@@ -595,6 +799,22 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                     <?php endif; ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="row mt-3">
+            <div class="col-md-6">
+                <div id="kasusTableInfo" style="padding: 10px; color: #6c757d; font-weight: 600;">
+                    Menampilkan 0 - 0 dari 0 data
+                </div>
+            </div>
+            <div class="col-md-6">
+                <nav aria-label="Pagination Kasus">
+                    <ul class="pagination justify-content-end mb-0" id="kasusPagination">
+                        <!-- Pagination buttons will be generated by JavaScript -->
+                    </ul>
+                </nav>
+            </div>
         </div>
     </div>
 </div>
@@ -614,36 +834,83 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                         <th>Judul Laporan</th>
                         <th>Lokasi</th>
                         <th width="120">Tanggal</th>
+                        <th width="150" class="text-center">Diarahkan Ke</th>
                         <th width="120" class="text-center">Status</th>
                         <th width="60" class="text-center">Hapus</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
-                    // Get recent laporan dari tabel lapmas
-                    $query_recent = "SELECT l.*, a.Nama as nama_pelapor
-                                    FROM lapmas l
-                                    LEFT JOIN akun a ON l.Id_akun = a.Id_akun
-                                    ORDER BY l.tanggal_lapor DESC
-                                    LIMIT 10";
-                    $result_recent = mysqli_query($db, $query_recent);
+                    // Get recent laporan dari tabel lapmas (filtered by assigned_to)
+                    // Ditresnarkoba bisa lihat semua, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+                    // Support multiple assignments (comma-separated)
+                    if ($role == 'Ditresnarkoba') {
+                        $query_recent = "SELECT l.*, a.Nama as nama_pelapor
+                                        FROM lapmas l
+                                        LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                        ORDER BY l.tanggal_lapor DESC
+                                        LIMIT 10";
+                        $stmt_recent = mysqli_prepare($db, $query_recent);
+                    } else {
+                        // Gunakan FIND_IN_SET untuk mendukung multiple assignments
+                        $query_recent = "SELECT l.*, a.Nama as nama_pelapor
+                                        FROM lapmas l
+                                        LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                        WHERE FIND_IN_SET(?, l.assigned_to) > 0
+                                        ORDER BY l.tanggal_lapor DESC
+                                        LIMIT 10";
+                        $stmt_recent = mysqli_prepare($db, $query_recent);
+                        mysqli_stmt_bind_param($stmt_recent, "s", $role);
+                    }
+                    mysqli_stmt_execute($stmt_recent);
+                    $result_recent = mysqli_stmt_get_result($stmt_recent);
 
                     $no = 1;
                     if (mysqli_num_rows($result_recent) > 0):
                         while ($row = mysqli_fetch_assoc($result_recent)):
-                            // Status badge
-                            $status_class = 'secondary';
-                            $status_text = $row['status'];
+                            // Determine status class - Support all status types with detailed colors
+                            $status_class = 'status-baru';
 
-                            if ($row['status'] == 'Baru') {
-                                $status_class = 'warning';
-                                $status_text = 'Baru';
-                            } elseif (strpos($row['status'], 'Diproses') !== false) {
-                                $status_class = 'info';
-                                $status_text = 'Diproses';
-                            } elseif ($row['status'] == 'Selesai') {
-                                $status_class = 'success';
-                                $status_text = 'Selesai';
+                            switch ($row['status']) {
+                                case 'Baru':
+                                    $status_class = 'status-baru';
+                                    break;
+
+                                // Status Diproses
+                                case 'Diproses Ditresnarkoba':
+                                    $status_class = 'status-diproses-ditresnarkoba';
+                                    break;
+                                case 'Diproses Ditsamapta':
+                                    $status_class = 'status-diproses-ditsamapta';
+                                    break;
+                                case 'Diproses Ditbinmas':
+                                    $status_class = 'status-diproses-ditbinmas';
+                                    break;
+
+                                // Status Selesai
+                                case 'Selesai':
+                                    $status_class = 'status-selesai';
+                                    break;
+                                case 'Selesai Ditresnarkoba':
+                                    $status_class = 'status-selesai-ditresnarkoba';
+                                    break;
+                                case 'Selesai Ditsamapta':
+                                    $status_class = 'status-selesai-ditsamapta';
+                                    break;
+                                case 'Selesai Ditbinmas':
+                                    $status_class = 'status-selesai-ditbinmas';
+                                    break;
+
+                                // Status Lainnya
+                                case 'Waiting':
+                                    $status_class = 'status-waiting';
+                                    break;
+                                case 'Ditolak':
+                                    $status_class = 'status-ditolak';
+                                    break;
+
+                                default:
+                                    $status_class = 'status-baru';
                             }
 
                             // Nama pelapor
@@ -658,8 +925,28 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                                 <td><?php echo htmlspecialchars($row['lokasi'] ? $row['lokasi'] : '-'); ?></td>
                                 <td><?php echo date('d M Y', strtotime($row['tanggal_lapor'])); ?></td>
                                 <td class="text-center">
-                                    <span class="badge badge-<?php echo $status_class; ?> badge-custom">
-                                        <?php echo $status_text; ?>
+                                    <?php
+                                    // Split assigned_to by comma for display (support multiple assignments)
+                                    $assigned_units = explode(',', $row['assigned_to']);
+                                    foreach ($assigned_units as $unit):
+                                        $unit = trim($unit); // Trim any whitespace
+                                        $badge_class = 'badge-secondary';
+
+                                        // Set badge color based on unit
+                                        if ($unit == 'Ditresnarkoba') {
+                                            $badge_class = 'badge-danger';
+                                        } elseif ($unit == 'Ditsamapta') {
+                                            $badge_class = 'badge-primary';
+                                        } elseif ($unit == 'Ditbinmas') {
+                                            $badge_class = 'badge-success';
+                                        }
+                                    ?>
+                                    <span class="badge <?php echo $badge_class; ?> mr-1 mb-1" style="font-size: 0.75rem;"><?php echo htmlspecialchars($unit); ?></span>
+                                    <?php endforeach; ?>
+                                </td>
+                                <td class="text-center">
+                                    <span class="status-badge <?php echo $status_class; ?>">
+                                        <?php echo htmlspecialchars($row['status']); ?>
                                     </span>
                                 </td>
                                 <td class="text-center">
@@ -673,7 +960,7 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                     else:
                         ?>
                         <tr>
-                            <td colspan="7" class="text-center py-5">
+                            <td colspan="8" class="text-center py-5">
                                 <div style="opacity: 0.5;">
                                     <i class="icon-copy dw dw-file" style="font-size: 3rem;"></i>
                                     <p class="mt-3 mb-0">Belum ada laporan</p>
@@ -762,6 +1049,68 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Kasus -->
+<div class="modal fade" id="modalEditKasus" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 15px; border: none;">
+            <div class="modal-header" style="background: #1a1f3a; color: white; border-radius: 15px 15px 0 0;">
+                <h5 class="modal-title" style="color: #FFD700; font-weight: 700;">
+                    <i class="icon-copy dw dw-edit2"></i> Edit Data Kasus
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" style="opacity: 1;">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 30px;">
+                <form id="formEditKasus">
+                    <input type="hidden" id="edit_id_kasus" name="id_kasus">
+
+                    <div class="alert alert-warning" style="background: #fff3cd; border-left: 4px solid #FFD700; color: #856404;">
+                        <i class="icon-copy dw dw-info"></i> Pastikan data yang dimasukkan akurat dan terbaru
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1a1f3a;">
+                            <i class="icon-copy dw dw-map"></i> Kecamatan <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="edit_kec" name="kec" required
+                               style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;"
+                               placeholder="Masukkan nama kecamatan">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1a1f3a;">
+                            <i class="icon-copy dw dw-file"></i> Jumlah Kasus <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="edit_jumlah_kasus" name="jumlah_kasus" required min="0"
+                               style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;"
+                               placeholder="Masukkan jumlah kasus">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="font-weight-600" style="color: #1a1f3a;">
+                            <i class="icon-copy dw dw-user"></i> Jumlah Tersangka <span class="text-danger">*</span>
+                        </label>
+                        <input type="number" class="form-control" id="edit_tersangka" name="tersangka" required min="0"
+                               style="border: 2px solid #e9ecef; border-radius: 10px; padding: 12px;"
+                               placeholder="Masukkan jumlah tersangka">
+                    </div>
+
+                    <div class="alert" id="editKasusAlert" style="display: none; border-radius: 10px;"></div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 2px solid #e9ecef; padding: 20px 30px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 10px; padding: 10px 20px;">
+                    <i class="icon-copy dw dw-cancel"></i> Batal
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitEditKasus()" id="btnSubmitEditKasus" style="background: #1a1f3a; border: none; border-radius: 10px; padding: 10px 25px; font-weight: 600;">
+                    <i class="icon-copy dw dw-diskette"></i> Simpan Perubahan
+                </button>
             </div>
         </div>
     </div>
@@ -902,14 +1251,20 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
             "order": [[1, 'desc']] // Sort by Jumlah Kasus (column 1) descending
         });
 
-        // Custom Filter and Sort for Kasus Table
+        // Pagination variables
+        let currentKasusPage = 1;
+        let itemsPerPage = 10;
+
+        // Custom Filter and Sort for Kasus Table with Pagination
         function filterKasusTable() {
             const filterKec = document.getElementById('filterKecKasus').value.toLowerCase();
             const sortOption = document.getElementById('sortKasusDashboard').value;
             const tbody = document.getElementById('tbodyKasusDashboard');
             const rows = Array.from(tbody.getElementsByTagName('tr'));
+            const itemsPerPageSelect = document.getElementById('itemsPerPageKasus').value;
 
-            let visibleCount = 0;
+            // Update items per page
+            itemsPerPage = itemsPerPageSelect === 'all' ? 999999 : parseInt(itemsPerPageSelect);
 
             // Filter rows first
             const filteredRows = [];
@@ -928,11 +1283,7 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                 }
 
                 if (showRow) {
-                    row.style.display = '';
                     filteredRows.push(row);
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
                 }
             }
 
@@ -957,19 +1308,49 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
                         return valueA - valueB; // Ascending
                     }
                 });
+            }
 
-                // Reorder rows in DOM
-                filteredRows.forEach(row => tbody.appendChild(row));
+            // Calculate pagination
+            const totalItems = filteredRows.length;
+            const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+            // Make sure current page is valid
+            if (currentKasusPage > totalPages && totalPages > 0) {
+                currentKasusPage = totalPages;
+            }
+            if (currentKasusPage < 1) {
+                currentKasusPage = 1;
+            }
+
+            const startIndex = (currentKasusPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+            // Hide all rows first
+            rows.forEach(row => row.style.display = 'none');
+
+            // Show only rows for current page
+            for (let i = 0; i < filteredRows.length; i++) {
+                if (i >= startIndex && i < endIndex) {
+                    filteredRows[i].style.display = '';
+                    tbody.appendChild(filteredRows[i]); // Reorder
+                } else {
+                    filteredRows[i].style.display = 'none';
+                }
             }
 
             // Update row numbers
             updateKasusRowNumbers();
+
+            // Update pagination info and controls
+            updateKasusPaginationInfo(startIndex + 1, endIndex, totalItems);
+            renderKasusPagination(totalPages);
         }
 
         function updateKasusRowNumbers() {
             const tbody = document.getElementById('tbodyKasusDashboard');
             const rows = tbody.getElementsByTagName('tr');
-            let num = 1;
+            const startIndex = (currentKasusPage - 1) * itemsPerPage;
+            let num = startIndex + 1;
 
             for (let i = 0; i < rows.length; i++) {
                 const row = rows[i];
@@ -982,24 +1363,124 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
             }
         }
 
+        function updateKasusPaginationInfo(start, end, total) {
+            const infoDiv = document.getElementById('kasusTableInfo');
+            if (total === 0) {
+                infoDiv.textContent = 'Tidak ada data untuk ditampilkan';
+            } else {
+                infoDiv.textContent = `Menampilkan ${start} - ${end} dari ${total} data`;
+            }
+        }
+
+        function renderKasusPagination(totalPages) {
+            const pagination = document.getElementById('kasusPagination');
+            pagination.innerHTML = '';
+
+            if (totalPages <= 1) return;
+
+            // Previous button
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentKasusPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="changeKasusPage(${currentKasusPage - 1}); return false;"><i class="ion-chevron-left"></i></a>`;
+            pagination.appendChild(prevLi);
+
+            // Page numbers
+            let startPage = Math.max(1, currentKasusPage - 2);
+            let endPage = Math.min(totalPages, currentKasusPage + 2);
+
+            // First page
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" onclick="changeKasusPage(1); return false;">1</a>`;
+                pagination.appendChild(firstLi);
+
+                if (startPage > 2) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = '<a class="page-link" href="#">...</a>';
+                    pagination.appendChild(dotsLi);
+                }
+            }
+
+            // Page numbers
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentKasusPage ? 'active' : ''}`;
+                pageLi.innerHTML = `<a class="page-link" href="#" onclick="changeKasusPage(${i}); return false;">${i}</a>`;
+                pagination.appendChild(pageLi);
+            }
+
+            // Last page
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dotsLi = document.createElement('li');
+                    dotsLi.className = 'page-item disabled';
+                    dotsLi.innerHTML = '<a class="page-link" href="#">...</a>';
+                    pagination.appendChild(dotsLi);
+                }
+
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" onclick="changeKasusPage(${totalPages}); return false;">${totalPages}</a>`;
+                pagination.appendChild(lastLi);
+            }
+
+            // Next button
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentKasusPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="changeKasusPage(${currentKasusPage + 1}); return false;"><i class="ion-chevron-right"></i></a>`;
+            pagination.appendChild(nextLi);
+        }
+
+        // Global function for pagination
+        window.changeKasusPage = function(page) {
+            currentKasusPage = page;
+            filterKasusTable();
+        };
+
         // Event listeners for kasus filters
-        document.getElementById('filterKecKasus').addEventListener('change', filterKasusTable);
-        document.getElementById('sortKasusDashboard').addEventListener('change', filterKasusTable);
+        document.getElementById('filterKecKasus').addEventListener('change', function() {
+            currentKasusPage = 1;
+            filterKasusTable();
+        });
+        document.getElementById('sortKasusDashboard').addEventListener('change', function() {
+            currentKasusPage = 1;
+            filterKasusTable();
+        });
+        document.getElementById('itemsPerPageKasus').addEventListener('change', function() {
+            currentKasusPage = 1;
+            filterKasusTable();
+        });
 
         // Reset kasus filter
         document.getElementById('btnResetFilterKasus').addEventListener('click', function() {
             document.getElementById('filterKecKasus').value = '';
             document.getElementById('sortKasusDashboard').value = 'jumlah_desc';
+            document.getElementById('itemsPerPageKasus').value = '10';
+            itemsPerPage = 10;
+            currentKasusPage = 1;
             filterKasusTable();
         });
 
+        // Initialize pagination on load
+        filterKasusTable();
+
         // Make table rows clickable - menggunakan event delegation pada tbody
-        $('#pengaduan-table tbody').on('click', 'tr.clickable-row', function() {
+        $('#pengaduan-table tbody').on('click', 'tr.clickable-row', function(e) {
+            // Jangan trigger jika yang diklik adalah button atau child dari button
+            if ($(e.target).closest('button, .btn').length > 0) {
+                return;
+            }
+
             var href = $(this).data('href');
             if (href) {
                 window.location.href = href;
             }
         });
+
+        // Debug: log when row is clicked
+        console.log('Clickable row handler initialized for #pengaduan-table');
 
         // Handle delete button click
         $('#pengaduan-table tbody').on('click', '.delete-btn', function(e) {
@@ -1207,6 +1688,185 @@ while ($top5_row = mysqli_fetch_assoc($result_top5)) {
             });
         });
 
+        // ==================================
+        // EDIT KASUS HANDLERS
+        // ==================================
+
+        // Handle edit kasus button click
+        $(document).on('click', '.edit-kasus-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const id = $(this).data('id');
+            const kec = $(this).data('kec');
+            const kasus = $(this).data('kasus');
+            const tersangka = $(this).data('tersangka');
+
+            // Populate form
+            $('#edit_id_kasus').val(id);
+            $('#edit_kec').val(kec);
+            $('#edit_jumlah_kasus').val(kasus);
+            $('#edit_tersangka').val(tersangka);
+
+            // Show modal
+            $('#modalEditKasus').modal('show');
+        });
+
+        // ==================================
+        // DELETE KASUS HANDLERS
+        // ==================================
+
+        // Handle delete kasus button click
+        $(document).on('click', '.delete-kasus-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const id = $(this).data('id');
+            const kec = $(this).data('kec');
+
+            // Confirmation dialog
+            if (!confirm(`Apakah Anda yakin ingin menghapus data kasus untuk kecamatan "${kec}"?\n\nPeringatan: Data yang dihapus tidak dapat dikembalikan!`)) {
+                return;
+            }
+
+            // Send delete request
+            $.ajax({
+                url: 'content_a/delete_kasus.php',
+                type: 'POST',
+                data: {
+                    action: 'delete_kasus',
+                    id_kasus: id
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        // Reload page to refresh data
+                        location.reload();
+                    } else {
+                        alert('Gagal: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Terjadi kesalahan saat menghapus data');
+                }
+            });
+        });
+
+        // ==================================
+        // MERGE DUPLICATE HANDLERS
+        // ==================================
+
+        // Handle merge duplicates button click
+        $(document).on('click', '#btnMergeDuplicates', function(e) {
+            e.preventDefault();
+
+            // Confirmation dialog
+            if (!confirm('Apakah Anda yakin ingin menggabungkan semua data kecamatan yang sama?\n\nProses ini akan:\n1. Menggabungkan data kecamatan yang duplicate\n2. Menjumlahkan jumlah kasus dan tersangka\n3. Menghapus data duplicate\n\nPeringatan: Proses ini tidak dapat dibatalkan!')) {
+                return;
+            }
+
+            const btnMerge = $(this);
+            const originalHTML = btnMerge.html();
+            btnMerge.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menggabungkan...');
+
+            // Send merge request
+            $.ajax({
+                url: 'content_a/merge_kasus.php',
+                type: 'POST',
+                data: {
+                    action: 'merge_duplicates'
+                },
+                dataType: 'json',
+                success: function(response) {
+                    btnMerge.prop('disabled', false).html(originalHTML);
+
+                    if (response.success) {
+                        alert(response.message + '\n\nDetail:\n' +
+                              '- Kecamatan yang digabung: ' + response.merged_count + '\n' +
+                              '- Data yang dihapus: ' + response.deleted_count);
+                        // Reload page to refresh data
+                        location.reload();
+                    } else {
+                        alert('Gagal: ' + response.message);
+                    }
+                },
+                error: function() {
+                    btnMerge.prop('disabled', false).html(originalHTML);
+                    alert('Terjadi kesalahan saat menggabungkan data');
+                }
+            });
+        });
+
     });
     } // End of initDashboardTable()
+
+    // Submit edit kasus function (global scope)
+    function submitEditKasus() {
+        const form = document.getElementById('formEditKasus');
+        const formData = new FormData(form);
+
+        // Validation
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const btnSubmit = document.getElementById('btnSubmitEditKasus');
+        const originalHTML = btnSubmit.innerHTML;
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Menyimpan...';
+
+        // Prepare data for submission
+        const data = {
+            action: 'update_kasus',
+            id_kasus: formData.get('id_kasus'),
+            kec: formData.get('kec'),
+            jumlah_kasus: formData.get('jumlah_kasus'),
+            tersangka: formData.get('tersangka')
+        };
+
+        // AJAX request
+        fetch('content_a/update_kasus.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(result => {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalHTML;
+
+            if (result.success) {
+                showEditKasusAlert('Data berhasil diperbarui!', 'success');
+                setTimeout(() => {
+                    $('#modalEditKasus').modal('hide');
+                    location.reload();
+                }, 1500);
+            } else {
+                showEditKasusAlert(result.message || 'Gagal mengupdate data', 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalHTML;
+            showEditKasusAlert('Terjadi kesalahan saat menyimpan data', 'danger');
+        });
+    }
+
+    function showEditKasusAlert(message, type) {
+        const alert = document.getElementById('editKasusAlert');
+        alert.className = `alert alert-${type}`;
+        alert.style.display = 'block';
+        alert.innerHTML = `<i class="icon-copy dw dw-${type === 'success' ? 'checked' : 'warning'}"></i> ${message}`;
+
+        if (type === 'success') {
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+    }
 </script>

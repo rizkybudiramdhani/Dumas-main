@@ -6,18 +6,22 @@ include_once 'config/koneksi.php';
 if (!isset($db) || $db === false) {
     // Jika koneksi gagal, set $data_rinci ke default dan hentikan eksekusi query
     $data_rinci = [
-        'jumlah_laporan' => 0,
+        'jumlah_kasus' => 0,
         'tersangka_penyidikan' => 0,
         'tersangka_rehabilitasi' => 0,
         'barang_bukti' => [],
         'last_updated' => date('Y-m-d H:i:s')
     ];
 } else {
-    // Query jumlah laporan dari tabel lapmas
-    $query_laporan = "SELECT COUNT(*) as total_laporan FROM lapmas WHERE status NOT IN ('Ditolak')";
-    $result_laporan = mysqli_query($db, $query_laporan);
-    $data_laporan = mysqli_fetch_assoc($result_laporan);
-    
+    // Query jumlah kasus dari tabel kasus
+    $query_kasus = "SELECT SUM(`jumlah kasus`) as total_kasus FROM kasus";
+    $result_kasus = mysqli_query($db, $query_kasus);
+    $data_kasus = mysqli_fetch_assoc($result_kasus);
+
+    // Query jumlah tersangka dari tabel kasus
+    $query_tersangka = "SELECT SUM(tersangka) as total_tersangka FROM kasus";
+    $result_tersangka = mysqli_query($db, $query_tersangka);
+    $data_tersangka = mysqli_fetch_assoc($result_tersangka);
 
     // Query untuk menghitung barang bukti berdasarkan jenis (dinamis)
     $query_bb = "SELECT jenis, SUM(CAST(jumlah AS DECIMAL(10,2))) as total_jumlah FROM temuan WHERE jenis IS NOT NULL AND jenis != '' GROUP BY jenis ORDER BY jenis ASC";
@@ -34,7 +38,7 @@ if (!isset($db) || $db === false) {
 
     // Susun data_rinci
     $data_rinci = [
-        'jumlah_laporan' => $data_laporan['total_laporan'] ?? 0,
+        'jumlah_kasus' => $data_kasus['total_kasus'] ?? 0,
         'tersangka_penyidikan' => $data_tersangka['total_tersangka'] ?? 0,
         'tersangka_rehabilitasi' => 0, // Sesuaikan jika ada data rehabilitasi
         'barang_bukti' => $barang_bukti,
@@ -147,15 +151,15 @@ if (!isset($db) || $db === false) {
 
                 <div class="data-card p-4 rounded shadow">
                     
-                    <h4 class="data-title border-bottom border-secondary pb-2 mb-4">A. Jumlah Laporan dan Tersangka</h4>
+                    <h4 class="data-title border-bottom border-secondary pb-2 mb-4">A. Jumlah Kasus dan Tersangka</h4>
                     <div class="row mb-5">
 
                         <div class="col-md-6 mb-3">
                             <div class="data-box p-3 rounded d-flex justify-content-between align-items-center">
                                 <div>
-                                    <p class="text-muted-light mb-1 small">Laporan Polisi</p>
+                                    <p class="text-muted-light mb-1 small">Jumlah Kasus</p>
                                     <h4 class="fw-bold mb-0 text-primary">
-                                        <?= number_format($data_rinci['jumlah_laporan']); ?>
+                                        <?= number_format($data_rinci['jumlah_kasus']); ?>
                                     </h4>
                                 </div>
                                 <i class="bi bi-file-earmark-bar-graph fs-2 text-muted-light"></i>
@@ -165,7 +169,7 @@ if (!isset($db) || $db === false) {
                         <div class="col-md-6 mb-3">
                             <div class="data-box p-3 rounded d-flex justify-content-between align-items-center">
                                 <div>
-                                    <p class="text-muted-light mb-1 small">Tersangka</p>
+                                    <p class="text-muted-light mb-1 small">Jumlah Tersangka</p>
                                     <h4 class="fw-bold mb-0 text-primary">
                                         <?= number_format($data_rinci['tersangka_penyidikan']); ?>
                                     </h4>

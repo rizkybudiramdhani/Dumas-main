@@ -28,9 +28,20 @@ if ($role == 'Ditresnarkoba') $role_display = 'Ditresnarkoba';
 if ($role == 'Ditsamapta') $role_display = 'Ditsamapta';
 if ($role == 'Ditbinmas') $role_display = 'Ditbinmas';
 
-// Get notification count - Laporan Baru
-$query_notif_count = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
-$result_notif_count = mysqli_query($db, $query_notif_count);
+// Get notification count - Laporan Baru (filtered by assigned_to)
+// Ditresnarkoba bisa lihat semua laporan, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+// Support multiple assignments (comma-separated)
+if ($role == 'Ditresnarkoba') {
+    $query_notif_count = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru'";
+    $stmt_notif_count = mysqli_prepare($db, $query_notif_count);
+} else {
+    // Gunakan FIND_IN_SET untuk mendukung multiple assignments
+    $query_notif_count = "SELECT COUNT(*) as total FROM lapmas WHERE status = 'Baru' AND FIND_IN_SET(?, assigned_to) > 0";
+    $stmt_notif_count = mysqli_prepare($db, $query_notif_count);
+    mysqli_stmt_bind_param($stmt_notif_count, "s", $role);
+}
+mysqli_stmt_execute($stmt_notif_count);
+$result_notif_count = mysqli_stmt_get_result($stmt_notif_count);
 $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
 ?>
 <style>
@@ -236,20 +247,49 @@ $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
                     </div>
                     <div class="notification-list">
                         <?php
-                        // Get recent laporan baru (5 terakhir)
-                        $query_notif = "SELECT l.*, a.Nama as nama_pelapor
-                                        FROM lapmas l
-                                        LEFT JOIN akun a ON l.Id_akun = a.Id_akun
-                                        WHERE l.status = 'Baru'
-                                        ORDER BY l.tanggal_lapor DESC
-                                        LIMIT 5";
-                        $result_notif = mysqli_query($db, $query_notif);
+                        // Get recent laporan baru (5 terakhir) - filtered by assigned_to
+                        // Ditresnarkoba bisa lihat semua, Ditsamapta/Ditbinmas hanya yang assigned ke mereka
+                        // Support multiple assignments (comma-separated)
+                        if ($role == 'Ditresnarkoba') {
+                            $query_notif = "SELECT l.*, a.Nama as nama_pelapor
+                                            FROM lapmas l
+                                            LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                            WHERE l.status = 'Baru'
+                                            ORDER BY l.tanggal_lapor DESC
+                                            LIMIT 5";
+                            $stmt_notif = mysqli_prepare($db, $query_notif);
+                        } else {
+                            // Gunakan FIND_IN_SET untuk mendukung multiple assignments
+                            $query_notif = "SELECT l.*, a.Nama as nama_pelapor
+                                            FROM lapmas l
+                                            LEFT JOIN akun a ON l.Id_akun = a.Id_akun
+                                            WHERE l.status = 'Baru' AND FIND_IN_SET(?, l.assigned_to) > 0
+                                            ORDER BY l.tanggal_lapor DESC
+                                            LIMIT 5";
+                            $stmt_notif = mysqli_prepare($db, $query_notif);
+                            mysqli_stmt_bind_param($stmt_notif, "s", $role);
+                        }
+                        mysqli_stmt_execute($stmt_notif);
+                        $result_notif = mysqli_stmt_get_result($stmt_notif);
 
                         if (mysqli_num_rows($result_notif) > 0):
                             while ($notif = mysqli_fetch_assoc($result_notif)):
                                 $nama_pelapor = $notif['nama_pelapor'] ? $notif['nama_pelapor'] : 'Anonim';
+
+                                // Ambil daftar unit yang ditugaskan
+                                $assigned_to = $notif['assigned_to'] ? $notif['assigned_to'] : 'Ditresnarkoba';
+                                $assigned_units = explode(',', $assigned_to);
+
+                                // Tentukan apakah laporan ini spesifik untuk unit tertentu (bukan Ditresnarkoba)
+                                $is_specific_assignment = !in_array('Ditresnarkoba', $assigned_units);
+                                $highlight_class = '';
+
+                                // Jika user bukan Ditresnarkoba dan laporan didisposisikan ke mereka, beri highlight
+                                if ($role != 'Ditresnarkoba' && in_array($role, $assigned_units)) {
+                                    $highlight_class = 'notification-assigned-to-me';
+                                }
                         ?>
-                                <a href="dash.php?page=detail-pengaduan&id=<?php echo $notif['id_lapmas']; ?>" class="notification-item">
+                                <a href="dash.php?page=detail-pengaduan&id=<?php echo $notif['id_lapmas']; ?>" class="notification-item <?php echo $highlight_class; ?>">
                                     <div class="d-flex align-items-start">
                                         <div class="notification-icon-wrapper">
                                             <i class="icon-copy dw dw-file"></i>
@@ -259,6 +299,30 @@ $notif_count = mysqli_fetch_assoc($result_notif_count)['total'];
                                             <div class="notification-text">
                                                 <i class="icon-copy dw dw-user1"></i> <?php echo htmlspecialchars($nama_pelapor); ?>
                                             </div>
+                                            <?php if ($role == 'Ditresnarkoba'): ?>
+                                                <!-- Tampilkan badge disposisi untuk Ditresnarkoba -->
+                                                <div class="notification-assigned-units">
+                                                    <?php foreach ($assigned_units as $unit): ?>
+                                                        <?php
+                                                        $unit = trim($unit);
+                                                        $badge_class = 'badge-secondary';
+                                                        if ($unit == 'Ditsamapta') $badge_class = 'badge-info';
+                                                        if ($unit == 'Ditbinmas') $badge_class = 'badge-warning';
+                                                        if ($unit == 'Ditresnarkoba') $badge_class = 'badge-primary';
+                                                        ?>
+                                                        <span class="unit-badge <?php echo $badge_class; ?>">
+                                                            <i class="icon-copy dw dw-right-arrow-2"></i> <?php echo htmlspecialchars($unit); ?>
+                                                        </span>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php elseif ($is_specific_assignment): ?>
+                                                <!-- Tampilkan badge "Ditugaskan Khusus" untuk unit yang ditugaskan -->
+                                                <div class="notification-assigned-units">
+                                                    <span class="unit-badge badge-special-assignment">
+                                                        <i class="icon-copy dw dw-checked"></i> Ditugaskan kepada Anda
+                                                    </span>
+                                                </div>
+                                            <?php endif; ?>
                                             <div class="notification-time">
                                                 <i class="icon-copy dw dw-clock1"></i>
                                                 <?php echo date('d M Y, H:i', strtotime($notif['tanggal_lapor'])); ?>
